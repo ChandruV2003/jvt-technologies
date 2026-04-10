@@ -1,8 +1,8 @@
 # JVT Technologies
 
-`JVT Technologies` is the business-facing layer for the active `Private-AI-Lab` work.
+`JVT Technologies` is the umbrella workspace for the company, its business operations, and its incubated product work.
 
-This area separates outward-facing business assets from the product code itself.
+This area keeps outward-facing business assets separate from product code while still giving everything one clean home under the company name.
 
 ## Structure
 
@@ -13,10 +13,13 @@ This area separates outward-facing business assets from the product code itself.
 - `outreach`: reviewed outbound templates, queue workflow, and draft tooling
 - `runbooks`: operating instructions for site launch, demo recording, and outreach review
 - `client-work`: future client delivery templates and notes
+- `products`: incubated product and R&D areas, including `Private-AI-Lab`
 
 ## Working Split
 
-- the product itself stays in `../apps/private-doc-intel-demo`
+- the company site and business operations live at this repo root
+- the incubated product/R&D workspace now lives in `products/Private-AI-Lab`
+- the active document assistant app now lives in `products/Private-AI-Lab/apps/private-doc-intel-demo`
 - the business website lives in `site`
 - synthetic demo material lives in `demo-packaging`
 - lead and outreach operations stay local-first and review-driven

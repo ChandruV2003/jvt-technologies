@@ -43,7 +43,7 @@ Use `real-lead-intake-checklist.md` when moving from fictional examples to real 
 ## Quick Start
 
 ```bash
-cd /Users/c.s.d.v.r.s./Developer/Control-Host/Private-AI-Lab/JVT-Technologies/lead-pipeline
+cd /Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/lead-pipeline
 python3 tools/lead_pipeline_cli.py init-db --db data/jvt_leads.sqlite3
 python3 tools/lead_pipeline_cli.py import-csv --db data/jvt_leads.sqlite3 --csv data/fictional-seed-leads.csv
 python3 tools/lead_pipeline_cli.py list --db data/jvt_leads.sqlite3

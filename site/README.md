@@ -13,7 +13,7 @@ This is the local-first website project for the outward-facing `JVT Technologies
 ## Local Preview
 
 ```bash
-cd /Users/c.s.d.v.r.s./Developer/Control-Host/Private-AI-Lab/JVT-Technologies/site
+cd /Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/site
 python3 -m http.server 8080
 ```
 

@@ -31,6 +31,6 @@ This folder contains the conservative inbound-email listener scaffold for `JVT T
 To draft a reply from an imported inbox item without sending anything:
 
 ```bash
-cd /Users/c.s.d.v.r.s./Developer/Control-Host/Private-AI-Lab/JVT-Technologies/outreach/mailbox-agent
+cd /Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/outreach/mailbox-agent
 python3 draft_reply.py --message-json ../inbox/new/2026-04-09/example.json
 ```

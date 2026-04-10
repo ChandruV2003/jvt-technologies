@@ -17,13 +17,13 @@ Capture one clean, silent JVT Technologies product demo that can later receive n
 One-command capture:
 
 ```bash
-/Users/c.s.d.v.r.s./Developer/Control-Host/Private-AI-Lab/JVT-Technologies/demo-packaging/scripts/capture-silent-demo.sh
+/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/demo-packaging/scripts/capture-silent-demo.sh
 ```
 
 Manual backend start if needed:
 
 ```bash
-/Users/c.s.d.v.r.s./Developer/Control-Host/Private-AI-Lab/JVT-Technologies/demo-packaging/scripts/start-recording-demo.sh
+/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/demo-packaging/scripts/start-recording-demo.sh
 ```
 
 ## Best Single Take

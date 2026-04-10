@@ -1,4 +1,4 @@
-property siteUrl : "file:///Users/c.s.d.v.r.s./Developer/Control-Host/Private-AI-Lab/JVT-Technologies/site/index.html"
+property siteUrl : "file:///Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/site/index.html"
 property demoUrl : "http://127.0.0.1:8000/demo"
 
 tell application "Safari"

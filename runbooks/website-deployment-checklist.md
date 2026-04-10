@@ -2,7 +2,7 @@
 
 ## Current Local Site
 
-- source path: `/Users/c.s.d.v.r.s./Developer/Control-Host/Private-AI-Lab/JVT-Technologies/site`
+- source path: `/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/site`
 - local preview command: `python3 -m http.server 8080`
 - swap-value file: `../site/launch-values.example.env`
 

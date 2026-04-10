@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-PROJECT_ROOT="/Users/c.s.d.v.r.s./Developer/Control-Host/Private-AI-Lab/apps/private-doc-intel-demo"
+PROJECT_ROOT="/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/products/Private-AI-Lab/apps/private-doc-intel-demo"
 BACKEND_ROOT="$PROJECT_ROOT/backend"
 RUN_NAME="${RUN_NAME:-recording-run-20260318}"
 

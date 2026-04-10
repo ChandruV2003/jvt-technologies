@@ -2,10 +2,9 @@
 
 set -euo pipefail
 
-ROOT="/Users/c.s.d.v.r.s./Developer/Control-Host/Private-AI-Lab"
-PROJECT_ROOT="$ROOT/apps/private-doc-intel-demo"
+JVT_ROOT="/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies"
+PROJECT_ROOT="$JVT_ROOT/products/Private-AI-Lab/apps/private-doc-intel-demo"
 BACKEND_ROOT="$PROJECT_ROOT/backend"
-JVT_ROOT="$ROOT/JVT-Technologies"
 SCRIPT_ROOT="$JVT_ROOT/demo-packaging/scripts"
 CAPTURE_ROOT="$JVT_ROOT/demo-packaging/captures"
 STAMP="$(date +%Y%m%d-%H%M%S)"

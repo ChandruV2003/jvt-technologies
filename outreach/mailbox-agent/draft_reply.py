@@ -13,7 +13,7 @@ from mlx_lm import generate, load
 
 
 DEFAULT_MODEL_PATH = "/Users/c.s.d.v.r.s./Library/Caches/Private-AI-Lab/models/answers/mlx-community--Qwen2.5-3B-Instruct-4bit"
-DEFAULT_OUTPUT_DIR = "/Users/c.s.d.v.r.s./Developer/Control-Host/Private-AI-Lab/JVT-Technologies/outreach/queue/review"
+DEFAULT_OUTPUT_DIR = "/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/outreach/queue/review"
 
 
 SYSTEM_PROMPT = """You are a careful assistant for JVT Technologies.

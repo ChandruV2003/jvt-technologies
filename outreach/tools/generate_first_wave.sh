@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-ROOT="/Users/c.s.d.v.r.s./Developer/Control-Host/Private-AI-Lab/JVT-Technologies"
+ROOT="/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies"
 LEAD_DB="$ROOT/lead-pipeline/data/jvt_leads.sqlite3"
 TEMPLATE="$ROOT/outreach/templates/initial-introduction.md"
 OUTPUT_DIR="$ROOT/outreach/queue/draft"

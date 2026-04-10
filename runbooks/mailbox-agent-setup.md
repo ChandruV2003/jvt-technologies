@@ -32,7 +32,7 @@ This runbook describes how to turn the local mailbox listener into a real receiv
 5. run the listener once:
 
 ```bash
-cd /Users/c.s.d.v.r.s./Developer/Control-Host/Private-AI-Lab/JVT-Technologies/outreach/mailbox-agent
+cd /Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/outreach/mailbox-agent
 python3 mailbox_listener.py --once
 ```
 

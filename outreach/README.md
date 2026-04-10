@@ -51,10 +51,10 @@ Use `./.env.local` for real local values once the domain and mailbox exist.
 
 Start from:
 
-- [outreach/.env.example](/Users/c.s.d.v.r.s./Developer/Control-Host/Private-AI-Lab/JVT-Technologies/outreach/.env.example)
+- [outreach/.env.example](/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/outreach/.env.example)
 
 Then generate the first reviewed wave with:
 
 ```bash
-/Users/c.s.d.v.r.s./Developer/Control-Host/Private-AI-Lab/JVT-Technologies/outreach/tools/generate_first_wave.sh
+/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/outreach/tools/generate_first_wave.sh
 ```
