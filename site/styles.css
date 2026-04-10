@@ -26,6 +26,7 @@ body {
   font-family: "Avenir Next", "Segoe UI", sans-serif;
   color: var(--ink);
   background:
+    url("./brand-background.svg") center top / 1600px auto no-repeat,
     radial-gradient(circle at top left, rgba(13, 108, 96, 0.16), transparent 28rem),
     radial-gradient(circle at top right, rgba(18, 33, 27, 0.08), transparent 24rem),
     linear-gradient(180deg, #faf6ee, var(--bg));
@@ -55,10 +56,15 @@ a {
 
 .brand-mark {
   text-decoration: none;
-  font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
-  font-size: 1.22rem;
-  font-weight: 700;
-  letter-spacing: 0.01em;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+.brand-lockup {
+  display: block;
+  width: min(100%, 300px);
+  height: 56px;
 }
 
 .nav-toggle {
@@ -179,6 +185,35 @@ a {
   display: grid;
   gap: 1rem;
   align-content: start;
+  background:
+    linear-gradient(180deg, rgba(255, 252, 247, 0.94), rgba(255, 248, 239, 0.88)),
+    radial-gradient(circle at top right, rgba(13, 108, 96, 0.09), transparent 16rem);
+}
+
+.brand-showcase {
+  display: grid;
+  grid-template-columns: 88px 1fr;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.95rem 1rem;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(18, 33, 27, 0.08);
+}
+
+.brand-showcase-mark {
+  width: 88px;
+  height: 88px;
+  display: block;
+}
+
+.brand-showcase-label {
+  margin: 0 0 0.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.73rem;
+  color: var(--accent);
+  font-weight: 700;
 }
 
 .stat-card {
@@ -366,6 +401,11 @@ a {
   .hero {
     min-height: auto;
   }
+
+  .brand-lockup {
+    width: 248px;
+    height: 48px;
+  }
 }
 
 @media (max-width: 720px) {
@@ -389,6 +429,11 @@ a {
 
   .site-nav.is-open {
     display: flex;
+  }
+
+  .brand-lockup {
+    width: 216px;
+    height: 42px;
   }
 
   .site-footer {

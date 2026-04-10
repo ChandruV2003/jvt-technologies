@@ -1,19 +1,42 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="JVT Technologies social preview">
   <defs>
-    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
-      <stop offset="0%" stop-color="#0f312a" />
-      <stop offset="100%" stop-color="#0a5146" />
+    <linearGradient id="previewBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#16352f" />
+      <stop offset="56%" stop-color="#0d6c60" />
+      <stop offset="100%" stop-color="#0b3f38" />
+    </linearGradient>
+    <linearGradient id="previewPanel" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fffaf4" stop-opacity="0.94" />
+      <stop offset="100%" stop-color="#f1e2ce" stop-opacity="0.84" />
     </linearGradient>
   </defs>
-  <rect width="1200" height="630" fill="url(#bg)" />
-  <circle cx="965" cy="120" r="180" fill="rgba(255,255,255,0.08)" />
-  <circle cx="1070" cy="530" r="220" fill="rgba(255,255,255,0.06)" />
-  <text x="90" y="140" fill="#e9ded0" font-family="Avenir Next, Arial, sans-serif" font-size="30" letter-spacing="7">JVT TECHNOLOGIES</text>
-  <text x="90" y="280" fill="#fff8ee" font-family="Iowan Old Style, Georgia, serif" font-size="74" font-weight="700">
+  <rect width="1200" height="630" fill="url(#previewBg)" />
+  <circle cx="974" cy="100" r="188" fill="#ffffff" opacity="0.08" />
+  <circle cx="1116" cy="526" r="264" fill="#f2c98d" opacity="0.12" />
+  <path d="M85 490c157-84 322-120 495-94 127 19 246 66 358 141" fill="none" stroke="#f2c98d" stroke-width="3" opacity="0.32" stroke-linecap="round"/>
+  <rect x="66" y="60" width="1068" height="510" rx="34" fill="none" stroke="#fff7ef" opacity="0.12" />
+  <g transform="translate(88,92)">
+    <rect x="0" y="0" width="116" height="116" rx="33" fill="#fff8ee" fill-opacity="0.12" />
+    <path d="M27 26v38c0 10 4 15 12 15 7 0 12-4 12-11V26" fill="none" stroke="#fff8ee" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M52 26l15 54 14-54" fill="none" stroke="#fff8ee" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M73 26h26M86 26v54" fill="none" stroke="#fff8ee" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="18" cy="96" r="5" fill="#f2c98d" />
+    <path d="M18 96c18-18 31-27 42-28" fill="none" stroke="#f2c98d" stroke-width="2.4" stroke-linecap="round" opacity="0.78"/>
+  </g>
+  <text x="236" y="148" fill="#f6e8d6" font-family="Avenir Next, Arial, sans-serif" font-size="28" letter-spacing="7">JVT TECHNOLOGIES</text>
+  <text x="90" y="280" fill="#fff8ee" font-family="Iowan Old Style, Georgia, serif" font-size="72" font-weight="700">
     <tspan x="90" dy="0">Private AI systems</tspan>
-    <tspan x="90" dy="86">for document-heavy teams</tspan>
+    <tspan x="90" dy="84">for high-trust teams</tspan>
   </text>
-  <text x="90" y="470" fill="#d9d0c4" font-family="Avenir Next, Arial, sans-serif" font-size="32">
-    Cited answers • Local-first deployment • Privacy-aware workflow automation
+  <text x="92" y="428" fill="#e5d7c6" font-family="Avenir Next, Arial, sans-serif" font-size="29">
+    Document intelligence • Workflow automation • Controlled deployment
   </text>
+  <g transform="translate(760,172)">
+    <rect x="0" y="0" width="312" height="222" rx="28" fill="url(#previewPanel)" />
+    <text x="28" y="52" fill="#0c463d" font-family="Avenir Next, Arial, sans-serif" font-size="18" letter-spacing="3">FLAGSHIP SOLUTION</text>
+    <text x="28" y="98" fill="#12211b" font-family="Iowan Old Style, Georgia, serif" font-size="34" font-weight="700">Private Document</text>
+    <text x="28" y="136" fill="#12211b" font-family="Iowan Old Style, Georgia, serif" font-size="34" font-weight="700">Assistant</text>
+    <text x="28" y="180" fill="#53605c" font-family="Avenir Next, Arial, sans-serif" font-size="20">Grounded answers with citations,</text>
+    <text x="28" y="208" fill="#53605c" font-family="Avenir Next, Arial, sans-serif" font-size="20">built inside a broader JVT offering.</text>
+  </g>
 </svg>
