@@ -8,7 +8,6 @@ __pycache__/
 *.log
 
 !site/launch-values.example.env
-products/Private-AI-Lab/apps/private-doc-intel-demo/
 
 lead-pipeline/data/*.sqlite3
 lead-pipeline/data/*.db

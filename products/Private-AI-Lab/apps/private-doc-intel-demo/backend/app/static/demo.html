@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JVT Technologies | Private Document Assistant Demo</title>
+    <link rel="icon" href="/demo/assets/jvt-demo-favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/demo/assets/demo.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">JVT Technologies</p>
+          <h1>Private Document Assistant Demo</h1>
+          <p class="lede">
+            Local-first document upload, grounded retrieval, and cited answer generation for law firms and document-heavy teams.
+          </p>
+          <p class="hero-note">Built for private internal use, pilot demos, and controlled deployment conversations.</p>
+        </div>
+        <div class="hero-panel">
+          <div class="metric">
+            <span class="metric-label">Active retrieval</span>
+            <strong id="retrieval-backend">Loading...</strong>
+          </div>
+          <div class="metric">
+            <span class="metric-label">Answer provider</span>
+            <strong id="active-answer-provider">Loading...</strong>
+          </div>
+          <div class="metric">
+            <span class="metric-label">Operator view</span>
+            <strong>Live local demo</strong>
+          </div>
+        </div>
+      </header>
+
+      <section class="workspace">
+        <aside class="panel">
+          <div class="panel-header">
+            <h2>Documents</h2>
+            <span id="document-count" class="badge">0 indexed</span>
+          </div>
+
+          <form id="upload-form" class="upload-form">
+            <label class="field-label" for="upload-file">Upload a document</label>
+            <input id="upload-file" name="file" type="file" accept=".pdf,.docx,.txt" required />
+            <button type="submit">Upload and index</button>
+          </form>
+
+          <div class="demo-controls">
+            <button id="reset-demo-btn" type="button" class="secondary">Reset demo state</button>
+            <button id="load-sample-pack-btn" type="button" class="secondary">Load JVT sample pack</button>
+          </div>
+
+          <p id="upload-status" class="status-line"></p>
+
+          <div id="document-list" class="document-list"></div>
+        </aside>
+
+        <section class="panel panel-wide">
+          <div class="panel-header">
+            <h2>Ask</h2>
+            <span id="selection-state" class="badge badge-muted">All indexed documents</span>
+          </div>
+
+          <form id="question-form" class="question-form">
+            <label class="field-label" for="provider-select">Answer mode</label>
+            <select id="provider-select" name="answer_provider">
+              <option value="">Configured default</option>
+              <option value="extractive">Extractive fallback</option>
+              <option value="openai-compatible">OpenAI-compatible</option>
+              <option value="mlx-local">Local MLX model</option>
+            </select>
+
+            <label class="field-label" for="question-input">Question</label>
+            <textarea
+              id="question-input"
+              name="question"
+              rows="4"
+              placeholder="What do these documents say about confidentiality, billing, or retention?"
+              required
+            ></textarea>
+
+            <div class="question-presets">
+              <button type="button" class="secondary preset-question" data-question="What does the billing policy say about disputed invoices?">
+                Billing disputes
+              </button>
+              <button type="button" class="secondary preset-question" data-question="What confidentiality obligations survive termination?">
+                Confidentiality
+              </button>
+              <button type="button" class="secondary preset-question" data-question="Which documents mention retention requirements?">
+                Retention
+              </button>
+            </div>
+
+            <button type="submit">Generate cited answer</button>
+          </form>
+
+          <p id="question-status" class="status-line"></p>
+
+          <section class="answer-grid">
+            <article class="answer-card">
+              <div class="answer-meta">
+                <span id="answer-mode" class="badge badge-muted">No answer yet</span>
+                <span id="answer-provider" class="badge badge-muted">Provider unknown</span>
+              </div>
+              <h3>Answer</h3>
+              <p id="answer-text" class="answer-text">Upload a document and ask a question to begin.</p>
+              <p id="answer-note" class="answer-note"></p>
+            </article>
+
+            <article class="answer-card">
+              <h3>Citations</h3>
+              <div id="citation-list" class="citation-list"></div>
+            </article>
+          </section>
+
+          <section class="answer-grid">
+            <article class="answer-card">
+              <h3>Document Detail</h3>
+              <div id="document-detail" class="detail-card">
+                <p>Select a document to inspect metadata and chunk preview.</p>
+              </div>
+            </article>
+
+            <article class="answer-card">
+              <h3>Source Documents</h3>
+              <div id="source-documents" class="source-list"></div>
+            </article>
+          </section>
+        </section>
+      </section>
+    </main>
+
+    <script src="/demo/assets/demo.js" defer></script>
+  </body>
+</html>
