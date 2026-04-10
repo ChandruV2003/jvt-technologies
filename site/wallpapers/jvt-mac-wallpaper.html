@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>JVT Technologies Wallpaper</title>
+    <style>
+      :root {
+        --ink: #081816;
+        --panel: rgba(8, 24, 22, 0.46);
+        --panel-edge: rgba(255, 247, 237, 0.12);
+        --teal: #0d6c60;
+        --teal-deep: #083b34;
+        --sand: #f1dfc8;
+        --gold: #f2c98d;
+        --mist: rgba(255, 255, 255, 0.06);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 15% 20%, rgba(12, 105, 95, 0.22), transparent 26%),
+          radial-gradient(circle at 83% 16%, rgba(242, 201, 141, 0.18), transparent 22%),
+          radial-gradient(circle at 78% 76%, rgba(10, 81, 70, 0.26), transparent 24%),
+          linear-gradient(135deg, #041210 0%, #071b18 32%, #0a2621 68%, #041310 100%);
+        font-family: "Avenir Next", "SF Pro Display", "Helvetica Neue", sans-serif;
+        color: var(--sand);
+      }
+
+      body::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 45%),
+          url("../brand-background.svg") center/cover no-repeat;
+        opacity: 0.9;
+        mix-blend-mode: screen;
+        pointer-events: none;
+      }
+
+      body::after {
+        content: "";
+        position: absolute;
+        inset: 3.2%;
+        border-radius: 44px;
+        border: 1px solid rgba(255, 247, 237, 0.06);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.04),
+          0 0 0 1px rgba(8, 24, 22, 0.35);
+        pointer-events: none;
+      }
+
+      .frame {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        padding: 8.5vh 7vw;
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        align-items: center;
+      }
+
+      .content {
+        position: relative;
+        z-index: 2;
+        max-width: 1180px;
+      }
+
+      .brand-card {
+        width: min(54vw, 1040px);
+        padding: 52px 58px 48px;
+        border-radius: 34px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.018)),
+          var(--panel);
+        border: 1px solid var(--panel-edge);
+        box-shadow:
+          0 38px 100px rgba(0, 0, 0, 0.28),
+          inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(26px);
+      }
+
+      .brand-row {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+      }
+
+      .mark {
+        width: 92px;
+        height: 92px;
+        flex: 0 0 auto;
+        filter: drop-shadow(0 16px 48px rgba(0, 0, 0, 0.22));
+      }
+
+      .brand-copy {
+        display: grid;
+        gap: 10px;
+      }
+
+      .brand-name {
+        margin: 0;
+        font-size: 54px;
+        line-height: 0.96;
+        letter-spacing: -0.04em;
+        font-weight: 650;
+        color: rgba(255, 247, 237, 0.98);
+      }
+
+      .brand-subline {
+        margin: 0;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        font-size: 16px;
+        font-weight: 700;
+        color: rgba(241, 223, 200, 0.68);
+      }
+
+      .eyebrow {
+        margin: 0 0 18px;
+        text-transform: uppercase;
+        letter-spacing: 0.36em;
+        font-size: 18px;
+        font-weight: 700;
+        color: rgba(242, 201, 141, 0.92);
+      }
+
+      .headline {
+        margin: 26px 0 0;
+        max-width: 900px;
+        font-size: clamp(44px, 3vw, 74px);
+        line-height: 1.08;
+        font-weight: 600;
+        letter-spacing: -0.03em;
+        color: rgba(255, 247, 237, 0.96);
+      }
+
+      .subcopy {
+        margin: 24px 0 0;
+        max-width: 720px;
+        font-size: clamp(20px, 1.35vw, 30px);
+        line-height: 1.5;
+        color: rgba(241, 223, 200, 0.8);
+      }
+
+      .url {
+        margin: 34px 0 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 18px;
+        padding: 14px 20px 14px 14px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.055);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        color: rgba(255, 247, 237, 0.92);
+        font-size: 22px;
+        letter-spacing: 0.08em;
+      }
+
+      .url img {
+        width: 42px;
+        height: 42px;
+        border-radius: 14px;
+      }
+
+      .orb-field {
+        position: relative;
+        align-self: stretch;
+      }
+
+      .orb,
+      .halo,
+      .mesh {
+        position: absolute;
+        border-radius: 999px;
+        filter: blur(0);
+      }
+
+      .orb {
+        right: 12%;
+        top: 16%;
+        width: 400px;
+        height: 400px;
+        background:
+          radial-gradient(circle at 30% 30%, rgba(242, 201, 141, 0.82), rgba(242, 201, 141, 0.1) 38%, transparent 64%),
+          radial-gradient(circle at 68% 62%, rgba(12, 105, 95, 0.85), rgba(12, 105, 95, 0.08) 40%, transparent 68%);
+        opacity: 0.72;
+        filter: blur(2px);
+      }
+
+      .halo {
+        right: 5%;
+        bottom: 12%;
+        width: 620px;
+        height: 620px;
+        border: 1px solid rgba(242, 201, 141, 0.1);
+        box-shadow:
+          inset 0 0 120px rgba(13, 108, 96, 0.08),
+          0 0 160px rgba(13, 108, 96, 0.08);
+        opacity: 0.78;
+      }
+
+      .mesh {
+        right: 18%;
+        bottom: 19%;
+        width: 520px;
+        height: 520px;
+        background:
+          radial-gradient(circle at center, rgba(255, 255, 255, 0.05), transparent 56%),
+          conic-gradient(
+            from 80deg,
+            rgba(13, 108, 96, 0.1),
+            rgba(13, 108, 96, 0.02),
+            rgba(242, 201, 141, 0.14),
+            rgba(8, 59, 52, 0.06),
+            rgba(13, 108, 96, 0.1)
+          );
+        mix-blend-mode: screen;
+        opacity: 0.55;
+        filter: blur(8px);
+      }
+
+      .footer-note {
+        position: absolute;
+        left: 7vw;
+        bottom: 6vh;
+        z-index: 2;
+        font-size: 18px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: rgba(241, 223, 200, 0.42);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="frame">
+      <section class="content">
+        <div class="brand-card">
+          <p class="eyebrow">JVT Technologies</p>
+          <div class="brand-row">
+            <img class="mark" src="../logo-mark.svg" alt="JVT Technologies" />
+            <div class="brand-copy">
+              <h2 class="brand-name">JVT Technologies</h2>
+              <p class="brand-subline">Private AI systems and workflow automation</p>
+            </div>
+          </div>
+          <h1 class="headline">Private AI systems and workflow automation for document-heavy businesses.</h1>
+          <p class="subcopy">
+            Local-first document intelligence, grounded answers with citations, and secure internal workflows built
+            for teams that need privacy without giving up speed.
+          </p>
+          <div class="url">
+            <img src="../logo-mark.svg" alt="" />
+            <span>jvt-technologies.com</span>
+          </div>
+        </div>
+      </section>
+      <aside class="orb-field" aria-hidden="true">
+        <div class="orb"></div>
+        <div class="halo"></div>
+        <div class="mesh"></div>
+      </aside>
+    </main>
+    <div class="footer-note">Private AI systems • Workflow automation • Secure internal tools</div>
+  </body>
+</html>

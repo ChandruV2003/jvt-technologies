@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>JVT Technologies Background</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 15% 20%, rgba(12, 105, 95, 0.22), transparent 26%),
+          radial-gradient(circle at 83% 16%, rgba(242, 201, 141, 0.18), transparent 22%),
+          radial-gradient(circle at 78% 76%, rgba(10, 81, 70, 0.26), transparent 24%),
+          linear-gradient(135deg, #041210 0%, #071b18 32%, #0a2621 68%, #041310 100%);
+      }
+
+      body::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 45%),
+          url("../brand-background.svg") center/cover no-repeat;
+        opacity: 0.9;
+        mix-blend-mode: screen;
+      }
+
+      body::after {
+        content: "";
+        position: absolute;
+        inset: 3.2%;
+        border-radius: 44px;
+        border: 1px solid rgba(255, 247, 237, 0.05);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.04),
+          0 0 0 1px rgba(8, 24, 22, 0.35);
+      }
+
+      .orb,
+      .halo,
+      .mesh {
+        position: absolute;
+        border-radius: 999px;
+      }
+
+      .orb {
+        right: 12%;
+        top: 16%;
+        width: 400px;
+        height: 400px;
+        background:
+          radial-gradient(circle at 30% 30%, rgba(242, 201, 141, 0.82), rgba(242, 201, 141, 0.1) 38%, transparent 64%),
+          radial-gradient(circle at 68% 62%, rgba(12, 105, 95, 0.85), rgba(12, 105, 95, 0.08) 40%, transparent 68%);
+        opacity: 0.72;
+        filter: blur(2px);
+      }
+
+      .halo {
+        right: 5%;
+        bottom: 12%;
+        width: 620px;
+        height: 620px;
+        border: 1px solid rgba(242, 201, 141, 0.1);
+        box-shadow:
+          inset 0 0 120px rgba(13, 108, 96, 0.08),
+          0 0 160px rgba(13, 108, 96, 0.08);
+        opacity: 0.78;
+      }
+
+      .mesh {
+        right: 18%;
+        bottom: 19%;
+        width: 520px;
+        height: 520px;
+        background:
+          radial-gradient(circle at center, rgba(255, 255, 255, 0.05), transparent 56%),
+          conic-gradient(
+            from 80deg,
+            rgba(13, 108, 96, 0.1),
+            rgba(13, 108, 96, 0.02),
+            rgba(242, 201, 141, 0.14),
+            rgba(8, 59, 52, 0.06),
+            rgba(13, 108, 96, 0.1)
+          );
+        mix-blend-mode: screen;
+        opacity: 0.55;
+        filter: blur(8px);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="orb"></div>
+    <div class="halo"></div>
+    <div class="mesh"></div>
+  </body>
+</html>
