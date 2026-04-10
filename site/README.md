@@ -5,7 +5,7 @@ This is the local-first website project for the outward-facing `JVT Technologies
 ## Purpose
 
 - present the company clearly
-- position the private document assistant offer
+- position the private document assistant as the first flagship solution under the broader JVT umbrella
 - give a prospect a believable, modern landing experience
 - support future domain deployment without changing the core copy
 - keep contact and analytics values easy to swap once real accounts exist

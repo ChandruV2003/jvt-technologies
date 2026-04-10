@@ -1,8 +1,8 @@
 # Prospect-Facing Explanation
 
-JVT Technologies builds private AI systems for firms and internal teams that work with sensitive documents every day.
+JVT Technologies builds private AI systems and workflow automation for firms and internal teams that work with sensitive documents every day.
 
-The private document assistant demo shows how a team can:
+The private document assistant demo is the first flagship solution inside that broader company story. It shows how a team can:
 
 - upload internal documents into a controlled environment
 - ask practical questions in natural language
@@ -24,4 +24,4 @@ What this is not:
 - not a promise of autonomous legal reasoning
 - not a black-box summary tool with no grounding
 
-The current offer is best understood as a private internal assistant plus deployment and workflow customization support.
+The current offer is best understood as a private internal assistant plus deployment and workflow customization support, delivered under the broader JVT Technologies umbrella.
