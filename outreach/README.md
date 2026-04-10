@@ -35,15 +35,22 @@ The mailbox listener is intentionally receive-only until a real mailbox is confi
 5. generate a draft into `queue/draft`
 6. review and revise
 7. move only approved drafts forward
+8. dry-run the approved packet before any real send
+9. only then use the reviewed send path
 
 The draft tool can now produce:
 
 - markdown review packets
 - plain-text send-ready bodies
 - styled HTML email bodies
-- JSON metadata for future send/reply tooling
+- JSON metadata for reviewed send/reply tooling
 
-No sending integration is configured here.
+There is now a conservative outbound sender scaffold here, but it still requires:
+
+- a real outbound provider configuration
+- approved queue state
+- explicit `--send`
+- low-volume caps
 
 ## Shared Config
 
@@ -57,4 +64,22 @@ Then generate the first reviewed wave with:
 
 ```bash
 /Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/outreach/tools/generate_first_wave.sh
+```
+
+Move a packet forward in the queue with:
+
+```bash
+python3 /Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/outreach/tools/move_packet.py --stem PACKET_STEM --from draft --to approved
+```
+
+Dry-run the reviewed sender with:
+
+```bash
+python3 /Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/outreach/tools/send_approved.py --stem PACKET_STEM
+```
+
+Or use the wrapper for agent-friendly control:
+
+```bash
+/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/outreach/tools/reviewed_outreach.sh dry-run PACKET_STEM
 ```

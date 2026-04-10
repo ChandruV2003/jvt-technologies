@@ -117,6 +117,8 @@ def main() -> None:
         "subject": "",
         "today": date.today().isoformat(),
     }
+    recipient_email = (lead["public_email"] or "").strip()
+    contact_page = (lead["contact_page"] or "").strip()
     subject = render(subject_template, values)
     values["subject"] = subject
     text_body = render(text_template, values)
@@ -159,6 +161,8 @@ def main() -> None:
                 "lead_id": lead["id"],
                 "company_name": lead["company_name"],
                 "fit_score": lead["fit_score"],
+                "recipient_email": recipient_email,
+                "contact_page": contact_page,
                 "subject": subject,
                 "reply_to_email": args.reply_to_email,
                 "site_url": args.site_url,
