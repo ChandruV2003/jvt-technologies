@@ -6,6 +6,7 @@ __pycache__/
 *.local
 *.tmp
 *.log
+.wrangler/
 
 !site/launch-values.example.env
 
