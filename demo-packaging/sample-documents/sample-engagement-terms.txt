@@ -1,0 +1,15 @@
+SAMPLE ENGAGEMENT TERMS
+Synthetic internal demo document for JVT Technologies.
+
+1. Confidentiality
+All client matter information, work product, and internal notes must be treated as confidential.
+The firm's confidentiality obligations survive termination of the engagement.
+Confidential information may be shared only with personnel or vendors who need access to perform the work and who are bound by comparable confidentiality duties.
+
+2. File Access
+Client files may be accessed only through approved internal systems.
+Portable copies of client materials must be encrypted when stored or transmitted.
+
+3. Matter Closeout
+At the end of the engagement, the firm will preserve the official matter file according to the records retention policy.
+Any destruction of materials must follow the retention schedule and approved disposition process.

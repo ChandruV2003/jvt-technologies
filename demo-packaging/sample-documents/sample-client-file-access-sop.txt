@@ -1,0 +1,12 @@
+SAMPLE CLIENT FILE ACCESS SOP
+Synthetic internal demo document for JVT Technologies.
+
+1. Approved Access
+Client matter files may be accessed only by personnel assigned to the matter or approved support staff.
+
+2. Remote Access
+Remote access to client files must use approved systems and device protections.
+Unapproved personal storage locations may not be used for client documents.
+
+3. Sharing Restrictions
+If a file must be shared externally, the sender must confirm the recipient, use the approved delivery method, and avoid attaching unnecessary documents.

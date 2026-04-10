@@ -1,0 +1,12 @@
+SAMPLE RECORDS RETENTION POLICY
+Synthetic internal demo document for JVT Technologies.
+
+1. Retention Schedule
+Closed matter files should be retained for seven years unless a governing rule, client instruction, or hold notice requires a longer period.
+
+2. Hold Notices
+If a legal hold or investigation notice applies, routine destruction must be suspended until the hold is released.
+
+3. Physical And Digital Copies
+Physical records scheduled for destruction must be logged before secure shredding.
+Digital records must be removed from active systems and any retained archives according to the approved disposition checklist.

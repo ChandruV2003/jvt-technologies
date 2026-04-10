@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="JVT Technologies social preview">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#0f312a" />
+      <stop offset="100%" stop-color="#0a5146" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)" />
+  <circle cx="965" cy="120" r="180" fill="rgba(255,255,255,0.08)" />
+  <circle cx="1070" cy="530" r="220" fill="rgba(255,255,255,0.06)" />
+  <text x="90" y="140" fill="#e9ded0" font-family="Avenir Next, Arial, sans-serif" font-size="30" letter-spacing="7">JVT TECHNOLOGIES</text>
+  <text x="90" y="280" fill="#fff8ee" font-family="Iowan Old Style, Georgia, serif" font-size="74" font-weight="700">
+    <tspan x="90" dy="0">Private AI systems</tspan>
+    <tspan x="90" dy="86">for document-heavy teams</tspan>
+  </text>
+  <text x="90" y="470" fill="#d9d0c4" font-family="Avenir Next, Arial, sans-serif" font-size="32">
+    Cited answers • Local-first deployment • Privacy-aware workflow automation
+  </text>
+</svg>

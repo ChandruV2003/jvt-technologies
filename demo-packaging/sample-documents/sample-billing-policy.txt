@@ -1,0 +1,13 @@
+SAMPLE BILLING POLICY
+Synthetic internal demo document for JVT Technologies.
+
+1. Invoice Timing
+Invoices are due within 30 days of the invoice date unless a matter-specific agreement states otherwise.
+
+2. Disputed Charges
+Any billing dispute should be raised in writing within 15 days of invoice delivery.
+The responsible partner and billing coordinator will review disputed entries and respond within 10 business days.
+Undisputed amounts remain payable by the original due date.
+
+3. Write-Off Review
+Any requested write-off above the internal threshold must be approved by the practice lead before the next billing cycle.
