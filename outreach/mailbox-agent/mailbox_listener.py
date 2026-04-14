@@ -102,7 +102,7 @@ def fetch_new_messages(client: imaplib.IMAP4_SSL, last_uid: int, max_per_run: in
     selected = uids[:max_per_run]
     messages: list[tuple[int, bytes]] = []
     for uid in selected:
-        status, fetched = client.uid("FETCH", str(uid), "(RFC822)")
+        status, fetched = client.uid("FETCH", str(uid), "(BODY.PEEK[])")
         if status != "OK":
             continue
         for part in fetched:

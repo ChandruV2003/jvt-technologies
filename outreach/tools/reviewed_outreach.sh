@@ -6,12 +6,15 @@ ROOT="/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies"
 OUTREACH_ROOT="$ROOT/outreach"
 MAILBOX_ROOT="$OUTREACH_ROOT/mailbox-agent"
 LOCAL_ENV_FILE="${LOCAL_ENV_FILE:-$OUTREACH_ROOT/.env.local}"
+MAILBOX_LOCAL_ENV_FILE="${MAILBOX_LOCAL_ENV_FILE:-$MAILBOX_ROOT/.env.local}"
 
 if [ -f "$LOCAL_ENV_FILE" ]; then
   set -a
   source "$LOCAL_ENV_FILE"
   set +a
 fi
+
+PYTHON_BIN="${JVT_PYTHON_BIN:-python3}"
 
 usage() {
   cat <<'EOF'
@@ -38,19 +41,29 @@ case "$command_name" in
     exec zsh "$OUTREACH_ROOT/tools/generate_first_wave.sh"
     ;;
   move)
-    exec python3 "$OUTREACH_ROOT/tools/move_packet.py" --stem "$1" --from "$2" --to "$3"
+    exec "$PYTHON_BIN" "$OUTREACH_ROOT/tools/move_packet.py" --stem "$1" --from "$2" --to "$3"
     ;;
   dry-run)
-    exec python3 "$OUTREACH_ROOT/tools/send_approved.py" --stem "$1"
+    exec "$PYTHON_BIN" "$OUTREACH_ROOT/tools/send_approved.py" --stem "$1"
     ;;
   send)
-    exec python3 "$OUTREACH_ROOT/tools/send_approved.py" --stem "$1" --send
+    exec "$PYTHON_BIN" "$OUTREACH_ROOT/tools/send_approved.py" --stem "$1" --send
     ;;
   inbox-once)
-    exec python3 "$MAILBOX_ROOT/mailbox_listener.py" --once
+    if [ -f "$MAILBOX_LOCAL_ENV_FILE" ]; then
+      set -a
+      source "$MAILBOX_LOCAL_ENV_FILE"
+      set +a
+    fi
+    exec "$PYTHON_BIN" "$MAILBOX_ROOT/mailbox_listener.py" --once
     ;;
   draft-reply)
-    exec python3 "$MAILBOX_ROOT/draft_reply.py" --message-json "$1"
+    if [ -f "$MAILBOX_LOCAL_ENV_FILE" ]; then
+      set -a
+      source "$MAILBOX_LOCAL_ENV_FILE"
+      set +a
+    fi
+    exec "$PYTHON_BIN" "$MAILBOX_ROOT/draft_reply.py" --message-json "$1"
     ;;
   *)
     usage

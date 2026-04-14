@@ -11,4 +11,6 @@ if [ -f "$LOCAL_ENV_FILE" ]; then
   set +a
 fi
 
-exec python3 "$SCRIPT_DIR/mailbox_listener.py"
+PYTHON_BIN="${JVT_PYTHON_BIN:-python3}"
+
+exec "$PYTHON_BIN" "$SCRIPT_DIR/mailbox_listener.py"

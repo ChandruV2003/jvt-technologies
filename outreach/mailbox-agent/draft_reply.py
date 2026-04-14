@@ -83,6 +83,9 @@ def clean_reply(body: str) -> str:
 
     cleaned = "\n".join(cleaned_lines).strip()
     cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
+    cleaned = re.sub(r"(?im)^dear\s+\[[^\]]+\],\s*$", "Hello,", cleaned)
+    cleaned = re.sub(r"(?im)^hi\s+\[[^\]]+\],\s*$", "Hello,", cleaned)
+    cleaned = re.sub(r"\[[^\]]+\]", "", cleaned)
     cleaned = re.sub(r"\n(Best regards,?|Best,?)\n.*$", "", cleaned, flags=re.IGNORECASE | re.DOTALL)
     cleaned = cleaned.rstrip() + "\n\nBest,\nChandru Vasu\nFounder, JVT Technologies"
     return cleaned.strip()
