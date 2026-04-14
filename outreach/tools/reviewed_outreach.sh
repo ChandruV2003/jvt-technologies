@@ -5,6 +5,13 @@ set -euo pipefail
 ROOT="/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies"
 OUTREACH_ROOT="$ROOT/outreach"
 MAILBOX_ROOT="$OUTREACH_ROOT/mailbox-agent"
+LOCAL_ENV_FILE="${LOCAL_ENV_FILE:-$OUTREACH_ROOT/.env.local}"
+
+if [ -f "$LOCAL_ENV_FILE" ]; then
+  set -a
+  source "$LOCAL_ENV_FILE"
+  set +a
+fi
 
 usage() {
   cat <<'EOF'
