@@ -26,7 +26,7 @@ This runbook describes how to turn the local mailbox listener into a real receiv
 ## Setup Checklist
 
 1. create the real JVT mailbox
-2. gather IMAP host, port, username, and password or app password
+2. gather IMAP host, port, Apple Account username, and app-specific password
 3. copy `../outreach/mailbox-agent/.env.example` into a local non-repo env file
 4. test the mailbox manually first
 5. run the listener once:
@@ -44,3 +44,5 @@ python3 mailbox_listener.py --once
 - start with manual `--once`
 - then run it on a low-frequency loop or scheduled interval
 - do not make it a long-lived autonomous responder until the review workflow is stable
+- keep the fast `3B` local draft model as the default mailbox brain
+- add a stronger `7B` local draft model for higher-quality reviewed replies

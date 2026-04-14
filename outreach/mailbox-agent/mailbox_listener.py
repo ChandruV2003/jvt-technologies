@@ -7,10 +7,12 @@ import email
 import imaplib
 import json
 import os
+import re
 import time
 from datetime import datetime, timezone
 from email import policy
 from email.message import Message
+from email.utils import parseaddr
 from pathlib import Path
 
 
@@ -58,6 +60,96 @@ def extract_text_part(message: Message) -> str:
     return payload.decode(charset, errors="replace")
 
 
+def classify_message(subject: str, sender: str, recipient: str, text_body: str) -> dict[str, str]:
+    sender_addr = parseaddr(sender)[1].lower().strip()
+    recipient_addr = parseaddr(recipient)[1].lower().strip() or recipient.lower().strip()
+    sender_domain = sender_addr.split("@", 1)[1] if "@" in sender_addr else ""
+    subject_l = subject.lower()
+    snippet_l = text_body.lower()
+
+    reasons: list[str] = []
+
+    if recipient_addr.endswith("@jvt-technologies.com"):
+        reasons.append("sent_to_jvt_domain")
+        if sender_addr.endswith("@jvt-technologies.com"):
+            reasons.append("internal_sender")
+            return {
+                "sender_email": sender_addr,
+                "sender_domain": sender_domain,
+                "recipient_email": recipient_addr,
+                "triage_bucket": "internal-test",
+                "triage_priority": "low",
+                "triage_action": "ignore",
+                "triage_reason": ", ".join(reasons),
+            }
+
+        if any(token in sender_addr for token in ("noreply", "no-reply", "do-not-reply")):
+            reasons.append("noreply_sender")
+            return {
+                "sender_email": sender_addr,
+                "sender_domain": sender_domain,
+                "recipient_email": recipient_addr,
+                "triage_bucket": "system",
+                "triage_priority": "low",
+                "triage_action": "defer",
+                "triage_reason": ", ".join(reasons),
+            }
+
+        reasons.append("direct_business_inbound")
+        return {
+            "sender_email": sender_addr,
+            "sender_domain": sender_domain,
+            "recipient_email": recipient_addr,
+            "triage_bucket": "direct",
+            "triage_priority": "high",
+            "triage_action": "review",
+            "triage_reason": ", ".join(reasons),
+        }
+
+    promo_markers = (
+        "unsubscribe",
+        "view this email as a web page",
+        "save on your next visit",
+        "special offer",
+        "% off",
+        "limited time",
+    )
+    promo_domains = ("mailchimp", "sfmc", "messagegears", "constantcontact", "hubspot")
+    if any(marker in snippet_l or marker in subject_l for marker in promo_markers) or any(domain in sender_domain for domain in promo_domains):
+        reasons.append("promotional_markers")
+        return {
+            "sender_email": sender_addr,
+            "sender_domain": sender_domain,
+            "recipient_email": recipient_addr,
+            "triage_bucket": "promotional",
+            "triage_priority": "low",
+            "triage_action": "ignore",
+            "triage_reason": ", ".join(reasons),
+        }
+
+    if sender_domain in {"email.apple.com", "apple.com"} or re.search(r"\b(alert|receipt|verification|invoice)\b", subject_l):
+        reasons.append("system_or_service_mail")
+        return {
+            "sender_email": sender_addr,
+            "sender_domain": sender_domain,
+            "recipient_email": recipient_addr,
+            "triage_bucket": "system",
+            "triage_priority": "low",
+            "triage_action": "defer",
+            "triage_reason": ", ".join(reasons),
+        }
+
+    return {
+        "sender_email": sender_addr,
+        "sender_domain": sender_domain,
+        "recipient_email": recipient_addr,
+        "triage_bucket": "review",
+        "triage_priority": "medium",
+        "triage_action": "review",
+        "triage_reason": "default_review",
+    }
+
+
 def write_message(output_dir: Path, uid: int, raw_bytes: bytes) -> tuple[Path, Path]:
     message = email.message_from_bytes(raw_bytes, policy=policy.default)
     now = datetime.now(timezone.utc)
@@ -67,11 +159,13 @@ def write_message(output_dir: Path, uid: int, raw_bytes: bytes) -> tuple[Path, P
 
     subject = decode_header_value(message.get("Subject"))
     sender = decode_header_value(message.get("From"))
+    recipient = decode_header_value(message.get("To"))
     entry_slug = f"{stamp}-uid-{uid}"
     eml_path = day_dir / f"{entry_slug}.eml"
     json_path = day_dir / f"{entry_slug}.json"
 
     text_body = extract_text_part(message).strip()
+    triage = classify_message(subject, sender, recipient, text_body)
     json_path.write_text(
         json.dumps(
             {
@@ -79,11 +173,12 @@ def write_message(output_dir: Path, uid: int, raw_bytes: bytes) -> tuple[Path, P
                 "captured_at": now.isoformat(),
                 "subject": subject,
                 "from": sender,
-                "to": decode_header_value(message.get("To")),
+                "to": recipient,
                 "date": decode_header_value(message.get("Date")),
                 "message_id": decode_header_value(message.get("Message-ID")),
                 "snippet": text_body[:600],
                 "status": "new",
+                **triage,
             },
             indent=2,
         )

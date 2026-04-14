@@ -25,6 +25,8 @@ Usage:
   reviewed_outreach.sh send <stem>
   reviewed_outreach.sh inbox-once
   reviewed_outreach.sh draft-reply <message-json>
+  reviewed_outreach.sh draft-reply-fast <message-json>
+  reviewed_outreach.sh draft-reply-strong <message-json>
 EOF
 }
 
@@ -64,6 +66,22 @@ case "$command_name" in
       set +a
     fi
     exec "$PYTHON_BIN" "$MAILBOX_ROOT/draft_reply.py" --message-json "$1"
+    ;;
+  draft-reply-fast)
+    if [ -f "$MAILBOX_LOCAL_ENV_FILE" ]; then
+      set -a
+      source "$MAILBOX_LOCAL_ENV_FILE"
+      set +a
+    fi
+    exec "$PYTHON_BIN" "$MAILBOX_ROOT/draft_reply.py" --message-json "$1" --model-profile fast
+    ;;
+  draft-reply-strong)
+    if [ -f "$MAILBOX_LOCAL_ENV_FILE" ]; then
+      set -a
+      source "$MAILBOX_LOCAL_ENV_FILE"
+      set +a
+    fi
+    exec "$PYTHON_BIN" "$MAILBOX_ROOT/draft_reply.py" --message-json "$1" --model-profile strong
     ;;
   *)
     usage

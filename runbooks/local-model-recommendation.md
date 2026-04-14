@@ -1,5 +1,11 @@
 # Local Model Recommendation
 
+## Installed Now
+
+- `mlx-community/Qwen2.5-1.5B-Instruct-4bit`
+- `mlx-community/Qwen2.5-3B-Instruct-4bit`
+- `mlx-community/Qwen2.5-7B-Instruct-4bit`
+
 ## Recommended Default
 
 For this `16 GB` M4 Mac mini, the cleanest always-on default is:
@@ -19,13 +25,19 @@ Why:
 - demo answer generation: keep the current `mlx-local` path working
 - mailbox/agent drafting: move to a `4B` class MLX instruct model first
 
-## Recommended Demo Upgrade
+## Recommended Stronger Review Model
 
 When you want stronger drafting quality and better customer-facing answers:
 
 - `mlx-community/Qwen2.5-7B-Instruct-4bit`
 
 Current MLX package footprint is about `4.28 GB`.
+
+## Working Split On This Mac
+
+- `1.5B` stays available for the lightest product experimentation
+- `3B` stays the fast default for always-on mailbox drafting
+- `7B` should be the stronger reviewed-reply and higher-quality local-answer path
 
 ## Later Option
 

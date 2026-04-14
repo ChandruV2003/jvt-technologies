@@ -26,6 +26,7 @@ This project is now a locally runnable, operator-usable demo for the `JVT Techno
 - retrieval: local embeddings via `fastembed`
 - local answer runtime: `mlx-lm`
 - first local answer model: `mlx-community/Qwen2.5-1.5B-Instruct-4bit`
+- stronger local model now installed on this Mac: `mlx-community/Qwen2.5-7B-Instruct-4bit`
 - storage: local files plus SQLite
 - operator UI: backend-served static page, no Node toolchain required
 
@@ -101,7 +102,11 @@ source .venv/bin/activate
 ANSWER_PROVIDER=mlx-local uvicorn app.main:app --reload
 ```
 
-The first `mlx-local` answer call downloads the selected instruct model into the configured answer-model cache root.
+On this Mac, the local backend override now points `mlx-local` at:
+
+- `mlx-community/Qwen2.5-7B-Instruct-4bit`
+
+The lighter `1.5B` and `3B` models remain available for quicker experimentation and mailbox work.
 
 ## Operator UI Flow
 
@@ -174,6 +179,10 @@ The app code does not assume Debian is the inference host. The current intent is
 Chosen local model:
 
 - `mlx-community/Qwen2.5-1.5B-Instruct-4bit`
+
+Current stronger local model on this Mac:
+
+- `mlx-community/Qwen2.5-7B-Instruct-4bit`
 
 Why:
 

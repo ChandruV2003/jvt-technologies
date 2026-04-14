@@ -81,6 +81,27 @@ def resolve_recipient(metadata: dict[str, object], db_path: Path) -> str:
     return str(row["public_email"]).strip()
 
 
+def update_lead_after_send(db_path: Path, metadata: dict[str, object], recipient_email: str, sent_at: str) -> None:
+    lead_id = metadata.get("lead_id")
+    if not lead_id or not db_path.exists():
+        return
+    conn = sqlite3.connect(db_path)
+    conn.execute(
+        """
+        UPDATE leads
+        SET outreach_status = ?,
+            follow_up_status = ?,
+            public_email = COALESCE(NULLIF(public_email, ''), ?),
+            last_touched_date = ?,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+        """,
+        ("sent", "awaiting_reply", recipient_email, sent_at[:10], lead_id),
+    )
+    conn.commit()
+    conn.close()
+
+
 def build_message(metadata: dict[str, object], recipient_email: str, text_body: str, html_body: str | None) -> EmailMessage:
     from_name = env("JVT_FROM_NAME", "JVT Technologies")
     from_email = env("JVT_FROM_EMAIL", "hello@jvt-technologies.com")
@@ -233,6 +254,7 @@ def main() -> None:
         metadata["provider"] = args.provider
         metadata["provider_message_id"] = provider_message_id
         metadata["recipient_email"] = recipient_email
+        update_lead_after_send(args.db, metadata, recipient_email, metadata["sent_at"])
         archive_bundle(bundle, metadata)
         print(json.dumps({
             "stem": stem,

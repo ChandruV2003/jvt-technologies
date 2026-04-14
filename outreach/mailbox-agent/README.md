@@ -14,7 +14,7 @@ This folder contains the conservative inbound-email listener scaffold for `JVT T
 - IMAP polling only
 - local JSON + `.eml` capture for review
 - no outbound send path
-- no auto-triage beyond metadata normalization
+- lightweight inbound triage metadata is included to separate direct mail from promotional/system noise
 - launchd template included, but not installed
 - local reply-draft helper included, but not auto-triggered
 
@@ -33,4 +33,11 @@ To draft a reply from an imported inbox item without sending anything:
 ```bash
 cd /Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/outreach/mailbox-agent
 python3 draft_reply.py --message-json ../inbox/new/2026-04-09/example.json
+```
+
+To use the stronger reviewed-reply model path:
+
+```bash
+cd /Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies
+./outreach/tools/reviewed_outreach.sh draft-reply-strong outreach/inbox/new/2026-04-09/example.json
 ```

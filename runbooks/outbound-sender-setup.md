@@ -2,9 +2,10 @@
 
 ## Current Reality
 
-- inbound mail is already routed through Cloudflare Email Routing
-- Cloudflare Email Routing is not the outbound mailbox itself
-- reviewed outbound sending needs a real SMTP or API-backed sender configuration
+- the active JVT mailbox now lives on Apple Custom Email Domain with Cloudflare managing DNS
+- reviewed outbound sending works over Apple SMTP with an app-specific password
+- the Apple SMTP auth username is the Apple Account email, while the visible `From` address stays `hello@jvt-technologies.com`
+- the sender also supports `resend` if you later want an API-backed path
 
 ## Local Workflow
 
@@ -59,6 +60,14 @@ Conservative controls:
 - per-run cap: `JVT_SEND_MAX_PER_RUN`
 - daily cap: `JVT_SEND_DAILY_LIMIT`
 - delay between sends: `JVT_SEND_DELAY_SECONDS`
+
+For Apple Custom Email Domain:
+
+- `SMTP_HOST=smtp.mail.me.com`
+- `SMTP_PORT=587`
+- `SMTP_USERNAME=<your Apple Account email>`
+- `SMTP_PASSWORD=<Apple app-specific password>`
+- `JVT_FROM_EMAIL=hello@jvt-technologies.com`
 
 ## Recommendation
 
