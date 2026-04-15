@@ -43,5 +43,6 @@ cd /Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/site
 
 - the public contact email is currently routed through Cloudflare Email Routing to a human inbox
 - no fake testimonials, logos, or case studies are included
+- the site now includes a real sample demo video and honest synthetic use-case examples
 - the site is static, but the active deployment target is Cloudflare Pages
 - values that still need replacing are listed in `launch-values.example.env`

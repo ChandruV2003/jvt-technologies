@@ -17,6 +17,7 @@ The value proposition is straightforward:
 - less manual context switching
 - more confidence because answers point back to source material
 - a deployment model that respects privacy and operational control
+- a clear path into adjacent workflow automation once the first use case proves useful
 
 What this is not:
 
@@ -25,3 +26,11 @@ What this is not:
 - not a black-box summary tool with no grounding
 
 The current offer is best understood as a private internal assistant plus deployment and workflow customization support, delivered under the broader JVT Technologies umbrella.
+
+The broader JVT Technologies service line now includes:
+
+- private document intelligence pilots
+- internal knowledge assistants
+- workflow automation sprints
+- shared inbox and response operations
+- secure deployment advisory

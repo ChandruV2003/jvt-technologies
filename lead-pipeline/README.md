@@ -37,6 +37,7 @@ This area is the local-first lead and CRM workflow for `JVT Technologies`.
 
 - `data/fictional-seed-leads.csv`: safe example data
 - `data/2026-04-09-law-firm-targets.csv`: first curated public target set for real outreach review
+- `data/2026-04-14-jvt-curated-targets.csv`: second curated public target tranche with stronger estate, elder-law, and business-law coverage
 
 Use `real-lead-intake-checklist.md` when moving from fictional examples to real targets.
 
