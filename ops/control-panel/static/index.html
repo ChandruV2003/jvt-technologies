@@ -9,9 +9,10 @@
   <body>
     <div class="shell">
       <header class="topbar">
-        <div>
+        <div class="topbar-copy">
           <p class="eyebrow">Local Operator Console</p>
           <h1>JVT Control Panel</h1>
+          <p class="topbar-note">One local console for company status, approvals, outreach state, and direct conversation with the model running on this Mac.</p>
         </div>
         <div class="topbar-actions">
           <button id="refresh-all" class="button">Refresh</button>
@@ -19,7 +20,9 @@
         </div>
       </header>
 
-      <main class="grid">
+      <section class="quick-links" id="quick-links"></section>
+
+      <main class="grid dashboard-grid">
         <section class="card span-2">
           <div class="card-head">
             <div>
@@ -40,7 +43,7 @@
           <div id="pending-decisions" class="stack"></div>
         </section>
 
-        <section class="card span-2">
+        <section class="card span-3">
           <div class="card-head">
             <div>
               <p class="eyebrow">Next Actions</p>
@@ -50,7 +53,7 @@
           <div id="next-actions" class="stack"></div>
         </section>
 
-        <section class="card span-2">
+        <section class="card span-2 console-card">
           <div class="card-head">
             <div>
               <p class="eyebrow">Local Model Console</p>
@@ -77,7 +80,7 @@
           <pre id="model-response" class="response-box">No response yet.</pre>
         </section>
 
-        <section class="card">
+        <section class="card activity-card">
           <div class="card-head">
             <div>
               <p class="eyebrow">Recent Leads</p>
@@ -87,7 +90,7 @@
           <div id="lead-list" class="stack"></div>
         </section>
 
-        <section class="card">
+        <section class="card activity-card">
           <div class="card-head">
             <div>
               <p class="eyebrow">Recent Outreach</p>
@@ -97,7 +100,7 @@
           <div id="outreach-list" class="stack"></div>
         </section>
 
-        <section class="card">
+        <section class="card activity-card">
           <div class="card-head">
             <div>
               <p class="eyebrow">Inbox</p>

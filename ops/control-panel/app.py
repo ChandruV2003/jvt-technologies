@@ -154,6 +154,10 @@ def list_decisions(state: str) -> list[dict[str, object]]:
 def current_status() -> dict[str, object]:
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
+        "panel_urls": {
+            "local": "http://127.0.0.1:8042",
+            "tailscale": "https://m4-mac-mini.tailee4a3f.ts.net/",
+        },
         "site_urls": {
             "public": "https://jvt-technologies.com",
             "www": "https://www.jvt-technologies.com",
@@ -173,11 +177,6 @@ def current_status() -> dict[str, object]:
         "pending_decisions": json_stems(CONTROL_ROOT / "pending"),
         "next_actions": [
             {
-                "title": "Enable Tailscale Serve",
-                "detail": "Required once on the tailnet before the control panel can be reached remotely.",
-                "kind": "human-blocker",
-            },
-            {
                 "title": "Confirm legal entity and EIN",
                 "detail": "This is the real blocker before Mercury and Stripe can be opened cleanly.",
                 "kind": "company-blocker",
@@ -186,6 +185,11 @@ def current_status() -> dict[str, object]:
                 "title": "Approve the next reviewed outreach batch",
                 "detail": "One pending decision already exists for the next national send tranche.",
                 "kind": "operator-review",
+            },
+            {
+                "title": "Run one live inbound and outbound mailbox check",
+                "detail": "Keep the send/receive loop healthy before widening outreach volume.",
+                "kind": "ops-check",
             },
             {
                 "title": "Open Mercury and Stripe after entity readiness",
