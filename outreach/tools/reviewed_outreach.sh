@@ -5,6 +5,7 @@ set -euo pipefail
 ROOT="/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies"
 OUTREACH_ROOT="$ROOT/outreach"
 MAILBOX_ROOT="$OUTREACH_ROOT/mailbox-agent"
+CONTROL_ROOT="$ROOT/ops/agent-control"
 LOCAL_ENV_FILE="${LOCAL_ENV_FILE:-$OUTREACH_ROOT/.env.local}"
 MAILBOX_LOCAL_ENV_FILE="${MAILBOX_LOCAL_ENV_FILE:-$MAILBOX_ROOT/.env.local}"
 
@@ -27,6 +28,9 @@ Usage:
   reviewed_outreach.sh draft-reply <message-json>
   reviewed_outreach.sh draft-reply-fast <message-json>
   reviewed_outreach.sh draft-reply-strong <message-json>
+  reviewed_outreach.sh status
+  reviewed_outreach.sh request-decision <category> <title> <recommended-action>
+  reviewed_outreach.sh log-decision <stem> <approved|rejected|executed> [note]
 EOF
 }
 
@@ -82,6 +86,18 @@ case "$command_name" in
       set +a
     fi
     exec "$PYTHON_BIN" "$MAILBOX_ROOT/draft_reply.py" --message-json "$1" --model-profile strong
+    ;;
+  status)
+    exec "$PYTHON_BIN" "$CONTROL_ROOT/status_snapshot.py"
+    ;;
+  request-decision)
+    exec "$PYTHON_BIN" "$CONTROL_ROOT/create_decision_packet.py" "$1" "$2" "$3"
+    ;;
+  log-decision)
+    if [ "$#" -ge 3 ]; then
+      exec "$PYTHON_BIN" "$CONTROL_ROOT/log_decision.py" "$1" "$2" "$3"
+    fi
+    exec "$PYTHON_BIN" "$CONTROL_ROOT/log_decision.py" "$1" "$2"
     ;;
   *)
     usage

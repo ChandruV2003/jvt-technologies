@@ -36,3 +36,13 @@ outreach/queue/sent/*
 !outreach/queue/sent/.gitkeep
 outreach/queue/replied/*
 !outreach/queue/replied/.gitkeep
+
+ops/agent-control/pending/*
+!ops/agent-control/pending/.gitkeep
+ops/agent-control/approved/*
+!ops/agent-control/approved/.gitkeep
+ops/agent-control/rejected/*
+!ops/agent-control/rejected/.gitkeep
+ops/agent-control/executed/*
+!ops/agent-control/executed/.gitkeep
+ops/agent-control/decision-log.jsonl
