@@ -171,6 +171,28 @@ def current_status() -> dict[str, object]:
         },
         "decision_counts": {label: count_json_files(CONTROL_ROOT / label) for label in DECISION_LABELS},
         "pending_decisions": json_stems(CONTROL_ROOT / "pending"),
+        "next_actions": [
+            {
+                "title": "Enable Tailscale Serve",
+                "detail": "Required once on the tailnet before the control panel can be reached remotely.",
+                "kind": "human-blocker",
+            },
+            {
+                "title": "Confirm legal entity and EIN",
+                "detail": "This is the real blocker before Mercury and Stripe can be opened cleanly.",
+                "kind": "company-blocker",
+            },
+            {
+                "title": "Approve the next reviewed outreach batch",
+                "detail": "One pending decision already exists for the next national send tranche.",
+                "kind": "operator-review",
+            },
+            {
+                "title": "Open Mercury and Stripe after entity readiness",
+                "detail": "Run a self-test invoice before real client billing.",
+                "kind": "finance-setup",
+            },
+        ],
     }
 
 

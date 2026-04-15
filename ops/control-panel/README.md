@@ -20,6 +20,14 @@ Default URL:
 
 - `http://127.0.0.1:8042`
 
+Remote tailnet access:
+
+- once Tailscale Serve is enabled on the tailnet, publish it with:
+
+```bash
+/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/ops/control-panel/publish_to_tailscale.sh
+```
+
 ## Current Runtime Assumption
 
 The panel uses the existing product backend virtualenv for FastAPI and MLX dependencies:
@@ -46,3 +54,11 @@ That keeps this first version light and avoids introducing another Python enviro
 - authenticate remote users
 
 This is an internal local control panel, not a public-facing web app.
+
+## LaunchAgent
+
+Install and start it as a persistent local service:
+
+```bash
+/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/ops/control-panel/install_launch_agent.sh
+```

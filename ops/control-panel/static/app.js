@@ -1,5 +1,6 @@
 const statusGrid = document.querySelector("#status-grid");
 const pendingDecisions = document.querySelector("#pending-decisions");
+const nextActions = document.querySelector("#next-actions");
 const leadList = document.querySelector("#lead-list");
 const outreachList = document.querySelector("#outreach-list");
 const inboxList = document.querySelector("#inbox-list");
@@ -73,6 +74,23 @@ function renderPending(items) {
     .join("");
 }
 
+function renderNextActions(items) {
+  if (!items.length) {
+    nextActions.innerHTML = `<div class="list-item"><h3>No queued actions</h3></div>`;
+    return;
+  }
+
+  nextActions.innerHTML = items
+    .map((item) => `
+      <article class="list-item">
+        <h3>${item.title}</h3>
+        <p class="meta">${item.kind || "task"}</p>
+        <p>${item.detail}</p>
+      </article>
+    `)
+    .join("");
+}
+
 function renderLeads(items) {
   if (!items.length) {
     leadList.innerHTML = `<div class="list-item"><h3>No leads found</h3></div>`;
@@ -137,6 +155,7 @@ async function refreshAll() {
 
   renderStatus(status);
   renderPending(decisions.pending || []);
+  renderNextActions(status.next_actions || []);
   renderLeads(leads.items || []);
   renderOutreach(outreach.draft || [], outreach.sent || []);
   renderInbox(inbox.items || []);

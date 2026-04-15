@@ -46,3 +46,5 @@ ops/agent-control/rejected/*
 ops/agent-control/executed/*
 !ops/agent-control/executed/.gitkeep
 ops/agent-control/decision-log.jsonl
+
+ops/control-panel/*.log
