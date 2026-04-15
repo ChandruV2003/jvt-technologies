@@ -56,7 +56,7 @@ cd /Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/products/Private-
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-uvicorn app.main:app --reload
+./backend/tools/run_local_backend.sh
 ```
 
 Open:
@@ -71,7 +71,7 @@ Open:
 ```bash
 cd /Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/products/Private-AI-Lab/apps/private-doc-intel-demo/backend
 source .venv/bin/activate
-ANSWER_PROVIDER=extractive uvicorn app.main:app --reload
+ANSWER_PROVIDER=extractive ./backend/tools/run_local_backend.sh
 ```
 
 ### 2. OpenAI-compatible provider
@@ -83,7 +83,7 @@ ANSWER_PROVIDER=openai-compatible \
 ANSWER_MODEL_NAME=your-model-name \
 ANSWER_API_BASE_URL=http://127.0.0.1:11435/v1 \
 ANSWER_API_KEY= \
-uvicorn app.main:app --reload
+./backend/tools/run_local_backend.sh
 ```
 
 For local plumbing tests without secrets:
@@ -99,7 +99,7 @@ python tools/mock_openai_compatible_server.py
 ```bash
 cd /Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/products/Private-AI-Lab/apps/private-doc-intel-demo/backend
 source .venv/bin/activate
-ANSWER_PROVIDER=mlx-local uvicorn app.main:app --reload
+ANSWER_PROVIDER=mlx-local ./backend/tools/run_local_backend.sh
 ```
 
 On this Mac, the local backend override now points `mlx-local` at:
