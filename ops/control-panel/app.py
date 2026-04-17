@@ -221,14 +221,14 @@ def current_status() -> dict[str, object]:
                 "kind": "ops-check",
             },
             {
-                "title": "Publish DMARC for jvt-technologies.com",
-                "detail": "MX and SPF are live, but DMARC still needs to be published for cleaner deliverability.",
-                "kind": "deliverability",
-            },
-            {
                 "title": "Open Mercury and Stripe after entity readiness",
                 "detail": "Run a self-test invoice before real client billing.",
                 "kind": "finance-setup",
+            },
+            {
+                "title": "Refresh the next outreach wave with the updated copy",
+                "detail": "The new template and branding are ready, so the next batch should use the improved email voice.",
+                "kind": "outreach-refresh",
             },
         ],
     }
