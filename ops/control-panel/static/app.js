@@ -1,7 +1,6 @@
 const statusGrid = document.querySelector("#status-grid");
 const pendingDecisions = document.querySelector("#pending-decisions");
 const nextActions = document.querySelector("#next-actions");
-const quickLinks = document.querySelector("#quick-links");
 const leadList = document.querySelector("#lead-list");
 const draftList = document.querySelector("#draft-list");
 const reviewList = document.querySelector("#review-list");
@@ -51,26 +50,6 @@ function renderStatus(status) {
     tile("Replied threads", queueCounts.replied || 0),
     tile("Sent packets", queueCounts.sent || 0),
   ].join("");
-}
-
-function renderQuickLinks(status) {
-  const panelUrls = status.panel_urls || {};
-  const siteUrls = status.site_urls || {};
-  const links = [
-    { label: "Tailnet panel", href: panelUrls.tailscale, detail: "Remote ops access over Tailscale" },
-    { label: "Local panel", href: panelUrls.local, detail: "Local-only control surface" },
-    { label: "Public site", href: siteUrls.public, detail: "Live JVT Technologies website" },
-    { label: "Company roadmap", href: "https://github.com/ChandruV2003/jvt-technologies", detail: "Repo and working source of truth" },
-  ].filter((item) => item.href);
-
-  quickLinks.innerHTML = links
-    .map((item) => `
-      <a class="quick-link" href="${item.href}" target="_blank" rel="noreferrer">
-        <strong>${item.label}</strong>
-        <span class="meta">${item.detail}</span>
-      </a>
-    `)
-    .join("");
 }
 
 function renderPending(items) {
@@ -207,7 +186,6 @@ async function refreshAll() {
   ]);
 
   renderStatus(status);
-  renderQuickLinks(status);
   renderPending(decisions.pending || []);
   renderNextActions(status.next_actions || []);
   renderLeads(leads.items || []);

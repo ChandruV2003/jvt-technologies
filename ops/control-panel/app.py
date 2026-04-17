@@ -183,6 +183,7 @@ def list_decisions(state: str) -> list[dict[str, object]]:
 def current_status() -> dict[str, object]:
     queue_counts = {label: count_json_files(OUTREACH_QUEUE / label) for label in STATUS_LABELS}
     review_count = queue_counts.get("review", 0)
+    approved_decision_count = count_json_files(CONTROL_ROOT / "approved")
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "panel_urls": {
@@ -213,9 +214,17 @@ def current_status() -> dict[str, object]:
                 "kind": "company-blocker",
             },
             {
-                "title": "Review the prepared outreach wave" if review_count else "Approve the next reviewed outreach batch",
+                "title": (
+                    "Decision approved; send or reduce the staged outreach wave"
+                    if approved_decision_count and review_count
+                    else "Review the prepared outreach wave"
+                    if review_count
+                    else "Approve the next reviewed outreach batch"
+                ),
                 "detail": (
-                    f"{review_count} refreshed packets are waiting in the review queue."
+                    f"The approval came through, but {review_count} packets are still waiting in the review queue and have not been sent yet."
+                    if approved_decision_count and review_count
+                    else f"{review_count} refreshed packets are waiting in the review queue."
                     if review_count
                     else "One pending decision already exists for the next national send tranche."
                 ),
