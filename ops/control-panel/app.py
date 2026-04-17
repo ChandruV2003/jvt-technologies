@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import re
 import sqlite3
+import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 from threading import Lock
@@ -61,8 +62,18 @@ class ModelPromptRequest(BaseModel):
     max_tokens: int = Field(default=260, ge=64, le=600)
 
 
+class OutreachTransitionRequest(BaseModel):
+    target_state: Literal["draft", "review", "approved"]
+
+
+class OutreachSendRequest(BaseModel):
+    stems: list[str] = Field(default_factory=list)
+    confirmed: bool = False
+
+
 _MODEL_LOCK = Lock()
 _ACTIVE_MODEL: dict[str, object] = {}
+SEND_SCRIPT = REPO_ROOT / "outreach" / "tools" / "send_approved.py"
 
 
 def count_json_files(directory: Path) -> int:
@@ -117,6 +128,105 @@ def recent_packets(directory: Path, limit: int = 8) -> list[dict[str, object]]:
         payload["path"] = str(path)
         packets.append(payload)
     return packets
+
+
+def queue_bundle_paths(queue_label: str, stem: str) -> list[Path]:
+    directory = OUTREACH_QUEUE / queue_label
+    return sorted(path for path in directory.glob(f"{stem}.*") if path.is_file())
+
+
+def update_metadata_paths(data: dict[str, object], target_dir: Path, stem: str) -> dict[str, object]:
+    key_to_suffix = {
+        "review_path": ".md",
+        "text_path": ".txt",
+        "html_path": ".html",
+    }
+    for key, suffix in key_to_suffix.items():
+        if key in data:
+            data[key] = str(target_dir / f"{stem}{suffix}")
+    return data
+
+
+def update_review_markdown(path: Path, target_status: str) -> None:
+    if not path.exists() or path.suffix != ".md":
+        return
+    content = path.read_text(encoding="utf-8")
+    updated = re.sub(r"^status:\s+\w+\s*$", f"status: {target_status}", content, flags=re.MULTILINE)
+    path.write_text(updated, encoding="utf-8")
+
+
+def move_outreach_packet(source: str, target: str, stem: str) -> dict[str, object]:
+    if source not in STATUS_LABELS or target not in STATUS_LABELS:
+        raise HTTPException(status_code=400, detail="Invalid outreach queue transition")
+    if source == target:
+        raise HTTPException(status_code=400, detail="Source and target queues must differ")
+
+    paths = queue_bundle_paths(source, stem)
+    if not paths:
+        raise HTTPException(status_code=404, detail=f"Outreach packet not found: {source}/{stem}")
+
+    target_dir = OUTREACH_QUEUE / target
+    target_dir.mkdir(parents=True, exist_ok=True)
+
+    for path in paths:
+        if path.suffix == ".json":
+            data = json.loads(path.read_text(encoding="utf-8"))
+            data["status"] = target
+            data = update_metadata_paths(data, target_dir, stem)
+            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+        elif path.suffix == ".md":
+            update_review_markdown(path, target)
+
+    moved_files: list[str] = []
+    for path in paths:
+        destination = target_dir / path.name
+        path.rename(destination)
+        moved_files.append(str(destination))
+
+    return {
+        "stem": stem,
+        "from_state": source,
+        "to_state": target,
+        "moved_files": moved_files,
+    }
+
+
+def send_outreach_packets(stems: list[str], confirmed: bool) -> dict[str, object]:
+    unique_stems = list(dict.fromkeys(stems))
+    if not unique_stems:
+        raise HTTPException(status_code=400, detail="Provide at least one approved packet to send")
+    if not confirmed:
+        raise HTTPException(status_code=400, detail="Send confirmation required")
+
+    command = ["python3", str(SEND_SCRIPT)]
+    for stem in unique_stems:
+        command.extend(["--stem", stem])
+    command.append("--send")
+
+    result = subprocess.run(
+        command,
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        detail = result.stderr.strip() or result.stdout.strip() or "Send failed"
+        raise HTTPException(status_code=500, detail=detail)
+
+    events: list[dict[str, object]] = []
+    for line in result.stdout.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            events.append(json.loads(line))
+        except json.JSONDecodeError:
+            continue
+    return {
+        "sent_count": len(events),
+        "events": events,
+    }
 
 
 def packet_detail(queue_label: str, stem: str) -> dict[str, object]:
@@ -183,6 +293,7 @@ def list_decisions(state: str) -> list[dict[str, object]]:
 def current_status() -> dict[str, object]:
     queue_counts = {label: count_json_files(OUTREACH_QUEUE / label) for label in STATUS_LABELS}
     review_count = queue_counts.get("review", 0)
+    approved_count = queue_counts.get("approved", 0)
     approved_decision_count = count_json_files(CONTROL_ROOT / "approved")
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -215,6 +326,9 @@ def current_status() -> dict[str, object]:
             },
             {
                 "title": (
+                    "Send the approved outreach batch"
+                    if approved_count
+                    else
                     "Decision approved; send or reduce the staged outreach wave"
                     if approved_decision_count and review_count
                     else "Review the prepared outreach wave"
@@ -222,6 +336,9 @@ def current_status() -> dict[str, object]:
                     else "Approve the next reviewed outreach batch"
                 ),
                 "detail": (
+                    f"{approved_count} packets are staged in approved and ready for a confirmed send."
+                    if approved_count
+                    else
                     f"The approval came through, but {review_count} packets are still waiting in the review queue and have not been sent yet."
                     if approved_decision_count and review_count
                     else f"{review_count} refreshed packets are waiting in the review queue."
@@ -453,6 +570,7 @@ def api_recent_outreach(limit: int = 8) -> dict[str, object]:
     return {
         "draft": recent_packets(OUTREACH_QUEUE / "draft", limit=limit),
         "review": recent_packets(OUTREACH_QUEUE / "review", limit=limit),
+        "approved": recent_packets(OUTREACH_QUEUE / "approved", limit=limit),
         "sent": recent_packets(OUTREACH_QUEUE / "sent", limit=limit),
     }
 
@@ -460,6 +578,16 @@ def api_recent_outreach(limit: int = 8) -> dict[str, object]:
 @app.get("/api/outreach/{queue_label}/{stem}")
 def api_outreach_detail(queue_label: str, stem: str) -> dict[str, object]:
     return packet_detail(queue_label, stem)
+
+
+@app.post("/api/outreach/{queue_label}/{stem}/transition")
+def api_outreach_transition(queue_label: str, stem: str, request: OutreachTransitionRequest) -> dict[str, object]:
+    return move_outreach_packet(queue_label, request.target_state, stem)
+
+
+@app.post("/api/outreach/send")
+def api_outreach_send(request: OutreachSendRequest) -> dict[str, object]:
+    return send_outreach_packets(request.stems, request.confirmed)
 
 
 @app.get("/api/inbox/recent")

@@ -4,10 +4,12 @@ const nextActions = document.querySelector("#next-actions");
 const leadList = document.querySelector("#lead-list");
 const draftList = document.querySelector("#draft-list");
 const reviewList = document.querySelector("#review-list");
+const approvedList = document.querySelector("#approved-list");
 const sentList = document.querySelector("#sent-list");
 const inboxList = document.querySelector("#inbox-list");
 const messageViewer = document.querySelector("#message-viewer");
 const refreshButton = document.querySelector("#refresh-all");
+const sendApprovedBatchButton = document.querySelector("#send-approved-batch");
 const sendPromptButton = document.querySelector("#send-prompt");
 const promptBox = document.querySelector("#model-prompt");
 const responseBox = document.querySelector("#model-response");
@@ -121,6 +123,22 @@ function packetMeta(item, queueLabel) {
   return `${queueLabel}${recipient}${sentAt}`;
 }
 
+function transitionButtons(queueLabel, item) {
+  if (queueLabel === "review") {
+    return `
+      <button class="button small" data-transition-packet="${item.stem}" data-from-queue="review" data-to-queue="approved">Move to Approved</button>
+      <button class="button small secondary" data-transition-packet="${item.stem}" data-from-queue="review" data-to-queue="draft">Return to Draft</button>
+    `;
+  }
+  if (queueLabel === "approved") {
+    return `
+      <button class="button small" data-send-packet="${item.stem}">Send Packet</button>
+      <button class="button small secondary" data-transition-packet="${item.stem}" data-from-queue="approved" data-to-queue="review">Back to Review</button>
+    `;
+  }
+  return "";
+}
+
 function renderPacketList(container, items, queueLabel, emptyTitle, emptyDetail) {
   const renderPacket = (item) => `
     <article class="list-item">
@@ -129,6 +147,7 @@ function renderPacketList(container, items, queueLabel, emptyTitle, emptyDetail)
       <p>${item.subject || item.title || "No subject"}</p>
       <div class="decision-actions">
         <button class="button small secondary" data-open-packet="${item.stem}" data-queue="${queueLabel}">View</button>
+        ${transitionButtons(queueLabel, item)}
       </div>
     </article>
   `;
@@ -191,16 +210,19 @@ async function refreshAll() {
   renderLeads(leads.items || []);
   renderPacketList(draftList, outreach.draft || [], "draft", "No draft packets", "Generate or review a new packet and it will show up here.");
   renderPacketList(reviewList, outreach.review || [], "review", "No review packets", "When the next outreach wave is staged, it will show up here for approval.");
+  renderPacketList(approvedList, outreach.approved || [], "approved", "No approved packets", "Move packets here once you are ready for a confirmed send.");
   renderPacketList(sentList, outreach.sent || [], "sent", "No sent packets", "When reviewed outreach goes out, it will show up here.");
   renderInbox(inbox.items || []);
 
   const defaultPacket =
+    (outreach.approved || [])[0] ||
     (outreach.review || [])[0] ||
     (outreach.sent || [])[0] ||
     (outreach.draft || [])[0];
   if (defaultPacket) {
     try {
       const queue =
+        (outreach.approved || []).length ? "approved" :
         (outreach.review || []).length ? "review" :
         (outreach.sent || []).length ? "sent" :
         "draft";
@@ -264,11 +286,75 @@ async function handlePacketOpen(event) {
   }
 }
 
+async function handlePacketTransition(event) {
+  const button = event.target.closest("[data-transition-packet]");
+  if (!button) return;
+
+  const stem = button.dataset.transitionPacket;
+  const fromQueue = button.dataset.fromQueue;
+  const toQueue = button.dataset.toQueue;
+  const confirmed = window.confirm(`Move ${stem} from ${fromQueue} to ${toQueue}?`);
+  if (!confirmed) return;
+
+  try {
+    await request(`/api/outreach/${fromQueue}/${stem}/transition`, {
+      method: "POST",
+      body: JSON.stringify({ target_state: toQueue }),
+    });
+    await refreshAll();
+  } catch (error) {
+    messageViewer.innerHTML = `<div class="list-item"><h3>Queue update failed</h3><p class="meta">${error.message}</p></div>`;
+  }
+}
+
+async function sendPackets(stems) {
+  if (!stems.length) return;
+  const confirmed = window.confirm(`Send ${stems.length} approved packet${stems.length === 1 ? "" : "s"} now?`);
+  if (!confirmed) return;
+
+  try {
+    const result = await request("/api/outreach/send", {
+      method: "POST",
+      body: JSON.stringify({ stems, confirmed: true }),
+    });
+    const sentCount = result.sent_count || 0;
+    messageViewer.innerHTML = `<div class="list-item"><h3>Send complete</h3><p class="meta">${sentCount} packet${sentCount === 1 ? "" : "s"} sent.</p></div>`;
+    await refreshAll();
+  } catch (error) {
+    messageViewer.innerHTML = `<div class="list-item"><h3>Send failed</h3><p class="meta">${error.message}</p></div>`;
+  }
+}
+
+async function handlePacketSend(event) {
+  const button = event.target.closest("[data-send-packet]");
+  if (!button) return;
+  await sendPackets([button.dataset.sendPacket]);
+}
+
+async function handleApprovedBatchSend() {
+  try {
+    const outreach = await request("/api/outreach/recent?limit=20");
+    const stems = (outreach.approved || []).map((item) => item.stem);
+    if (!stems.length) {
+      messageViewer.innerHTML = `<div class="list-item"><h3>No approved packets</h3><p class="meta">Move one or more packets into approved before sending.</p></div>`;
+      return;
+    }
+    await sendPackets(stems);
+  } catch (error) {
+    messageViewer.innerHTML = `<div class="list-item"><h3>Batch load failed</h3><p class="meta">${error.message}</p></div>`;
+  }
+}
+
 refreshButton.addEventListener("click", refreshAll);
+sendApprovedBatchButton.addEventListener("click", handleApprovedBatchSend);
 sendPromptButton.addEventListener("click", handlePrompt);
 pendingDecisions.addEventListener("click", handleDecisionTransition);
 draftList.addEventListener("click", handlePacketOpen);
 reviewList.addEventListener("click", handlePacketOpen);
+reviewList.addEventListener("click", handlePacketTransition);
+approvedList.addEventListener("click", handlePacketOpen);
+approvedList.addEventListener("click", handlePacketTransition);
+approvedList.addEventListener("click", handlePacketSend);
 sentList.addEventListener("click", handlePacketOpen);
 
 promptBox.value = "Give me a concise operator summary of the current JVT state and the best next action.";
