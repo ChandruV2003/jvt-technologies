@@ -113,9 +113,38 @@ def recent_packets(directory: Path, limit: int = 8) -> list[dict[str, object]]:
             payload = json.loads(path.read_text(encoding="utf-8"))
         except json.JSONDecodeError:
             continue
+        payload["stem"] = path.stem
         payload["path"] = str(path)
         packets.append(payload)
     return packets
+
+
+def packet_detail(queue_label: str, stem: str) -> dict[str, object]:
+    if queue_label not in STATUS_LABELS:
+        raise HTTPException(status_code=404, detail=f"Unknown outreach queue: {queue_label}")
+
+    directory = OUTREACH_QUEUE / queue_label
+    metadata_path = directory / f"{stem}.json"
+    if not metadata_path.exists():
+        raise HTTPException(status_code=404, detail=f"Outreach packet not found: {queue_label}/{stem}")
+
+    try:
+        metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise HTTPException(status_code=500, detail=f"Could not parse packet metadata: {stem}") from exc
+
+    text_path = directory / f"{stem}.txt"
+    html_path = directory / f"{stem}.html"
+    review_path = directory / f"{stem}.md"
+
+    return {
+        "queue": queue_label,
+        "stem": stem,
+        "metadata": metadata,
+        "text_body": text_path.read_text(encoding="utf-8").strip() if text_path.exists() else "",
+        "html_body": html_path.read_text(encoding="utf-8").strip() if html_path.exists() else "",
+        "review_body": review_path.read_text(encoding="utf-8").strip() if review_path.exists() else "",
+    }
 
 
 def recent_inbox_messages(limit: int = 8) -> list[dict[str, object]]:
@@ -190,6 +219,11 @@ def current_status() -> dict[str, object]:
                 "title": "Run one live inbound and outbound mailbox check",
                 "detail": "Keep the send/receive loop healthy before widening outreach volume.",
                 "kind": "ops-check",
+            },
+            {
+                "title": "Publish DMARC for jvt-technologies.com",
+                "detail": "MX and SPF are live, but DMARC still needs to be published for cleaner deliverability.",
+                "kind": "deliverability",
             },
             {
                 "title": "Open Mercury and Stripe after entity readiness",
@@ -405,6 +439,11 @@ def api_recent_outreach(limit: int = 8) -> dict[str, object]:
         "draft": recent_packets(OUTREACH_QUEUE / "draft", limit=limit),
         "sent": recent_packets(OUTREACH_QUEUE / "sent", limit=limit),
     }
+
+
+@app.get("/api/outreach/{queue_label}/{stem}")
+def api_outreach_detail(queue_label: str, stem: str) -> dict[str, object]:
+    return packet_detail(queue_label, stem)
 
 
 @app.get("/api/inbox/recent")

@@ -93,11 +93,11 @@
         <section class="card activity-card">
           <div class="card-head">
             <div>
-              <p class="eyebrow">Recent Outreach</p>
-              <h2>Draft and sent packets</h2>
+              <p class="eyebrow">Draft Queue</p>
+              <h2>Ready-to-review outreach</h2>
             </div>
           </div>
-          <div id="outreach-list" class="stack"></div>
+          <div id="draft-list" class="stack"></div>
         </section>
 
         <section class="card activity-card">
@@ -108,6 +108,31 @@
             </div>
           </div>
           <div id="inbox-list" class="stack"></div>
+        </section>
+
+        <section class="card activity-card">
+          <div class="card-head">
+            <div>
+              <p class="eyebrow">Sent Mail</p>
+              <h2>What actually went out</h2>
+            </div>
+          </div>
+          <div id="sent-list" class="stack"></div>
+        </section>
+
+        <section class="card span-2 activity-card">
+          <div class="card-head">
+            <div>
+              <p class="eyebrow">Message Viewer</p>
+              <h2>Inspect an outreach packet</h2>
+            </div>
+          </div>
+          <div id="message-viewer" class="viewer-panel">
+            <div class="list-item">
+              <h3>No packet selected</h3>
+              <p class="meta">Choose a draft or sent packet to inspect its subject, recipient, and body.</p>
+            </div>
+          </div>
         </section>
       </main>
     </div>

@@ -3,8 +3,10 @@ const pendingDecisions = document.querySelector("#pending-decisions");
 const nextActions = document.querySelector("#next-actions");
 const quickLinks = document.querySelector("#quick-links");
 const leadList = document.querySelector("#lead-list");
-const outreachList = document.querySelector("#outreach-list");
+const draftList = document.querySelector("#draft-list");
+const sentList = document.querySelector("#sent-list");
 const inboxList = document.querySelector("#inbox-list");
+const messageViewer = document.querySelector("#message-viewer");
 const refreshButton = document.querySelector("#refresh-all");
 const sendPromptButton = document.querySelector("#send-prompt");
 const promptBox = document.querySelector("#model-prompt");
@@ -133,19 +135,48 @@ function renderLeads(items) {
     .join("");
 }
 
-function renderOutreach(draftItems, sentItems) {
-  const renderPacket = (item, label) => `
+function packetMeta(item, queueLabel) {
+  const recipient = item.recipient_email ? ` · ${item.recipient_email}` : "";
+  const sentAt = item.sent_at ? ` · ${item.sent_at}` : "";
+  return `${queueLabel}${recipient}${sentAt}`;
+}
+
+function renderPacketList(container, items, queueLabel, emptyTitle, emptyDetail) {
+  const renderPacket = (item) => `
     <article class="list-item">
       <h3>${item.company_name || item.stem || "Packet"}</h3>
-      <p class="meta">${label}</p>
+      <p class="meta">${packetMeta(item, queueLabel)}</p>
       <p>${item.subject || item.title || "No subject"}</p>
+      <div class="decision-actions">
+        <button class="button small secondary" data-open-packet="${item.stem}" data-queue="${queueLabel}">View</button>
+      </div>
     </article>
   `;
-  const items = [
-    ...draftItems.slice(0, 4).map((item) => renderPacket(item, "draft")),
-    ...sentItems.slice(0, 4).map((item) => renderPacket(item, "sent")),
-  ];
-  outreachList.innerHTML = items.length ? items.join("") : `<div class="list-item"><h3>No outreach packets yet</h3></div>`;
+
+  container.innerHTML = items.length
+    ? items.slice(0, 6).map((item) => renderPacket(item)).join("")
+    : `<div class="list-item"><h3>${emptyTitle}</h3><p class="meta">${emptyDetail}</p></div>`;
+}
+
+function renderPacketViewer(detail) {
+  const metadata = detail.metadata || {};
+  const recipient = metadata.recipient_email || "No recipient";
+  const subject = metadata.subject || "No subject";
+  const body = detail.text_body || detail.review_body || "No body available.";
+  const queue = detail.queue || "unknown";
+  const sentAt = metadata.sent_at || metadata.generated_at || "Unknown time";
+
+  messageViewer.innerHTML = `
+    <article class="list-item viewer-card">
+      <h3>${subject}</h3>
+      <p class="meta">${queue} · ${recipient} · ${sentAt}</p>
+      <div class="chips">
+        <span class="chip">${metadata.company_name || "No company"}</span>
+        <span class="chip">${metadata.reply_to_email || "No reply-to"}</span>
+      </div>
+      <pre class="viewer-body">${body}</pre>
+    </article>
+  `;
 }
 
 function renderInbox(items) {
@@ -179,8 +210,21 @@ async function refreshAll() {
   renderPending(decisions.pending || []);
   renderNextActions(status.next_actions || []);
   renderLeads(leads.items || []);
-  renderOutreach(outreach.draft || [], outreach.sent || []);
+  renderPacketList(draftList, outreach.draft || [], "draft", "No draft packets", "Generate or review a new packet and it will show up here.");
+  renderPacketList(sentList, outreach.sent || [], "sent", "No sent packets", "When reviewed outreach goes out, it will show up here.");
   renderInbox(inbox.items || []);
+
+  const defaultPacket = (outreach.sent || [])[0] || (outreach.draft || [])[0];
+  if (defaultPacket) {
+    try {
+      const detail = await request(`/api/outreach/${(outreach.sent || []).length ? "sent" : "draft"}/${defaultPacket.stem}`);
+      renderPacketViewer(detail);
+    } catch (error) {
+      messageViewer.innerHTML = `<div class="list-item"><h3>Viewer load failed</h3><p class="meta">${error.message}</p></div>`;
+    }
+  } else {
+    messageViewer.innerHTML = `<div class="list-item"><h3>No packet selected</h3><p class="meta">Choose a draft or sent packet to inspect its subject, recipient, and body.</p></div>`;
+  }
 }
 
 async function handleDecisionTransition(event) {
@@ -219,9 +263,25 @@ async function handlePrompt() {
   }
 }
 
+async function handlePacketOpen(event) {
+  const button = event.target.closest("[data-open-packet]");
+  if (!button) return;
+
+  const stem = button.dataset.openPacket;
+  const queue = button.dataset.queue;
+  try {
+    const detail = await request(`/api/outreach/${queue}/${stem}`);
+    renderPacketViewer(detail);
+  } catch (error) {
+    messageViewer.innerHTML = `<div class="list-item"><h3>Viewer load failed</h3><p class="meta">${error.message}</p></div>`;
+  }
+}
+
 refreshButton.addEventListener("click", refreshAll);
 sendPromptButton.addEventListener("click", handlePrompt);
 pendingDecisions.addEventListener("click", handleDecisionTransition);
+draftList.addEventListener("click", handlePacketOpen);
+sentList.addEventListener("click", handlePacketOpen);
 
 promptBox.value = "Give me a concise operator summary of the current JVT state and the best next action.";
 refreshAll().catch((error) => {
