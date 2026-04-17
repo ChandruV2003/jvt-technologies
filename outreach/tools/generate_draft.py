@@ -10,7 +10,7 @@ from datetime import date, datetime
 from pathlib import Path
 
 
-DEFAULT_SENDER = "Chandru Vasu"
+DEFAULT_SENDER = "Chandru Vasudevan"
 DEFAULT_SENDER_TITLE = "Founder, JVT Technologies"
 DEFAULT_REPLY_TO = "hello@jvt-technologies.com"
 DEFAULT_SITE_URL = "https://jvt-technologies.com"

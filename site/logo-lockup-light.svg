@@ -9,7 +9,7 @@
   <g transform="translate(6,6)">
     <rect x="0" y="0" width="118" height="118" rx="34" fill="#0d6c60" />
     <rect x="0" y="0" width="118" height="118" rx="34" fill="url(#lockupWordLight)" opacity="0.18" />
-    <path d="M28 27v38c0 10 4 15 12 15 7 0 12-4 12-11V27" fill="none" stroke="#fff8ee" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M40 27v41c0 10-5 15-14 15-6 0-11-3-15-8" fill="none" stroke="#fff8ee" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
     <path d="M53 27l14 54 15-54" fill="none" stroke="#fff8ee" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
     <path d="M73 27h27M86 27v54" fill="none" stroke="#fff8ee" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
     <circle cx="18" cy="96" r="5" fill="#f2c98d" />

@@ -17,7 +17,7 @@ fi
 REPLY_TO="${JVT_REPLY_TO_EMAIL:-hello@jvt-technologies.com}"
 SITE_URL="${JVT_SITE_URL:-https://jvt-technologies.com}"
 DEMO_VIDEO_URL="${JVT_DEMO_VIDEO_URL:-}"
-SENDER_NAME="${JVT_SENDER_NAME:-Chandru Vasu}"
+SENDER_NAME="${JVT_SENDER_NAME:-Chandru Vasudevan}"
 SENDER_TITLE="${JVT_SENDER_TITLE:-Founder, JVT Technologies}"
 SENDER_COMPANY="${JVT_SENDER_COMPANY:-JVT Technologies}"
 

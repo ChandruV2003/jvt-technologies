@@ -7,7 +7,7 @@
     </linearGradient>
   </defs>
   <rect width="96" height="96" rx="28" fill="url(#favBg)" />
-  <path d="M28 25v29c0 8 3 12 10 12 6 0 10-4 10-9V25" fill="none" stroke="#fff8ee" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M38 25v32c0 9-4 13-12 13-5 0-9-3-12-7" fill="none" stroke="#fff8ee" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
   <path d="M49 25l12 45 13-45" fill="none" stroke="#fff8ee" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
   <path d="M67 25h23M79 25v45" fill="none" stroke="#fff8ee" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
   <circle cx="21" cy="77" r="5" fill="#f2c98d" />

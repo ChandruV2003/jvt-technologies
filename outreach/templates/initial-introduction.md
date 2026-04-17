@@ -1,17 +1,20 @@
-Subject: Private document AI for {{company_name}}
+Subject: A private document workflow idea for {{company_name}}
 
 Hi {{contact_name}},
 
-I run JVT Technologies. We build private AI systems and workflow automation for document-heavy teams, with an initial focus on firms and professional-service organizations that need grounded answers from internal documents.
+I run JVT Technologies, a small private AI and workflow automation practice for document-heavy teams.
 
-I came across {{company_name}} while reviewing {{practice_area}} firms in {{city_state}}. {{fit_reason}}
+I spent a little time looking at {{company_name}} because of your {{practice_area}} work in {{city_state}}. {{fit_reason}}
 
-The system can ingest internal documents, answer questions against them, and cite the source passages behind each answer. It is designed for controlled deployment rather than a public consumer workflow.
+The current system is a private document assistant that can search internal policies, templates, matter materials, and operating notes, then return cited answers instead of a generic summary. The point is not a public chatbot. It is a controlled internal tool for teams that need privacy, traceability, and faster access to their own knowledge.
 
-There is now a short sample walkthrough here if you want to see the shape of the system first: {{demo_video_url}}
+If useful, I can send over a short demo and a concrete example of how this could fit an internal workflow at {{company_name}}.
 
-If that sounds relevant, I would be glad to share a short working demo and discuss whether a pilot would make sense.
+You can also see the overall shape of what we are building here: {{site_url}}
+
+If this is not relevant right now, no worries. If it is, I would be glad to share a short demo and see whether a small pilot would be worth discussing.
 
 Best,
 {{sender_name}}
-JVT Technologies
+{{sender_title}}
+{{sender_company}}

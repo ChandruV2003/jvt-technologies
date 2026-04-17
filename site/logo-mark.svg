@@ -11,7 +11,7 @@
     </linearGradient>
   </defs>
   <rect x="8" y="8" width="80" height="80" rx="24" fill="url(#jvtMarkBg)" />
-  <path d="M27 26v27c0 7 3 11 9 11 5 0 8-3 8-8V26" fill="none" stroke="url(#jvtMarkStroke)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M36 26v30c0 8-4 12-11 12-5 0-9-2-12-6" fill="none" stroke="url(#jvtMarkStroke)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
   <path d="M45 26l11 39 11-39" fill="none" stroke="url(#jvtMarkStroke)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
   <path d="M60 26h22M71 26v39" fill="none" stroke="url(#jvtMarkStroke)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
   <circle cx="22" cy="71" r="4.5" fill="#f2c98d" />

@@ -30,7 +30,7 @@ Rules:
 - if the inbound message asks for a demo, suggest a short focused demo
 - if information is missing, keep the reply conservative
 - sign the reply as:
-Chandru Vasu
+Chandru Vasudevan
 Founder, JVT Technologies
 - output only the email body, no subject line, no markdown, no code fences, no placeholders
 """
@@ -104,7 +104,7 @@ def clean_reply(body: str, sender_name: str) -> str:
     cleaned = re.sub(r"\[[^\]]+\]", "", cleaned)
     cleaned = normalize_greeting(cleaned, sender_name)
     cleaned = re.sub(r"\n(Best regards,?|Best,?)\n.*$", "", cleaned, flags=re.IGNORECASE | re.DOTALL)
-    cleaned = cleaned.rstrip() + "\n\nBest,\nChandru Vasu\nFounder, JVT Technologies"
+    cleaned = cleaned.rstrip() + "\n\nBest,\nChandru Vasudevan\nFounder, JVT Technologies"
     return cleaned.strip()
 
 
