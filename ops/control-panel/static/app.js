@@ -4,6 +4,7 @@ const nextActions = document.querySelector("#next-actions");
 const quickLinks = document.querySelector("#quick-links");
 const leadList = document.querySelector("#lead-list");
 const draftList = document.querySelector("#draft-list");
+const reviewList = document.querySelector("#review-list");
 const sentList = document.querySelector("#sent-list");
 const inboxList = document.querySelector("#inbox-list");
 const messageViewer = document.querySelector("#message-viewer");
@@ -211,13 +212,21 @@ async function refreshAll() {
   renderNextActions(status.next_actions || []);
   renderLeads(leads.items || []);
   renderPacketList(draftList, outreach.draft || [], "draft", "No draft packets", "Generate or review a new packet and it will show up here.");
+  renderPacketList(reviewList, outreach.review || [], "review", "No review packets", "When the next outreach wave is staged, it will show up here for approval.");
   renderPacketList(sentList, outreach.sent || [], "sent", "No sent packets", "When reviewed outreach goes out, it will show up here.");
   renderInbox(inbox.items || []);
 
-  const defaultPacket = (outreach.sent || [])[0] || (outreach.draft || [])[0];
+  const defaultPacket =
+    (outreach.review || [])[0] ||
+    (outreach.sent || [])[0] ||
+    (outreach.draft || [])[0];
   if (defaultPacket) {
     try {
-      const detail = await request(`/api/outreach/${(outreach.sent || []).length ? "sent" : "draft"}/${defaultPacket.stem}`);
+      const queue =
+        (outreach.review || []).length ? "review" :
+        (outreach.sent || []).length ? "sent" :
+        "draft";
+      const detail = await request(`/api/outreach/${queue}/${defaultPacket.stem}`);
       renderPacketViewer(detail);
     } catch (error) {
       messageViewer.innerHTML = `<div class="list-item"><h3>Viewer load failed</h3><p class="meta">${error.message}</p></div>`;
@@ -281,6 +290,7 @@ refreshButton.addEventListener("click", refreshAll);
 sendPromptButton.addEventListener("click", handlePrompt);
 pendingDecisions.addEventListener("click", handleDecisionTransition);
 draftList.addEventListener("click", handlePacketOpen);
+reviewList.addEventListener("click", handlePacketOpen);
 sentList.addEventListener("click", handlePacketOpen);
 
 promptBox.value = "Give me a concise operator summary of the current JVT state and the best next action.";

@@ -1,18 +1,20 @@
-Subject: A private document workflow idea for {{company_name}}
+Subject: A small internal document workflow idea for {{company_name}}
 
 Hi {{contact_name}},
 
-I run JVT Technologies, a small private AI and workflow automation practice for document-heavy teams.
+I'm Chandru Vasudevan, founder of JVT Technologies. We build private AI and workflow systems for document-heavy teams.
 
-I spent a little time looking at {{company_name}} because of your {{practice_area}} work in {{city_state}}. {{fit_reason}}
+I came across {{company_name}} while looking at firms doing {{practice_area}} work in {{city_state}}. {{fit_reason}}
 
-The current system is a private document assistant that can search internal policies, templates, matter materials, and operating notes, then return cited answers instead of a generic summary. The point is not a public chatbot. It is a controlled internal tool for teams that need privacy, traceability, and faster access to their own knowledge.
+One of the systems we're putting in front of firms right now is a private internal document assistant. It searches policies, templates, matter notes, and internal reference material, then returns cited answers instead of a generic summary.
 
-If useful, I can send over a short demo and a concrete example of how this could fit an internal workflow at {{company_name}}.
+The goal is simple: help a team find the right internal answer faster without pushing sensitive material into a public-facing tool.
 
-You can also see the overall shape of what we are building here: {{site_url}}
+If that sounds relevant, I'd be happy to send a short demo and one concrete example tailored to {{company_name}}.
 
-If this is not relevant right now, no worries. If it is, I would be glad to share a short demo and see whether a small pilot would be worth discussing.
+You can get a quick sense of the company here: {{site_url}}
+
+If this is not a priority right now, no problem at all. If it is worth a look, just reply and I'll send something over.
 
 Best,
 {{sender_name}}

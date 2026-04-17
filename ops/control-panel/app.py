@@ -181,6 +181,8 @@ def list_decisions(state: str) -> list[dict[str, object]]:
 
 
 def current_status() -> dict[str, object]:
+    queue_counts = {label: count_json_files(OUTREACH_QUEUE / label) for label in STATUS_LABELS}
+    review_count = queue_counts.get("review", 0)
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "panel_urls": {
@@ -196,7 +198,7 @@ def current_status() -> dict[str, object]:
             "local_demo_path": "/demo",
         },
         "lead_counts": lead_counts(),
-        "queue_counts": {label: count_json_files(OUTREACH_QUEUE / label) for label in STATUS_LABELS},
+        "queue_counts": queue_counts,
         "inbox_counts": {
             "new": count_json_files(INBOX_ROOT / "new"),
             "reviewed": count_json_files(INBOX_ROOT / "reviewed"),
@@ -211,8 +213,12 @@ def current_status() -> dict[str, object]:
                 "kind": "company-blocker",
             },
             {
-                "title": "Approve the next reviewed outreach batch",
-                "detail": "One pending decision already exists for the next national send tranche.",
+                "title": "Review the prepared outreach wave" if review_count else "Approve the next reviewed outreach batch",
+                "detail": (
+                    f"{review_count} refreshed packets are waiting in the review queue."
+                    if review_count
+                    else "One pending decision already exists for the next national send tranche."
+                ),
                 "kind": "operator-review",
             },
             {
@@ -226,9 +232,9 @@ def current_status() -> dict[str, object]:
                 "kind": "finance-setup",
             },
             {
-                "title": "Refresh the next outreach wave with the updated copy",
-                "detail": "The new template and branding are ready, so the next batch should use the improved email voice.",
-                "kind": "outreach-refresh",
+                "title": "Expand the next national lead tranche",
+                "detail": "Keep adding qualified U.S. firms while the current five-company review wave is pending.",
+                "kind": "lead-research",
             },
         ],
     }
@@ -437,6 +443,7 @@ def api_leads(limit: int = 10) -> dict[str, object]:
 def api_recent_outreach(limit: int = 8) -> dict[str, object]:
     return {
         "draft": recent_packets(OUTREACH_QUEUE / "draft", limit=limit),
+        "review": recent_packets(OUTREACH_QUEUE / "review", limit=limit),
         "sent": recent_packets(OUTREACH_QUEUE / "sent", limit=limit),
     }
 

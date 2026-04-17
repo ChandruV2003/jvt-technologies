@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 
 
@@ -25,6 +26,14 @@ def update_metadata_paths(data: dict[str, object], target_dir: Path, stem: str) 
         if key in data:
             data[key] = str(target_dir / f"{stem}{suffix}")
     return data
+
+
+def update_review_markdown(path: Path, target_status: str) -> None:
+    if not path.exists() or path.suffix != ".md":
+        return
+    content = path.read_text(encoding="utf-8")
+    updated = re.sub(r"^status:\s+\w+\s*$", f"status: {target_status}", content, flags=re.MULTILINE)
+    path.write_text(updated, encoding="utf-8")
 
 
 def main() -> None:
@@ -51,6 +60,8 @@ def main() -> None:
             data["status"] = args.target
             data = update_metadata_paths(data, target_dir, args.stem)
             path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+        elif path.suffix == ".md":
+            update_review_markdown(path, args.target)
 
     moved: list[Path] = []
     for path in paths:
