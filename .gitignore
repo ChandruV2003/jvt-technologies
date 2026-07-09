@@ -6,12 +6,16 @@ __pycache__/
 *.local
 *.tmp
 *.log
+*.bak-*
 .wrangler/
 
 !site/launch-values.example.env
 
 lead-pipeline/data/*.sqlite3
 lead-pipeline/data/*.db
+lead-pipeline/data/leads.sqlite
+lead-pipeline/data/*-auto-research-targets.csv
+lead-pipeline/state/
 
 demo-packaging/captures/*
 !demo-packaging/captures/README.md
@@ -25,6 +29,8 @@ outreach/inbox/closed/*
 
 outreach/mailbox-agent/state/*
 !outreach/mailbox-agent/state/.gitkeep
+outreach/schedules/
+outreach/quality-reports/
 
 outreach/queue/draft/*
 !outreach/queue/draft/.gitkeep
@@ -46,5 +52,21 @@ ops/agent-control/rejected/*
 ops/agent-control/executed/*
 !ops/agent-control/executed/.gitkeep
 ops/agent-control/decision-log.jsonl
+ops/agent-control/data/
+ops/agent-control/state/
+ops/agent-control/tasks/
+ops/agent-control/logs/
 
 ops/control-panel/*.log
+
+products/Private-AI-Lab/apps/jvt-inbound-voice-agent/.env.local
+products/Private-AI-Lab/apps/jvt-inbound-voice-agent/*.log
+products/Private-AI-Lab/apps/jvt-inbound-voice-agent/data/*
+!products/Private-AI-Lab/apps/jvt-inbound-voice-agent/data/.gitkeep
+products/Private-AI-Lab/apps/jvt-inbound-voice-agent/demo-scenarios/latest-*.json
+products/Private-AI-Lab/apps/jvt-inbound-voice-agent/voice-quality/.venv-voice-quality/
+products/Private-AI-Lab/apps/jvt-inbound-voice-agent/voice-quality/samples/
+products/Private-AI-Lab/apps/jvt-inbound-voice-agent/voice-quality/normalized/
+products/Private-AI-Lab/apps/jvt-inbound-voice-agent/voice-quality/renders/
+products/Private-AI-Lab/apps/jvt-inbound-voice-agent/voice-quality/scorecards/
+products/Private-AI-Lab/apps/jvt-inbound-voice-agent/voice-quality/tooling-status.txt

@@ -1,0 +1,27 @@
+{
+  "slug": "orchestrator",
+  "name": "Orchestrator Agent",
+  "role": "business coordinator",
+  "mode": "autonomous",
+  "status": "active",
+  "approval_boundary": "autonomous for internal coordination and staging only; required before external commitments, prospect sends, spend, provider setup, live trades, crypto custody, wallets, staking, or mining",
+  "owns": [
+    "global status inspection",
+    "agent delegation",
+    "decision packet creation",
+    "next-action recommendations",
+    "growth lane prioritization",
+    "outbound quota recommendations"
+  ],
+  "data_sources": [
+    "lead-pipeline/data/jvt_leads.sqlite3",
+    "outreach/queue",
+    "outreach/inbox",
+    "ops/agent-control",
+    "ops/agent-control/state/latest-eom-brief.json",
+    "strategy/venture-pipeline.json",
+    "ops/watchdog/state/latest-watchdog.json",
+    "strategy/service-line-execution-board.json",
+    "/Users/c.s.d.v.r.s./Documents/JVT-Technologies/00-admin/client-registry.csv"
+  ]
+}

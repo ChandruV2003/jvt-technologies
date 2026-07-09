@@ -1,29 +1,32 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 180" role="img" aria-label="JVT Technologies logo">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 180" role="img" aria-label="JVT Technologies logo">
   <defs>
-    <linearGradient id="lockupWord" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#12211b" />
-      <stop offset="100%" stop-color="#0a5146" />
+    <linearGradient id="lockupField" x1="12" y1="8" x2="128" y2="134" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1d4c40" />
+      <stop offset="0.48" stop-color="#0d7467" />
+      <stop offset="1" stop-color="#092b26" />
+    </linearGradient>
+    <linearGradient id="wordDark" x1="0" y1="0" x2="580" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#12211b" />
+      <stop offset="1" stop-color="#0a5146" />
     </linearGradient>
   </defs>
-  <rect width="760" height="180" fill="none" />
-  <g transform="translate(6,6)">
-    <rect x="0" y="0" width="118" height="118" rx="34" fill="#0d6c60" />
-    <rect x="0" y="0" width="118" height="118" rx="34" fill="url(#lockupWord)" opacity="0.22" />
-    <path d="M40 27v41c0 10-5 15-14 15-6 0-11-3-15-8" fill="none" stroke="#fff8ee" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M53 27l14 54 15-54" fill="none" stroke="#fff8ee" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M73 27h27M86 27v54" fill="none" stroke="#fff8ee" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="18" cy="96" r="5" fill="#f2c98d" />
-    <path d="M18 96c17-19 31-27 42-28" fill="none" stroke="#f2c98d" stroke-width="2.4" stroke-linecap="round" opacity="0.75"/>
+  <rect width="860" height="180" fill="none" />
+  <g transform="translate(8,16)">
+    <rect x="0" y="0" width="116" height="116" rx="28" fill="url(#lockupField)" />
+    <rect x="3" y="3" width="110" height="110" rx="25" fill="none" stroke="#fff8ee" stroke-opacity="0.16" stroke-width="2" />
+    <path d="M26 24h-8v22M90 24h8v22M26 92h-8V70M90 92h8V70" fill="none" stroke="#f2c98d" stroke-width="3.4" stroke-linecap="round" />
+    <text x="58" y="71" text-anchor="middle" fill="#fff8ee" font-family="Iowan Old Style, Georgia, serif" font-size="42" font-weight="700" letter-spacing="-2.2">JVT</text>
+    <path d="M31 80h54" stroke="#f2c98d" stroke-width="2.4" stroke-linecap="round" opacity="0.85" />
   </g>
-  <g transform="translate(154,36)">
-    <text x="0" y="32" fill="url(#lockupWord)" font-family="Iowan Old Style, Palatino Linotype, Georgia, serif" font-size="58" font-weight="700" letter-spacing="-1.2">
+  <g transform="translate(154,42)">
+    <text x="0" y="32" fill="url(#wordDark)" font-family="Iowan Old Style, Georgia, serif" font-size="59" font-weight="700" letter-spacing="-1.5">
       JVT Technologies
     </text>
-    <text x="2" y="76" fill="#4f5f59" font-family="Avenir Next, Segoe UI, sans-serif" font-size="20" letter-spacing="5">
-      PRIVATE AI SYSTEMS AND WORKFLOW AUTOMATION
+    <text x="2" y="76" fill="#4f5f59" font-family="Avenir Next, Segoe UI, sans-serif" font-size="18" letter-spacing="4.6">
+      REVIEWED WORK SYSTEMS FOR HIGH-TRUST TEAMS
     </text>
     <text x="2" y="118" fill="#6b7a74" font-family="Avenir Next, Segoe UI, sans-serif" font-size="21">
-      Flagship solution: grounded document intelligence for high-trust teams
+      Calls, inboxes, meetings, and documents turned into work a person can approve
     </text>
   </g>
 </svg>

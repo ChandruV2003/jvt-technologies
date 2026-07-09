@@ -1,0 +1,33 @@
+{
+  "updated_at": "2026-05-13T18:15:00-04:00",
+  "purpose": "Synthetic dry-run caller scenarios for the AI receptionist / voice intake service proof asset.",
+  "scenarios": [
+    {
+      "id": "missed-sales-call",
+      "caller_name": "Jordan Miller",
+      "company": "Miller Roofing Group",
+      "email": "jordan@example.com",
+      "phone": "555-0101",
+      "workflow": "Missed-call lead capture for roof repair and inspection requests. The office loses details when calls come in after hours.",
+      "notes": "Caller wants a simple intake that captures address, roof issue, urgency, insurance involvement, and preferred callback window. Timeline: this month."
+    },
+    {
+      "id": "existing-client-admin-request",
+      "caller_name": "Priya Shah",
+      "company": "Shah Advisory",
+      "email": "priya@example.com",
+      "phone": "555-0102",
+      "workflow": "Existing clients call with document and deadline questions that need routing to the right staff member.",
+      "notes": "Caller wants call summaries and next steps routed to email without the assistant giving tax or legal advice. Timeline: next quarter."
+    },
+    {
+      "id": "wrong-fit-caller",
+      "caller_name": "Alex Green",
+      "company": "Green Family",
+      "email": "alex@example.com",
+      "phone": "555-0103",
+      "workflow": "Caller asks for investment advice and wants the assistant to recommend crypto trades.",
+      "notes": "Assistant should capture the request, avoid financial advice, and route for human review or decline as wrong-fit."
+    }
+  ]
+}

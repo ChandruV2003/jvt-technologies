@@ -1,42 +1,33 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="JVT Technologies social preview">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="JVT Technologies preview">
   <defs>
-    <linearGradient id="previewBg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#16352f" />
-      <stop offset="56%" stop-color="#0d6c60" />
-      <stop offset="100%" stop-color="#0b3f38" />
-    </linearGradient>
-    <linearGradient id="previewPanel" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#fffaf4" stop-opacity="0.94" />
-      <stop offset="100%" stop-color="#f1e2ce" stop-opacity="0.84" />
+    <radialGradient id="pine" cx="22%" cy="12%" r="72%">
+      <stop stop-color="#0d7467" stop-opacity="0.48" />
+      <stop offset="1" stop-color="#050506" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="gold" cx="88%" cy="82%" r="68%">
+      <stop stop-color="#f2c98d" stop-opacity="0.25" />
+      <stop offset="1" stop-color="#050506" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="word" x1="90" y1="120" x2="760" y2="520" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fff8ee" />
+      <stop offset="1" stop-color="#f2c98d" />
     </linearGradient>
   </defs>
-  <rect width="1200" height="630" fill="url(#previewBg)" />
-  <circle cx="974" cy="100" r="188" fill="#ffffff" opacity="0.08" />
-  <circle cx="1116" cy="526" r="264" fill="#f2c98d" opacity="0.12" />
-  <path d="M85 490c157-84 322-120 495-94 127 19 246 66 358 141" fill="none" stroke="#f2c98d" stroke-width="3" opacity="0.32" stroke-linecap="round"/>
-  <rect x="66" y="60" width="1068" height="510" rx="34" fill="none" stroke="#fff7ef" opacity="0.12" />
-  <g transform="translate(88,92)">
-    <rect x="0" y="0" width="116" height="116" rx="33" fill="#fff8ee" fill-opacity="0.12" />
-    <path d="M39 26v40c0 10-5 14-14 14-6 0-11-3-14-8" fill="none" stroke="#fff8ee" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M52 26l15 54 14-54" fill="none" stroke="#fff8ee" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M73 26h26M86 26v54" fill="none" stroke="#fff8ee" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="18" cy="96" r="5" fill="#f2c98d" />
-    <path d="M18 96c18-18 31-27 42-28" fill="none" stroke="#f2c98d" stroke-width="2.4" stroke-linecap="round" opacity="0.78"/>
+  <rect width="1200" height="630" fill="#050506" />
+  <rect width="1200" height="630" fill="url(#pine)" />
+  <rect width="1200" height="630" fill="url(#gold)" />
+  <g fill="none" stroke="#fff8ee" stroke-opacity="0.06">
+    <path d="M0 116h1200M0 236h1200M0 356h1200M0 476h1200M130 0v630M310 0v630M490 0v630M670 0v630M850 0v630M1030 0v630" />
   </g>
-  <text x="236" y="148" fill="#f6e8d6" font-family="Avenir Next, Arial, sans-serif" font-size="28" letter-spacing="7">JVT TECHNOLOGIES</text>
-  <text x="90" y="280" fill="#fff8ee" font-family="Iowan Old Style, Georgia, serif" font-size="72" font-weight="700">
-    <tspan x="90" dy="0">Private AI systems</tspan>
-    <tspan x="90" dy="84">for high-trust teams</tspan>
-  </text>
-  <text x="92" y="428" fill="#e5d7c6" font-family="Avenir Next, Arial, sans-serif" font-size="29">
-    Document intelligence • Workflow automation • Controlled deployment
-  </text>
-  <g transform="translate(760,172)">
-    <rect x="0" y="0" width="312" height="222" rx="28" fill="url(#previewPanel)" />
-    <text x="28" y="52" fill="#0c463d" font-family="Avenir Next, Arial, sans-serif" font-size="18" letter-spacing="3">FLAGSHIP SOLUTION</text>
-    <text x="28" y="98" fill="#12211b" font-family="Iowan Old Style, Georgia, serif" font-size="34" font-weight="700">Private Document</text>
-    <text x="28" y="136" fill="#12211b" font-family="Iowan Old Style, Georgia, serif" font-size="34" font-weight="700">Assistant</text>
-    <text x="28" y="180" fill="#53605c" font-family="Avenir Next, Arial, sans-serif" font-size="20">Grounded answers with citations,</text>
-    <text x="28" y="208" fill="#53605c" font-family="Avenir Next, Arial, sans-serif" font-size="20">built inside a broader JVT offering.</text>
+  <text x="90" y="112" fill="#f2c98d" font-family="Avenir Next, Helvetica, sans-serif" font-size="23" font-weight="800" letter-spacing="5">JVT TECHNOLOGIES LLC</text>
+  <text x="90" y="246" fill="url(#word)" font-family="Iowan Old Style, Georgia, serif" font-size="82" font-weight="700" letter-spacing="-4">Reviewed work systems</text>
+  <text x="90" y="340" fill="url(#word)" font-family="Iowan Old Style, Georgia, serif" font-size="82" font-weight="700" letter-spacing="-4">for document-heavy teams.</text>
+  <text x="94" y="430" fill="#fff8ee" fill-opacity="0.74" font-family="Avenir Next, Helvetica, sans-serif" font-size="30">Calls, inboxes, meetings, and documents turned into work a person can approve.</text>
+  <g transform="translate(870,150)">
+    <rect x="0" y="0" width="238" height="238" rx="54" fill="#0d7467" />
+    <rect x="7" y="7" width="224" height="224" rx="49" fill="none" stroke="#fff8ee" stroke-opacity="0.16" stroke-width="3" />
+    <path d="M52 48h-18v48M186 48h18v48M52 190h-18v-48M186 190h18v-48" fill="none" stroke="#f2c98d" stroke-width="7" stroke-linecap="round" />
+    <text x="119" y="140" text-anchor="middle" fill="#fff8ee" font-family="Iowan Old Style, Georgia, serif" font-size="82" font-weight="700" letter-spacing="-5">JVT</text>
+    <path d="M68 158h102" stroke="#f2c98d" stroke-width="5" stroke-linecap="round" />
   </g>
 </svg>

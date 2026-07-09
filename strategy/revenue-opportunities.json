@@ -1,0 +1,164 @@
+{
+  "updated_at": "2026-05-13T17:30:00-04:00",
+  "recommendation": "Prioritize concrete service pilots over generic private document-assistant outbound. The strongest near-term wedges are AI receptionist/voice intake, meeting-to-action packets, workflow automation cleanup, inbox/document triage, and document packet generation. Treat trading as a paper-only sandbox and crypto/coin creation as non-primary.",
+  "sources": [
+    {
+      "label": "OpenAI Realtime API",
+      "url": "https://openai.com/index/introducing-gpt-realtime/"
+    },
+    {
+      "label": "Twilio Voice pricing",
+      "url": "https://www.twilio.com/en-us/voice/pricing/us"
+    },
+    {
+      "label": "Zapier RevOps automation report",
+      "url": "https://zapier.com/resources/guides/state-of-revops-automation"
+    },
+    {
+      "label": "AI workslop cleanup reporting",
+      "url": "https://www.techradar.com/pro/cleaning-up-ai-workslop-is-costing-businesses-hundreds-of-hours-a-week"
+    }
+  ],
+  "opportunities": [
+    {
+      "rank": 1,
+      "service_line": "Managed AI workflow cleanup",
+      "target_customer": "Accounting, law, property management, staffing",
+      "pain": "Staff use AI but lose time reviewing, formatting, and correcting outputs.",
+      "offer": "Build and maintain repeatable AI workflows with human review checkpoints.",
+      "pricing_hypothesis": "$750-$2,500 setup + $300-$1,500/mo support",
+      "delivery_complexity": "Medium",
+      "risk": "Scope creep if every workflow is custom.",
+      "next_validation_step": "Add a website section and one outreach variant focused on AI cleanup and workflow reliability."
+    },
+    {
+      "rank": 2,
+      "service_line": "Speech-to-text / meeting-to-action packets",
+      "target_customer": "Small service firms, consultants, agencies",
+      "pain": "Calls and meetings create notes, tasks, follow-ups, and docs manually.",
+      "offer": "Secure transcript intake, summary, action list, CRM/email draft, and document packet.",
+      "pricing_hypothesis": "$250-$1,000/mo depending on volume",
+      "delivery_complexity": "Low-medium",
+      "risk": "Transcription accuracy and privacy expectations.",
+      "next_validation_step": "Build a demo using Chandru's recorded audio assets."
+    },
+    {
+      "rank": 3,
+      "service_line": "AI receptionist / voice intake agent",
+      "target_customer": "Solo/small professional offices",
+      "pain": "Missed calls, repetitive intake questions, and slow follow-up.",
+      "offer": "Inbound voice agent that captures caller details, qualifies need, and creates a review packet.",
+      "pricing_hypothesis": "$500-$2,000 setup + usage + $300-$1,000/mo",
+      "delivery_complexity": "Medium-high",
+      "risk": "Live phone compliance, hallucination, and escalation failure.",
+      "next_validation_step": "Keep current voice agent dry-run and add a public demo before selling live calling."
+    },
+    {
+      "rank": 4,
+      "service_line": "Document packet generator",
+      "target_customer": "Law, accounting, and insurance teams",
+      "pain": "Repetitive proposals, onboarding packets, checklists, and letters.",
+      "offer": "Upload notes/templates and generate consistent client-ready packets for review.",
+      "pricing_hypothesis": "$1,000-$3,500 setup + $500-$2,000/mo",
+      "delivery_complexity": "Medium",
+      "risk": "Template edge cases and legal/tax review boundaries.",
+      "next_validation_step": "Turn the document demo into two vertical-specific demos."
+    },
+    {
+      "rank": 5,
+      "service_line": "Inbox/document triage agent",
+      "target_customer": "Document-heavy offices",
+      "pain": "Shared inboxes receive attachments, requests, and noisy notifications.",
+      "offer": "Monitor inbox, classify messages, extract documents, create task queue, and draft responses.",
+      "pricing_hypothesis": "$1,500-$5,000 setup + $500-$2,500/mo",
+      "delivery_complexity": "Medium",
+      "risk": "Email auth/access friction and privacy.",
+      "next_validation_step": "Use JVT's mailbox listener as internal proof."
+    },
+    {
+      "rank": 6,
+      "service_line": "Managed local/private AI deployment",
+      "target_customer": "Privacy-sensitive professional teams with client documents",
+      "pain": "They want AI help but do not want sensitive files scattered across generic SaaS tools.",
+      "offer": "Deploy a private retrieval assistant and admin console on a Mac mini, mini-PC, or controlled cloud environment.",
+      "pricing_hypothesis": "$2,500-$10,000 setup + support retainer",
+      "delivery_complexity": "High",
+      "risk": "Support burden, hardware variability, and security expectations.",
+      "next_validation_step": "Package the M4 architecture as a case study after the control panel and outreach ops are stable."
+    }
+  ],
+  "reality_check": {
+    "sent_packets": 108,
+    "tracked_prospect_replies": 0,
+    "approved_queue": 51,
+    "conclusion": "The current outbound motion is not producing demand. The next metric should be real conversations and paid-pilot paths, not more generic sends.",
+    "next_target": "5 real owner/operator conversations per week"
+  },
+  "sellable_wedge_backlog": [
+    {
+      "priority": 1,
+      "wedge": "AI receptionist / voice intake",
+      "target": "Solo law, CPA, contractor, clinic, and home-service offices",
+      "first_proof_asset": "Dry-run call to intake summary to follow-up packet",
+      "outreach_target": "Owners or office managers with public phone-heavy service pages",
+      "pricing_test": "$500 setup + $250/mo"
+    },
+    {
+      "priority": 2,
+      "wedge": "Meeting-to-action packets",
+      "target": "Consultants, agencies, accounting/advisory teams",
+      "first_proof_asset": "Sample audio to transcript to decisions, tasks, and follow-up email",
+      "outreach_target": "Operators who publish consultation or discovery-call offers",
+      "pricing_test": "$300/mo or $75/meeting"
+    },
+    {
+      "priority": 3,
+      "wedge": "Workflow automation cleanup",
+      "target": "Small businesses using email/forms/sheets/CRM manually",
+      "first_proof_asset": "Before/after admin workflow map",
+      "outreach_target": "Owner/operators with visible lead forms and repetitive intake",
+      "pricing_test": "$1,500 fixed project"
+    },
+    {
+      "priority": 4,
+      "wedge": "Inbox/document triage",
+      "target": "Law, accounting, insurance, and property management offices",
+      "first_proof_asset": "JVT mailbox listener case study",
+      "outreach_target": "Shared-inbox offices with attachment-heavy workflows",
+      "pricing_test": "$1,500 setup + $500/mo"
+    },
+    {
+      "priority": 5,
+      "wedge": "Document packet generator",
+      "target": "Law, accounting, and insurance offices",
+      "first_proof_asset": "Intake notes to polished packet demo",
+      "outreach_target": "Firms with onboarding, checklist, proposal, or packet workflows",
+      "pricing_test": "$1,000 setup + $500/mo"
+    }
+  ],
+  "non_primary_experiments": [
+    {
+      "experiment": "Alpaca auto-trader",
+      "status": "Paper-only sandbox",
+      "reason": "Small account size cannot realistically reach $10k in one year without extreme risk.",
+      "guardrails": [
+        "No live endpoint.",
+        "No live key stored.",
+        "No order placement unless explicitly enabled for paper mode.",
+        "Require 60-90 days of logged paper results before considering live risk."
+      ]
+    },
+    {
+      "experiment": "Create a coin or NFT",
+      "status": "Not recommended as a revenue line",
+      "reason": "Requires community, liquidity, trust, distribution, and legal/compliance review. Without those, it is speculation rather than a service business."
+    }
+  ],
+  "red_lines": [
+    "No medical diagnosis.",
+    "No legal or tax advice.",
+    "No autonomous contract commitments.",
+    "No outbound AI calls without opt-in/compliance review.",
+    "No spending or provider signup without operator approval."
+  ]
+}

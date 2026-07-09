@@ -1,0 +1,112 @@
+{
+  "generated_at": "2026-07-09T19:45:02+00:00",
+  "overall_ok": true,
+  "http": {
+    "public_site": {
+      "ok": true,
+      "status": 200,
+      "latency_ms": 142
+    },
+    "control_panel": {
+      "ok": true,
+      "status": 200,
+      "latency_ms": 2
+    },
+    "voice_intake": {
+      "ok": true,
+      "status": 200,
+      "latency_ms": 1
+    }
+  },
+  "launchd": {
+    "com.jvt.control-panel": {
+      "ok": true,
+      "pid": "2426",
+      "last_status": "-15"
+    },
+    "com.jvt.orchestrator": {
+      "ok": true,
+      "pid": "-",
+      "last_status": "0"
+    },
+    "com.jvt.inbound-voice-agent": {
+      "ok": true,
+      "pid": "1420",
+      "last_status": "0"
+    },
+    "com.jvt.daily-wave-prep": {
+      "ok": true,
+      "pid": "-",
+      "last_status": "0"
+    },
+    "com.jvt.lead-research": {
+      "ok": true,
+      "pid": "-",
+      "last_status": "0"
+    },
+    "com.jvt.growth-ops-checkin": {
+      "ok": true,
+      "pid": "-",
+      "last_status": "0"
+    },
+    "com.jvt.private-doc-intel-demo": {
+      "ok": true,
+      "pid": "1449",
+      "last_status": "0"
+    },
+    "com.jvt.mailbox-listener": {
+      "ok": true,
+      "pid": "1451",
+      "last_status": "0"
+    }
+  },
+  "queue_counts": {
+    "draft": 49,
+    "review": 57,
+    "approved": 1,
+    "sent": 497,
+    "replied": 0
+  },
+  "inbox_counts": {
+    "new": 0,
+    "reviewed": 6,
+    "closed": 1817
+  },
+  "approved_qc_issue_count": 0,
+  "approved_qc_issues": [],
+  "mailbox_log_age_seconds": 84.88600826263428,
+  "lead_status_age_seconds": 784.6828765869141,
+  "orchestrator_state_age_seconds": 874.8537781238556,
+  "growth_checkin_state_age_seconds": 874.7814388275146,
+  "service_board": {
+    "ok": true,
+    "wedge_count": 5,
+    "blocked": [],
+    "next_count": 16
+  },
+  "trader": {
+    "ok": true,
+    "paper_snapshot_age_seconds": 1148.3398072719574,
+    "backtest_age_seconds": 2678.6840665340424,
+    "paper_bot_age_seconds": 2680.3256940841675,
+    "has_snapshot": true,
+    "has_backtest": true,
+    "has_paper_bot_report": true,
+    "local_guardrail": "Fresh local paper-only artifacts are authoritative. Debian mirror status is supplemental.",
+    "debian": {
+      "ok": true,
+      "host": "macmini-i7-debian",
+      "has_env": true,
+      "has_venv": true,
+      "paper_credentials_configured": true,
+      "offline_report_age_seconds": 3760724.511065483,
+      "micro_simulation_age_seconds": 3760726.1270825863,
+      "offline_mode": "paper",
+      "offline_submitted_count": 0,
+      "offline_plan_count": 4,
+      "simulation_return_pct": 0.31,
+      "required_return_to_10000_pct": 1390.54
+    }
+  },
+  "findings": []
+}

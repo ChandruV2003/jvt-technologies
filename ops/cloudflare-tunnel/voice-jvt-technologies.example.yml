@@ -1,0 +1,7 @@
+tunnel: jvt-voice-intake
+credentials-file: /Users/c.s.d.v.r.s./.cloudflared/<TUNNEL_ID>.json
+
+ingress:
+  - hostname: voice.jvt-technologies.com
+    service: http://127.0.0.1:8066
+  - service: http_status:404

@@ -1,56 +1,213 @@
 <!DOCTYPE html>
 <html lang="en">
-  <body style="margin:0;padding:0;background:#eef4f2;color:#16302c;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#eef4f2;padding:32px 16px;">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="color-scheme" content="light only" />
+    <meta name="supported-color-schemes" content="light only" />
+    <style>
+      :root {
+        color-scheme: light only;
+        supported-color-schemes: light;
+      }
+      body,
+      table,
+      td,
+      p,
+      a {
+        -webkit-text-size-adjust: 100%;
+      }
+      .jvt-body,
+      .jvt-bg {
+        background-color: #071512 !important;
+        color: #f8f3ea !important;
+      }
+      .jvt-card,
+      .jvt-panel {
+        background-color: #0b1d19 !important;
+        color: #f8f3ea !important;
+      }
+      .jvt-hero,
+      .jvt-callout,
+      .jvt-footer {
+        background-color: #071512 !important;
+        color: #f8f3ea !important;
+      }
+      .jvt-text,
+      .jvt-strong {
+        color: #f8f3ea !important;
+      }
+      .jvt-muted {
+        color: #cbbfaa !important;
+      }
+      .jvt-gold {
+        color: #dcbf8a !important;
+      }
+      .jvt-link {
+        color: #85f0d7 !important;
+      }
+      .jvt-cta {
+        background-color: #15a08e !important;
+      }
+      .jvt-cta-link {
+        color: #ffffff !important;
+      }
+      @media (prefers-color-scheme: dark) {
+        .jvt-body,
+        .jvt-bg,
+        .jvt-hero,
+        .jvt-callout,
+        .jvt-footer {
+          background-color: #071512 !important;
+          color: #f8f3ea !important;
+        }
+        .jvt-card,
+        .jvt-panel {
+          background-color: #0b1d19 !important;
+          color: #f8f3ea !important;
+        }
+        .jvt-text,
+        .jvt-strong {
+          color: #f8f3ea !important;
+        }
+        .jvt-muted {
+          color: #cbbfaa !important;
+        }
+        .jvt-gold {
+          color: #dcbf8a !important;
+        }
+        .jvt-link {
+          color: #85f0d7 !important;
+        }
+        .jvt-cta {
+          background-color: #15a08e !important;
+        }
+      }
+      [data-ogsc] .jvt-bg,
+      [data-ogsc] .jvt-hero,
+      [data-ogsc] .jvt-callout,
+      [data-ogsc] .jvt-footer {
+        background-color: #071512 !important;
+        color: #f8f3ea !important;
+      }
+      [data-ogsc] .jvt-card,
+      [data-ogsc] .jvt-panel {
+        background-color: #0b1d19 !important;
+        color: #f8f3ea !important;
+      }
+      [data-ogsc] .jvt-text,
+      [data-ogsc] .jvt-strong {
+        color: #f8f3ea !important;
+      }
+      [data-ogsc] .jvt-muted {
+        color: #cbbfaa !important;
+      }
+      [data-ogsc] .jvt-gold {
+        color: #dcbf8a !important;
+      }
+      [data-ogsc] .jvt-link {
+        color: #85f0d7 !important;
+      }
+      [data-ogsc] .jvt-cta {
+        background-color: #15a08e !important;
+      }
+      a[x-apple-data-detectors] {
+        color: inherit !important;
+        text-decoration: none !important;
+      }
+    </style>
+  </head>
+  <body class="jvt-body" style="margin:0;padding:0;background-color:#071512;color:#f8f3ea;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;">
+    <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;mso-hide:all;">
+      A quick note about workflow cleanup for {{company_name}}.
+    </div>
+    <table class="jvt-bg" role="presentation" width="100%" cellspacing="0" cellpadding="0" bgcolor="#071512" style="width:100%;background-color:#071512;background-image:radial-gradient(circle at 12% 0%, rgba(21,160,142,0.28), transparent 280px), radial-gradient(circle at 88% 10%, rgba(91,140,255,0.24), transparent 260px), radial-gradient(circle at 92% 100%, rgba(220,191,138,0.16), transparent 260px), linear-gradient(180deg,#071512 0%,#090b12 48%,#0b1d19 100%);padding:32px 14px;color:#f8f3ea;">
       <tr>
         <td align="center">
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:660px;background:#f8fbfa;border:1px solid #d7e4df;border-radius:22px;overflow:hidden;box-shadow:0 18px 48px rgba(6,37,33,0.12);">
+          <table class="jvt-card" role="presentation" width="100%" cellspacing="0" cellpadding="0" bgcolor="#0b1d19" style="max-width:660px;width:100%;background-color:#0b1d19;border:1px solid rgba(248,243,234,0.16);border-radius:26px;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,0.28);color:#f8f3ea;">
             <tr>
-              <td style="padding:22px 28px;background:linear-gradient(135deg,#0a5146 0%,#0d6c60 55%,#083b34 100%);color:#f7f5ef;">
-                <div style="font-size:12px;letter-spacing:0.18em;text-transform:uppercase;opacity:0.8;">JVT Technologies</div>
-                <h1 style="margin:12px 0 0;font-size:28px;line-height:1.2;font-weight:650;">Private AI for document-heavy teams</h1>
+              <td class="jvt-hero" bgcolor="#071512" style="background-color:#071512;background-image:linear-gradient(135deg,#071512 0%,#0d302a 48%,#111625 100%);padding:24px 26px 20px;border-bottom:1px solid rgba(248,243,234,0.12);">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                  <tr>
+                    <td width="58" valign="middle" style="width:58px;padding-right:14px;">
+                      <img src="{{site_url}}/logo-mark-email.png" width="52" height="52" alt="JVT" style="display:block;width:52px;height:52px;border:0;border-radius:14px;" />
+                    </td>
+                    <td valign="middle">
+                      <p class="jvt-text" style="margin:0;color:#f8f3ea;font-size:22px;line-height:1.12;font-weight:800;letter-spacing:-0.02em;">JVT Technologies LLC</p>
+                      <p class="jvt-gold" style="margin:6px 0 0;color:#dcbf8a;font-size:11px;line-height:1.4;letter-spacing:0.18em;text-transform:uppercase;font-weight:700;">AI ops for real workflow mess</p>
+                    </td>
+                  </tr>
+                </table>
               </td>
             </tr>
+
             <tr>
-              <td style="padding:28px;">
-                <p style="margin:0 0 16px;font-size:16px;line-height:1.72;">Hi {{contact_name}},</p>
-                <p style="margin:0 0 16px;font-size:16px;line-height:1.72;">
-                  I'm <strong>Chandru Vasudevan</strong>, founder of <strong>JVT Technologies</strong>. We build private AI and workflow systems for document-heavy teams.
+              <td class="jvt-panel" bgcolor="#0b1d19" style="background-color:#0b1d19;padding:28px 28px 8px;color:#f8f3ea;">
+                <p class="jvt-text" style="margin:0 0 18px;color:#f8f3ea;font-size:16px;line-height:1.72;">Hi {{contact_name}},</p>
+                <p class="jvt-text" style="margin:0 0 18px;color:#f8f3ea;font-size:16px;line-height:1.72;">
+                  Hope your week is going well. I'm <strong class="jvt-strong" style="color:#f8f3ea;">Chandru Vasudevan</strong>, founder of <strong class="jvt-strong" style="color:#f8f3ea;">JVT Technologies LLC</strong>.
                 </p>
-                <p style="margin:0 0 16px;font-size:16px;line-height:1.72;">
-                  I came across <strong>{{company_name}}</strong> while looking at firms doing {{practice_area}} work in {{city_state}}. {{fit_reason}}
+                <p class="jvt-text" style="margin:0 0 18px;color:#f8f3ea;font-size:16px;line-height:1.72;">
+                  I came across <strong class="jvt-strong" style="color:#f8f3ea;">{{company_name}}</strong> while looking at teams doing {{practice_area}} work in {{city_state}}. {{fit_reason}}
                 </p>
-                <p style="margin:0 0 16px;font-size:16px;line-height:1.72;">
-                  One of the systems we're putting in front of firms right now is a private internal document assistant. It searches policies, templates, matter notes, and internal reference material, then returns cited answers instead of a generic summary.
+                <p class="jvt-text" style="margin:0 0 18px;color:#f8f3ea;font-size:16px;line-height:1.72;">
+                  {{public_context}}
                 </p>
-                <p style="margin:0 0 22px;font-size:16px;line-height:1.72;">
-                  The goal is simple: help a team find the right internal answer faster without pushing sensitive material into a public-facing tool.
-                </p>
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 22px;">
+
+                <table class="jvt-callout" role="presentation" width="100%" cellspacing="0" cellpadding="0" bgcolor="#071512" style="width:100%;background-color:#071512;border:1px solid rgba(248,243,234,0.13);border-radius:20px;margin:20px 0;">
                   <tr>
-                    <td style="padding:18px;border-radius:18px;background:#e4f0ec;border:1px solid #cfe1db;">
-                      <p style="margin:0 0 8px;font-size:13px;letter-spacing:0.12em;text-transform:uppercase;color:#0a5146;font-weight:700;">Why I thought of your team</p>
-                      <p style="margin:0;font-size:15px;line-height:1.65;color:#28433e;">{{fit_reason}}</p>
+                    <td style="padding:20px 20px 18px;">
+                      <p class="jvt-gold" style="margin:0 0 8px;color:#dcbf8a;font-size:11px;line-height:1.4;letter-spacing:0.18em;text-transform:uppercase;font-weight:800;">A relevant first workflow</p>
+                      <p class="jvt-text" style="margin:0;color:#f8f3ea;font-size:17px;line-height:1.62;font-weight:700;">
+                        {{personalized_offer}}
+                      </p>
                     </td>
                   </tr>
                 </table>
-                <p style="margin:0 0 20px;font-size:16px;line-height:1.72;">
-                  If that sounds relevant, I'd be happy to send a short demo and one concrete example tailored to {{company_name}}.
+
+                <p class="jvt-text" style="margin:0 0 18px;color:#f8f3ea;font-size:16px;line-height:1.72;">
+                  JVT builds small AI ops systems for the work that keeps getting stuck: intake notes, inbox triage, meeting follow-ups, internal document search, and draft packets a person can review. For {{company_name}}, the first useful version would likely focus on {{likely_pain}}.
                 </p>
-                <table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 0 20px;">
+                <p class="jvt-text" style="margin:0 0 18px;color:#f8f3ea;font-size:16px;line-height:1.72;">
+                  The goal is simple: take one repeated workflow, clean up the messy middle, and make the next step easier to approve. No giant AI rollout, no black-box handoff.
+                </p>
+                <p class="jvt-text" style="margin:0 0 18px;color:#f8f3ea;font-size:16px;line-height:1.72;">
+                  If that sounds relevant, I can send a short example tailored to {{company_name}}. You can also skim the public demo lab here: <a class="jvt-link" href="{{site_url}}/#demos" style="color:#85f0d7;text-decoration:none;">{{site_url}}/#demos</a>
+                </p>
+                <p class="jvt-muted" style="margin:0 0 24px;color:#cbbfaa;font-size:15px;line-height:1.7;">
+                  Either way, thanks for taking a look. You can also get a quick sense of JVT at
+                  <a class="jvt-link" href="{{site_url}}" style="color:#85f0d7;text-decoration:none;font-weight:700;">{{site_url}}</a>.
+                </p>
+              </td>
+            </tr>
+
+            <tr>
+              <td class="jvt-panel" bgcolor="#0b1d19" style="background-color:#0b1d19;padding:0 28px 28px;color:#f8f3ea;">
+                <table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 0 22px;">
                   <tr>
-                    <td style="border-radius:999px;background:#0d6c60;">
-                      <a href="{{site_url}}" style="display:inline-block;padding:12px 18px;color:#fffaf0;text-decoration:none;font-weight:600;">See JVT Technologies</a>
-                    </td>
-                    <td style="padding-left:12px;font-size:14px;color:#55706b;">
-                      Reply here if a short demo would be useful.
+                    <td class="jvt-cta" bgcolor="#15a08e" style="background-color:#15a08e;background-image:linear-gradient(135deg,#5b8cff 0%,#15a08e 56%,#85f0d7 100%);border-radius:999px;">
+                      <a class="jvt-cta-link" href="mailto:{{reply_to_email}}" style="display:inline-block;padding:12px 18px;color:#ffffff;text-decoration:none;font-size:14px;line-height:1;font-weight:800;">Reply to Chandru</a>
                     </td>
                   </tr>
                 </table>
-                <p style="margin:0 0 20px;font-size:15px;line-height:1.68;color:#55706b;">
-                  If this is not a priority right now, no problem at all. If it is worth a look, just reply and I'll send something over.
+
+                <p class="jvt-text" style="margin:0;color:#f8f3ea;font-size:16px;line-height:1.7;">
+                  Best,<br />
+                  {{sender_name}}<br />
+                  {{sender_title}}<br />
+                  {{sender_company}}
                 </p>
-                <p style="margin:0;font-size:16px;line-height:1.7;">Best,<br />{{sender_name}}<br />{{sender_title}}<br />{{sender_company}}</p>
+              </td>
+            </tr>
+
+            <tr>
+              <td class="jvt-footer" bgcolor="#071512" style="background-color:#071512;padding:18px 28px 20px;border-top:1px solid rgba(248,243,234,0.12);">
+                <p class="jvt-gold" style="margin:0 0 6px;color:#dcbf8a;font-size:12px;line-height:1.6;font-weight:700;">
+                  JVT Technologies LLC
+                </p>
+                <p class="jvt-muted" style="margin:0;color:#9fb2ad;font-size:12px;line-height:1.7;">
+                  New Jersey domestic limited liability company · Human-reviewed outreach ·
+                  <a class="jvt-link" href="mailto:{{reply_to_email}}" style="color:#85f0d7;text-decoration:none;">{{reply_to_email}}</a>
+                </p>
               </td>
             </tr>
           </table>

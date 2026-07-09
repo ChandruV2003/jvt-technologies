@@ -33,6 +33,26 @@ When you want stronger drafting quality and better customer-facing answers:
 
 Current MLX package footprint is about `4.28 GB`.
 
+## High-Quality Local Reviewer
+
+When you want the strongest local reviewer path on this `16 GB` M4 Mac mini without moving to a remote model:
+
+- `mlx-community/gpt-oss-20b-MXFP4-Q4`
+
+Use it for:
+
+- higher-stakes reviewed drafting
+- operator review in the control panel
+- conservative second-pass checks before client-facing output
+
+Do not use it as the default always-on background model. Keep it as the slower, higher-quality reviewer tier while `3B` and `7B` handle the lighter interactive work.
+
+Recommended split:
+
+- `fast`: `Qwen2.5-3B-Instruct-4bit`
+- `strong`: `Qwen2.5-7B-Instruct-4bit`
+- `reviewer`: `gpt-oss-20b-MXFP4-Q4`
+
 ## Working Split On This Mac
 
 - `1.5B` stays available for the lightest product experimentation
@@ -58,4 +78,5 @@ Its current MLX package footprint is about `8.31 GB`.
 1. keep the current demo running on the existing local model path
 2. add `Qwen2.5-3B-Instruct-4bit` for the always-on mailbox and drafting agent
 3. evaluate `Qwen2.5-7B-Instruct-4bit` for the main interactive answer path
-4. only move up to `Qwen2.5-14B-Instruct-4bit` if the quality bump is worth the extra latency and memory pressure
+4. keep `gpt-oss-20b-MXFP4-Q4` as the optional reviewer path for harder local tasks
+5. only move up to `Qwen2.5-14B-Instruct-4bit` if the quality bump is worth the extra latency and memory pressure

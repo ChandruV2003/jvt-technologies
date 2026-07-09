@@ -1,0 +1,37 @@
+{
+  "enabled": true,
+  "timezone": "America/New_York",
+  "default_model": "gpt-5.5",
+  "default_reasoning_effort": "medium",
+  "default_sandbox": "read-only",
+  "daily_caps": {
+    "total_execute": 8,
+    "gpt-5.5": 5,
+    "high_or_xhigh": 2
+  },
+  "allowed_sandboxes": [
+    "read-only",
+    "workspace-write"
+  ],
+  "allowed_models": [
+    "gpt-5.5",
+    "gpt-5.4",
+    "gpt-5.4-mini"
+  ],
+  "disallowed_phrases": [
+    "send prospect email",
+    "send email to prospect",
+    "place live trade",
+    "alpaca live",
+    "move funds",
+    "bank transfer",
+    "create wallet",
+    "stake crypto",
+    "mine crypto",
+    "submit application",
+    "change payment",
+    "stripe",
+    "wire transfer"
+  ],
+  "notes": "Wrapper only. It does not execute Codex unless --execute is passed and all caps/policy checks pass."
+}

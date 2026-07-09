@@ -1,6 +1,7 @@
 const navToggle = document.querySelector(".nav-toggle");
 const siteNav = document.querySelector(".site-nav");
 const yearTarget = document.querySelector("#current-year");
+const header = document.querySelector(".site-header");
 
 if (navToggle && siteNav) {
   navToggle.addEventListener("click", () => {
@@ -17,6 +18,18 @@ if (navToggle && siteNav) {
 }
 
 const reveals = document.querySelectorAll(".reveal");
+
+window.addEventListener("scroll", () => {
+  if (!header) {
+    return;
+  }
+
+  if (window.scrollY > 24) {
+    header.classList.add("is-scrolled");
+  } else {
+    header.classList.remove("is-scrolled");
+  }
+});
 
 if ("IntersectionObserver" in window) {
   const observer = new IntersectionObserver(

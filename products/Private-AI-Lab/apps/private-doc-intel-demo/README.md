@@ -64,6 +64,16 @@ Open:
 - API docs and health: `http://127.0.0.1:8000/health`
 - operator demo UI: `http://127.0.0.1:8000/demo`
 
+## Persistent Local Service
+
+To keep the backend up on the Mac mini as a local service instead of a terminal session:
+
+```bash
+/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/products/Private-AI-Lab/apps/private-doc-intel-demo/backend/tools/install_launch_agent.sh
+```
+
+That installs `com.jvt.private-doc-intel-demo` under `~/Library/LaunchAgents` and runs the backend on `127.0.0.1:8000` without `--reload`.
+
 ## Answer Modes
 
 ### 1. Extractive fallback

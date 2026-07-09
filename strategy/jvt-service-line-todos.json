@@ -1,0 +1,105 @@
+{
+  "updated_at": "2026-05-11",
+  "tracks": [
+    {
+      "id": "meeting-to-action-packets",
+      "service_line": "Meeting-to-action packets",
+      "target_customer": "Consultants, agencies, CPA firms, advisory teams, and service businesses with recurring calls.",
+      "pain": "Useful call details turn into scattered notes, missed follow-ups, and manual task entry.",
+      "offer": "Audio or meeting recording to transcript, summary, follow-up draft, task checklist, and client-ready packet.",
+      "pricing_hypothesis": "$300-$1,000/mo depending on monthly volume and review needs.",
+      "delivery_complexity": "Low-medium",
+      "risks": [
+        "Transcript accuracy",
+        "Consent expectations",
+        "Meeting-platform access",
+        "Privacy handling"
+      ],
+      "completed": [
+        "Added public website card under Other Offerings.",
+        "Deployed the public site update to jvt-technologies.com."
+      ],
+      "next_validation_step": "Build one synthetic demo from recorded audio into transcript, summary, email draft, and checklist."
+    },
+    {
+      "id": "ai-receptionist-intake",
+      "service_line": "AI receptionist and intake",
+      "target_customer": "Solo and small professional offices that miss calls or repeat the same intake questions.",
+      "pain": "Missed calls and weak intake notes slow follow-up and leak opportunities.",
+      "offer": "Inbound AI intake that discloses itself, captures caller details, qualifies the request, and routes a review packet.",
+      "pricing_hypothesis": "$500-$2,000 setup plus usage and $300-$1,000/mo support.",
+      "delivery_complexity": "Medium-high",
+      "risks": [
+        "Phone compliance",
+        "Hallucinated answers",
+        "Failed escalation",
+        "Live-call quality",
+        "Provider setup"
+      ],
+      "completed": [
+        "Added public website card under Other Offerings.",
+        "Deployed the public site update to jvt-technologies.com."
+      ],
+      "next_validation_step": "Turn the current dry-run voice agent into a public demo flow before selling live calling."
+    },
+    {
+      "id": "managed-ai-workflow-cleanup",
+      "service_line": "Managed AI workflow cleanup",
+      "target_customer": "Law, accounting, property management, staffing, and operations teams already experimenting with AI.",
+      "pain": "Staff use AI, but outputs still require heavy cleanup, checking, and formatting.",
+      "offer": "Convert ad hoc AI usage into repeatable workflows with inputs, review checkpoints, source checks, and handoff notes.",
+      "pricing_hypothesis": "$750-$2,500 setup plus $500-$1,500/mo support.",
+      "delivery_complexity": "Medium",
+      "risks": [
+        "Scope creep",
+        "Unclear ownership",
+        "Clients expecting unlimited custom automation"
+      ],
+      "completed": [
+        "Added public website card under Other Offerings.",
+        "Deployed the public site update to jvt-technologies.com."
+      ],
+      "next_validation_step": "Create one outreach variant focused on AI cleanup and workflow reliability."
+    },
+    {
+      "id": "inbox-document-triage",
+      "service_line": "Inbox and document triage",
+      "target_customer": "Law firms, CPA firms, insurance offices, property teams, and admin-heavy service businesses.",
+      "pain": "Shared inboxes mix client requests, attachments, notifications, and follow-ups without a clean task queue.",
+      "offer": "Classify messages, extract attachment details, create tasks, and prepare draft replies for review.",
+      "pricing_hypothesis": "$1,500-$5,000 setup plus $500-$2,500/mo support.",
+      "delivery_complexity": "Medium",
+      "risks": [
+        "Mailbox permissions",
+        "Privacy",
+        "Email authentication",
+        "Attachment edge cases"
+      ],
+      "completed": [
+        "Added public website card under Other Offerings.",
+        "Deployed the public site update to jvt-technologies.com."
+      ],
+      "next_validation_step": "Package JVT's own mailbox listener as an internal proof-of-work case study."
+    },
+    {
+      "id": "private-local-ai-assistant",
+      "service_line": "Private or local AI assistant",
+      "target_customer": "Privacy-sensitive professional teams with client documents and cautious technology policies.",
+      "pain": "Teams want AI search and drafting help but do not want sensitive files scattered across generic SaaS tools.",
+      "offer": "Controlled retrieval assistant and workflow console on private cloud, Mac mini, mini-PC, or approved server path.",
+      "pricing_hypothesis": "$3,000-$10,000 setup plus support retainer.",
+      "delivery_complexity": "High",
+      "risks": [
+        "Support burden",
+        "Hardware variability",
+        "Security expectations",
+        "Longer sales cycles"
+      ],
+      "completed": [
+        "Added public website card under Other Offerings.",
+        "Deployed the public site update to jvt-technologies.com."
+      ],
+      "next_validation_step": "Package the M4 architecture as a short case study once the public site update is deployed."
+    }
+  ]
+}

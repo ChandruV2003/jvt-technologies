@@ -1,0 +1,86 @@
+{
+    "version": 1,
+    "mode": "delegated-quality-gated-growth",
+    "timezone": "America/New_York",
+    "daily_initial_send_cap": 10,
+    "daily_followup_send_cap": 10,
+    "max_total_outbound_per_day": 20,
+    "dynamic_send_caps": {
+        "enabled": true,
+        "allow_followups_to_borrow_unused_initial": true,
+        "healthy_backlog_threshold": 25,
+        "healthy_total_boost": 5,
+        "healthy_followup_boost": 5,
+        "healthy_initial_boost": 0,
+        "max_initial_send_cap": 15,
+        "max_followup_send_cap": 25,
+        "max_total_outbound_per_day": 30,
+        "notes": "Follow-ups may borrow unused initial-send capacity when inbox and watchdog are clear. Total volume only grows when TCP pressure is below warning."
+    },
+    "ramp": {
+        "enabled": true,
+        "increase_by": 2,
+        "max_initial_send_cap": 30,
+        "requires_zero_watchdog_findings": true,
+        "requires_inbox_new_zero": true,
+        "requires_bounce_rate_below_pct": 2
+    },
+    "auto_send": {
+        "enabled": true,
+        "requires_operator_confirmation": false,
+        "max_per_run": 5,
+        "timeout_seconds": 180,
+        "requires_quality_gate": true,
+        "requires_inbox_new_zero": true,
+        "allow_unrelated_sends_with_active_hits": true,
+        "requires_no_critical_watchdog_findings": true,
+        "standing_authorization": {
+            "authorized_by": "operator",
+            "authorized_at": "2026-06-13",
+            "scope": "Send quality-pass approved JVT prospect packets within outbound caps; hold suspicious or mismatched packets."
+        }
+    },
+    "auto_approve": {
+        "enabled": true,
+        "requires_quality_gate": true,
+        "flagged_target": "review",
+        "standing_authorization": {
+            "authorized_by": "operator",
+            "authorized_at": "2026-06-13",
+            "scope": "Move clean generated packets to approved; keep failed quality checks in review/draft."
+        }
+    },
+    "allowed_verticals": [
+        "Accounting / Tax Firm",
+        "Law Firm",
+        "Property Management",
+        "Mortgage / Title Services",
+        "Construction / Contracting",
+        "Consulting / Advisory",
+        "Home Services"
+    ],
+    "blocked_recipient_locals": [
+        "career",
+        "careers",
+        "employment",
+        "hr",
+        "jobs",
+        "recruiting",
+        "resumes",
+        "noreply",
+        "no-reply",
+        "donotreply",
+        "do-not-reply",
+        "seo",
+        "marketing",
+        "webmaster"
+    ],
+    "red_lines": [
+        "No unqualified or unguarded prospect email sends; delegated auto-send is allowed only for quality-pass approved packets within caps.",
+        "No auto-approval of packets failing recipient, company-name, domain, placeholder, recruiting-contact, or mismatch checks.",
+        "No spending, payment setup, banking changes, purchases, or provider commitments.",
+        "No live trades, live options activity, crypto custody, wallets, staking, mining processes, or fund movement.",
+        "No outbound calls or SMS without separate compliance review and explicit authorization.",
+        "No legal, tax, medical, financial, or investment advice."
+    ]
+}

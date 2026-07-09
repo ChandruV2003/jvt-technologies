@@ -1,0 +1,126 @@
+{
+  "generated_at": "2026-06-25T21:44:26.793489+00:00",
+  "purpose": "Chandru-approved JVT voice sample script pack for voice-quality evaluation.",
+  "scripts": [
+    {
+      "id": "warm-intro",
+      "title": "Warm JVT intro",
+      "category": "baseline",
+      "text": "Hey, this is Chandru from JVT Technologies. The simplest way to explain what we do is this: we take repetitive office workflows and turn them into reviewed AI-assisted systems."
+    },
+    {
+      "id": "what-jvt-does",
+      "title": "What JVT does",
+      "category": "baseline",
+      "text": "JVT is focused on practical AI systems for document-heavy teams. Not gimmicks. Intake, inbox triage, meeting notes, draft replies, and internal knowledge tools that still keep a person in the loop."
+    },
+    {
+      "id": "law-firm-safe-start",
+      "title": "Law firm safe starting point",
+      "category": "offer",
+      "text": "For a law firm, I would not start with anything risky. I would start with intake, document triage, and follow-up drafts that a person reviews before anything goes out."
+    },
+    {
+      "id": "inbox-triage",
+      "title": "Inbox triage explanation",
+      "category": "offer",
+      "text": "The inbox triage version is simple. We classify the message, pull out the actual request, flag anything missing, and prepare a draft response. Nothing sends unless a person reviews it."
+    },
+    {
+      "id": "meeting-to-action",
+      "title": "Meeting-to-action explanation",
+      "category": "offer",
+      "text": "For meeting-to-action packets, the point is to stop losing decisions and follow-ups after calls. We turn the transcript into decisions, owners, missing items, and a clean follow-up draft."
+    },
+    {
+      "id": "ai-receptionist",
+      "title": "AI receptionist explanation",
+      "category": "offer",
+      "text": "The AI receptionist is not there to pretend to be a person. It discloses that it is JVT's AI assistant, asks one question at a time, captures the request, and hands off anything sensitive."
+    },
+    {
+      "id": "written-outline",
+      "title": "Offer written outline",
+      "category": "follow-up",
+      "text": "If easier, I can send a short written outline first instead of scheduling a call. Either path is fine on my end."
+    },
+    {
+      "id": "short-demo",
+      "title": "Offer short demo",
+      "category": "follow-up",
+      "text": "The simplest next step would be a short walkthrough. Fifteen minutes is enough to show what the workflow looks like and decide if it is worth going deeper."
+    },
+    {
+      "id": "scope-boundary",
+      "title": "Scope boundary",
+      "category": "guardrail",
+      "text": "I do not want the AI making commitments. The point is to capture the right information, keep the workflow moving, and hand off anything sensitive to a real person."
+    },
+    {
+      "id": "human-review",
+      "title": "Human review boundary",
+      "category": "guardrail",
+      "text": "I can capture that, but Chandru would need to review it before we commit to scope, pricing, or a delivery timeline."
+    },
+    {
+      "id": "slow-down",
+      "title": "Natural correction",
+      "category": "cadence",
+      "text": "Let me slow down and say that differently. The goal is not to replace the person who owns the workflow. The goal is to remove the repetitive back-and-forth around it."
+    },
+    {
+      "id": "email-spelling",
+      "title": "Spelling an email",
+      "category": "cadence",
+      "text": "Could you spell the email address for me? I want to make sure I capture it correctly before I send anything over."
+    },
+    {
+      "id": "uncertain-handoff",
+      "title": "Uncertain handoff",
+      "category": "guardrail",
+      "text": "I am not going to guess on that. I would rather capture the context and have a person review it than give you a half-answer."
+    },
+    {
+      "id": "farr-reply",
+      "title": "Farr-style reply",
+      "category": "reply",
+      "text": "Thanks for the quick reply. The simplest next step would be a short walkthrough of what this could look like for intake, document triage, and reviewed response drafts."
+    },
+    {
+      "id": "pricing-soft",
+      "title": "Pricing soft answer",
+      "category": "guardrail",
+      "text": "Pricing depends on the workflow and how much review is needed. I can give a starting range, but I would not want to quote final scope without looking at the actual process."
+    },
+    {
+      "id": "confidential-docs",
+      "title": "Confidential document boundary",
+      "category": "guardrail",
+      "text": "Please do not send confidential client documents yet. For the first pass, a sample workflow or redacted example is enough to show whether the system makes sense."
+    },
+    {
+      "id": "quick-yes",
+      "title": "Natural short yes",
+      "category": "cadence",
+      "text": "Yes, exactly. That is the kind of workflow where the small repetitive steps add up fast."
+    },
+    {
+      "id": "quick-no",
+      "title": "Natural short no",
+      "category": "cadence",
+      "text": "No, I would not automate that part yet. I would keep that as a human decision and only automate the prep around it."
+    },
+    {
+      "id": "screen-share",
+      "title": "Screen-share setup",
+      "category": "demo",
+      "text": "If we do a screen share, I can keep it focused. First the current workflow, then the proposed AI-assisted flow, then the exact point where a person reviews the output."
+    },
+    {
+      "id": "closing",
+      "title": "Soft close",
+      "category": "follow-up",
+      "text": "If that sounds useful, I can send the outline and a couple of times that work. If not, no pressure at all."
+    }
+  ]
+}

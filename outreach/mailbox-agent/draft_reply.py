@@ -15,6 +15,7 @@ from mlx_lm import generate, load
 
 DEFAULT_FAST_MODEL_PATH = "/Users/c.s.d.v.r.s./Library/Caches/Private-AI-Lab/models/answers/mlx-community--Qwen2.5-3B-Instruct-4bit"
 DEFAULT_STRONG_MODEL_PATH = "/Users/c.s.d.v.r.s./Library/Caches/Private-AI-Lab/models/answers/mlx-community--Qwen2.5-7B-Instruct-4bit"
+DEFAULT_REVIEWER_MODEL_PATH = "/Users/c.s.d.v.r.s./Library/Caches/Private-AI-Lab/models/answers/mlx-community--gpt-oss-20b-MXFP4-Q4"
 DEFAULT_OUTPUT_DIR = "/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/outreach/queue/review"
 
 
@@ -45,6 +46,8 @@ def resolve_model_path(profile: str, explicit_model_path: str) -> tuple[str, str
         return profile, explicit_model_path.strip()
 
     normalized = profile.strip().lower() or "fast"
+    if normalized == "reviewer":
+        return "reviewer", env("LOCAL_DRAFT_REVIEWER_MODEL_PATH", DEFAULT_REVIEWER_MODEL_PATH)
     if normalized == "strong":
         return "strong", env("LOCAL_DRAFT_STRONG_MODEL_PATH", DEFAULT_STRONG_MODEL_PATH)
     return "fast", env("LOCAL_DRAFT_FAST_MODEL_PATH", DEFAULT_FAST_MODEL_PATH)
@@ -144,7 +147,11 @@ def normalize_greeting(body: str, sender_name: str) -> str:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Draft a reviewed reply from an imported inbound email")
     parser.add_argument("--message-json", required=True, type=Path)
-    parser.add_argument("--model-profile", choices=["fast", "strong"], default=env("LOCAL_DRAFT_MODEL_PROFILE", "fast"))
+    parser.add_argument(
+        "--model-profile",
+        choices=["fast", "strong", "reviewer"],
+        default=env("LOCAL_DRAFT_MODEL_PROFILE", "fast"),
+    )
     parser.add_argument("--model-path", default=env("LOCAL_DRAFT_MODEL_PATH", ""))
     parser.add_argument("--output-dir", type=Path, default=Path(env("REPLY_DRAFT_OUTPUT_DIR", DEFAULT_OUTPUT_DIR)))
     args = parser.parse_args()

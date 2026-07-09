@@ -1,14 +1,18 @@
-Subject: Re: Private document AI for {{company_name}}
+Subject: Re: Workflow cleanup for {{company_name}}
 
 Hi {{contact_name}},
 
-Following up once in case the earlier note was relevant.
+Following up once in case this was worth a look.
 
-JVT Technologies is currently showing a private document assistant for document-heavy teams that need cited answers and a controlled deployment story. For the right firm, the value is faster internal search, grounded answers, and a more reviewable workflow than generic AI chat tools.
+JVT helps teams clean up one repeated workflow at a time: messy inboxes, intake details, meeting notes, document questions, and follow-up drafts that need a person to approve before they go anywhere.
 
 {{fit_reason}}
 
-If useful, I can send a short overview or schedule a brief demo.
+The public demo lab is here if you want the quick version:
+
+{{site_url}}/#demos
+
+If useful, I can send a short example for {{company_name}} rather than a generic AI deck.
 
 Best,
 {{sender_name}}

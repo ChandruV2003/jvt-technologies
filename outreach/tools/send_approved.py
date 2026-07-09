@@ -58,7 +58,19 @@ def approved_stems() -> list[str]:
 
 def sent_today_count() -> int:
     today = datetime.now().date().isoformat()
-    return len(list(SENT_DIR.glob(f"{today}-*.json")))
+    count = 0
+    for path in SENT_DIR.glob("*.json"):
+        try:
+            metadata = json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            continue
+        sent_at = str(metadata.get("sent_at") or "").strip()
+        if sent_at[:10] == today:
+            count += 1
+            continue
+        if not sent_at and path.name.startswith(f"{today}-"):
+            count += 1
+    return count
 
 
 def resolve_recipient(metadata: dict[str, object], db_path: Path) -> str:
@@ -209,8 +221,8 @@ def main() -> None:
     parser.add_argument("--all-approved", action="store_true", help="Process all approved packets up to the configured cap")
     parser.add_argument("--provider", choices=["smtp", "resend"], default=env("JVT_OUTBOUND_PROVIDER", "smtp"))
     parser.add_argument("--db", type=Path, default=DEFAULT_DB)
-    parser.add_argument("--max-per-run", type=int, default=env_int("JVT_SEND_MAX_PER_RUN", 3))
-    parser.add_argument("--daily-limit", type=int, default=env_int("JVT_SEND_DAILY_LIMIT", 5))
+    parser.add_argument("--max-per-run", type=int, default=env_int("JVT_SEND_MAX_PER_RUN", 5))
+    parser.add_argument("--daily-limit", type=int, default=env_int("JVT_SEND_DAILY_LIMIT", 10))
     parser.add_argument("--delay-seconds", type=int, default=env_int("JVT_SEND_DELAY_SECONDS", 5))
     parser.add_argument("--send", action="store_true", help="Actually send mail. Without this flag the script runs in dry-run mode.")
     args = parser.parse_args()

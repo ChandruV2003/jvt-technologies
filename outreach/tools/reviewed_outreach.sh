@@ -28,6 +28,7 @@ Usage:
   reviewed_outreach.sh draft-reply <message-json>
   reviewed_outreach.sh draft-reply-fast <message-json>
   reviewed_outreach.sh draft-reply-strong <message-json>
+  reviewed_outreach.sh draft-reply-reviewer <message-json>
   reviewed_outreach.sh status
   reviewed_outreach.sh request-decision <category> <title> <recommended-action>
   reviewed_outreach.sh log-decision <stem> <approved|rejected|executed> [note]
@@ -86,6 +87,14 @@ case "$command_name" in
       set +a
     fi
     exec "$PYTHON_BIN" "$MAILBOX_ROOT/draft_reply.py" --message-json "$1" --model-profile strong
+    ;;
+  draft-reply-reviewer)
+    if [ -f "$MAILBOX_LOCAL_ENV_FILE" ]; then
+      set -a
+      source "$MAILBOX_LOCAL_ENV_FILE"
+      set +a
+    fi
+    exec "$PYTHON_BIN" "$MAILBOX_ROOT/draft_reply.py" --message-json "$1" --model-profile reviewer
     ;;
   status)
     exec "$PYTHON_BIN" "$CONTROL_ROOT/status_snapshot.py"

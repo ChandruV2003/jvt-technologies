@@ -1,0 +1,177 @@
+{
+    "updated_at": "2026-06-30T02:30:00-04:00",
+    "goal": "Create sellable proof assets and real conversation paths for JVT's near-term service wedges.",
+    "success_metric": "5 real owner/operator conversations per week and at least 1 paid-pilot proposal path.",
+    "wedges": [
+        {
+            "id": "ai-receptionist-intake",
+            "name": "AI receptionist / voice intake",
+            "status": "active",
+            "target_customer": "Solo law, CPA, contractor, clinic, and home-service offices.",
+            "offer": "Inbound AI intake that discloses itself, captures caller details, qualifies the request, and routes a review packet.",
+            "first_proof_asset": "Public dry-run intake demo page with proof PDF, offer-specific candidate list, and paid-pilot homepage panel.",
+            "pricing_test": "$750 setup + $300-$500/mo support, usage billed separately.",
+            "completed_actions": [
+                "Created 3 synthetic demo caller scenarios.",
+                "Ran all 3 scenarios through the dry-run /api/test-intake endpoint.",
+                "Saved generated intake packets under products/Private-AI-Lab/apps/jvt-inbound-voice-agent/data/intake.",
+                "Published site/ai-receptionist-intake-demo.html as the public demo narrative.",
+                "Linked the demo from the public Services and Demo Lab sections.",
+                "Created downloadable AI receptionist proof PDF.",
+                "Built strategy/prospect-lists/ai-receptionist-intake-targets.csv.",
+                "Added a concrete paid-pilot panel to the homepage.",
+                "Created outreach/templates/ai-receptionist-paid-pilot.md.",
+                "Created dental-office dry-run scenario pack with routine, reschedule, and urgent-escalation callers.",
+                "Ran dental scenarios through the dry-run voice intake app and generated three unique intake packets.",
+                "Added a voice-agent pilot checklist for disclosure, escalation, data handling, and go-live gates.",
+                "Added a repeatable voice-agent pilot workspace generator.",
+                "Fixed intake packet filename collisions when multiple calls share the same second and company slug."
+            ],
+            "risks": [
+                "Phone compliance",
+                "Escalation failure",
+                "Hallucinated answers",
+                "Provider setup"
+            ],
+            "next_actions": [
+                "Use the dental pilot checklist to scope the inbound request before any live phone/provider setup.",
+                "Send and monitor the proof-backed follow-up packets queued for verified public business inboxes.",
+                "Verify priority candidates before packet generation.",
+                "Define live-call setup requirements: phone provider, webhook, disclosure script, and escalation routing."
+            ],
+            "blocked_actions": [
+                "The June 24 five-packet manual send was held because the configured daily sender cap had already reached 16 of 20 messages."
+            ]
+        },
+        {
+            "id": "meeting-to-action-packets",
+            "name": "Meeting-to-action packets",
+            "status": "active",
+            "target_customer": "Consultants, agencies, CPA/advisory teams, and service businesses with recurring calls.",
+            "offer": "Recording to transcript, summary, decisions, tasks, follow-up email, and client-ready packet.",
+            "first_proof_asset": "Public synthetic transcript-to-action packet demo page with proof PDF and candidate list.",
+            "pricing_test": "$300/mo or $75 per meeting packet.",
+            "risks": [
+                "Consent expectations",
+                "Transcript accuracy",
+                "Privacy handling"
+            ],
+            "next_actions": [
+                "Send and monitor the proof-backed follow-up packets queued for verified accounting/advisory prospects.",
+                "Keep building a dedicated meeting-to-action outreach wave from verified public inboxes.",
+                "Draft outreach copy around lost action items after client calls."
+            ],
+            "completed_actions": [
+                "Published site/meeting-to-action-demo.html with synthetic transcript, decision, owner, and follow-up output.",
+                "Linked the demo from the public Services and Demo Lab sections.",
+                "Created downloadable meeting-to-action proof PDF.",
+                "Built strategy/prospect-lists/meeting-to-action-targets.csv.",
+                "Generated proof-backed follow-up packets for Stone & Company LLC and Atteign."
+            ]
+        },
+        {
+            "id": "workflow-automation-cleanup",
+            "name": "Workflow automation cleanup",
+            "status": "active",
+            "target_customer": "Small businesses doing manual email/form/sheet/CRM handoffs.",
+            "offer": "Map one messy admin workflow and replace repeat copy/paste steps with reliable automations and review checkpoints.",
+            "first_proof_asset": "Before/after workflow map using JVT lead -> packet -> inbox -> follow-up operations.",
+            "pricing_test": "$1,500 fixed project for one workflow.",
+            "risks": [
+                "Scope creep",
+                "Too many integrations",
+                "Unclear process owner"
+            ],
+            "next_actions": [
+                "Turn the workflow map into a public one-page case study.",
+                "Create an outreach variant focused on removing 5 hours/week of admin work.",
+                "Build a prospect list of businesses with visible form-based intake."
+            ],
+            "completed_actions": [
+                "Created strategy/workflow-maps/jvt-lead-to-followup-flow.md."
+            ]
+        },
+        {
+            "id": "inbox-document-triage",
+            "name": "Inbox and document triage",
+            "status": "active",
+            "target_customer": "Law, accounting, insurance, property management, and admin-heavy service businesses.",
+            "offer": "Classify shared-inbox messages, extract attachment details, create task queue, and draft reviewable replies.",
+            "first_proof_asset": "Public synthetic inbox triage proof page plus sanitized JVT mailbox listener case study with triage counts.",
+            "pricing_test": "$1,500 setup + $500/mo support.",
+            "risks": [
+                "Mailbox permissions",
+                "Email auth friction",
+                "Attachment edge cases",
+                "Privacy"
+            ],
+            "next_actions": [
+                "Use the deployed public proof page in outreach to shared-inbox-heavy offices.",
+                "Create a downloadable PDF version of the inbox triage sample.",
+                "Create a fixed-scope offer for one shared inbox."
+            ],
+            "completed_actions": [
+                "Created strategy/case-studies/inbox-document-triage-case-study.md.",
+                "Updated the case study with the 1,795-item mailbox triage run.",
+                "Published site/inbox-document-triage-demo.html.",
+                "Linked the inbox triage proof page from the homepage Services and Demo Lab sections.",
+                "Created downloadable site/proof-assets/inbox-document-triage-proof.pdf.",
+                "Deployed the new page to Cloudflare Pages and verified it on production."
+            ]
+        },
+        {
+            "id": "document-packet-generator",
+            "name": "Document packet generator",
+            "status": "active",
+            "target_customer": "Law, accounting, insurance, onboarding, and advisory teams.",
+            "offer": "Turn intake notes and templates into consistent review-ready packets.",
+            "first_proof_asset": "Synthetic CPA onboarding packet and law-firm intake packet.",
+            "pricing_test": "$1,000 setup + $500/mo support.",
+            "risks": [
+                "Template edge cases",
+                "Client expecting legal/tax advice",
+                "Review boundary ambiguity"
+            ],
+            "next_actions": [
+                "Package examples for website or PDF download.",
+                "Define review boundary language for each vertical.",
+                "Build a prospect list of offices with visible onboarding or checklist workflows."
+            ],
+            "completed_actions": [
+                "Created client-work/synthetic-examples/cpa-onboarding-packet.md.",
+                "Created client-work/synthetic-examples/law-firm-intake-packet.md."
+            ]
+        }
+    ],
+    "red_lines": [
+        "No autonomous legal, tax, medical, financial, or investment advice.",
+        "No outbound AI calls without opt-in/compliance review.",
+        "No prospect emails without explicit authorization.",
+        "No spending or provider signup without approval.",
+        "No crypto mining hardware purchase, miner process, live trading, or custody setup without separate approval."
+    ],
+    "speculative_revenue_tracks": [
+        {
+            "id": "smart-crypto-mining-monitor",
+            "name": "Smart crypto mining / profitability monitor",
+            "status": "research-only",
+            "target_customer": "Internal JVT experiment first; possibly homelab operators or small offices only after a monitor proves useful.",
+            "pain": "Mining hardware gets bought from hype without accounting for electricity, heat, noise, network difficulty, taxes, and payback.",
+            "offer": "Read-only mining feasibility dashboard with hardware watchlist, power-rate calculator, profitability feed, breakeven/payback model, and alerts.",
+            "pricing_hypothesis": "Internal only for now; if productized, $99 setup plus $10-$25/mo hobbyist monitoring.",
+            "delivery_complexity": "Medium for dashboard and alerts; high for actual mining operations, power, cooling, and hardware uptime.",
+            "risks": [
+                "Poor profitability",
+                "Coin price volatility",
+                "Rising network difficulty",
+                "Heat and noise",
+                "Hardware depreciation",
+                "Power cost",
+                "Tax and reporting complexity",
+                "Scams and custody/security"
+            ],
+            "next_validation_step": "Build a read-only calculator using current hardware, local power assumptions, and live profitability sources before considering any hardware or mining process.",
+            "research_file": "strategy/speculative-revenue/crypto-mining-feasibility-2026.md"
+        }
+    ]
+}

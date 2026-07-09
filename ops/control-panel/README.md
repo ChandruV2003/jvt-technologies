@@ -20,9 +20,11 @@ Default URL:
 
 - `http://127.0.0.1:8042`
 
-Remote tailnet access:
+Current tailnet URL:
 
-- once Tailscale Serve is enabled on the tailnet, publish it with:
+- `https://m4-mac-mini.tailee4a3f.ts.net/`
+
+If Tailscale Serve ever needs to be republished:
 
 ```bash
 /Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/ops/control-panel/publish_to_tailscale.sh
@@ -62,3 +64,5 @@ Install and start it as a persistent local service:
 ```bash
 /Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/ops/control-panel/install_launch_agent.sh
 ```
+
+The launchd path runs with `RELOAD=0` so it behaves like a stable local service instead of a development watcher.

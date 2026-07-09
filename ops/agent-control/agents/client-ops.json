@@ -1,0 +1,20 @@
+{
+  "slug": "client-ops",
+  "name": "Client Operations Agent",
+  "role": "client tracking and workspace management",
+  "mode": "autonomous",
+  "status": "active",
+  "approval_boundary": "none-for-admin-state",
+  "owns": [
+    "client registry updates",
+    "workspace setup",
+    "status snapshots",
+    "milestone tracking"
+  ],
+  "data_sources": [
+    "/Users/c.s.d.v.r.s./Documents/JVT-Technologies/00-admin/client-registry.csv",
+    "/Users/c.s.d.v.r.s./Documents/JVT-Technologies/30-active-clients",
+    "/Users/c.s.d.v.r.s./Documents/JVT-Technologies/40-deliverables",
+    "client-work"
+  ]
+}

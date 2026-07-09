@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.jvt.followup-prep</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/outreach/tools/run_followup_prep.sh</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies</string>
+  <key>StartCalendarInterval</key>
+  <array>
+    <dict><key>Weekday</key><integer>1</integer><key>Hour</key><integer>15</integer><key>Minute</key><integer>15</integer></dict>
+    <dict><key>Weekday</key><integer>2</integer><key>Hour</key><integer>15</integer><key>Minute</key><integer>15</integer></dict>
+    <dict><key>Weekday</key><integer>3</integer><key>Hour</key><integer>15</integer><key>Minute</key><integer>15</integer></dict>
+    <dict><key>Weekday</key><integer>4</integer><key>Hour</key><integer>15</integer><key>Minute</key><integer>15</integer></dict>
+    <dict><key>Weekday</key><integer>5</integer><key>Hour</key><integer>15</integer><key>Minute</key><integer>15</integer></dict>
+  </array>
+  <key>StandardOutPath</key>
+  <string>/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/outreach/schedules/followup-prep.stdout.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/outreach/schedules/followup-prep.stderr.log</string>
+</dict>
+</plist>
+

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dental AI Voice Intake Pilot | JVT Technologies LLC</title>
+    <meta
+      name="description"
+      content="Synthetic dental AI voice intake pilot showing after-hours capture, scheduling handoff, insurance question boundaries, and urgent-call escalation."
+    />
+    <meta name="theme-color" content="#071512" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="manifest" href="./site.webmanifest" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <div class="ambient ambient-one"></div>
+      <div class="ambient ambient-two"></div>
+
+      <header class="site-header">
+        <a class="brand-mark" href="./index.html#top" aria-label="JVT Technologies home">
+          <img class="brand-lockup" src="./logo-lockup-light.svg" alt="JVT Technologies" />
+        </a>
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+          Menu
+        </button>
+        <nav id="site-nav" class="site-nav">
+          <a href="./index.html#services">Services</a>
+          <a href="./index.html#demos">Demo Lab</a>
+          <a href="./meeting-to-action-demo.html">Meeting Demo</a>
+          <a href="./index.html#contact">Contact</a>
+        </nav>
+      </header>
+
+      <main>
+        <section class="section demo-page-hero reveal">
+          <div>
+            <p class="eyebrow">Dental Voice Intake Pilot</p>
+            <h1>A calmer front desk backup for missed calls, after-hours requests, and intake notes.</h1>
+            <p class="hero-lead">
+              This sample shows what JVT can build for a dental office before touching live patient data: an AI-disclosed
+              intake path that captures the call, avoids medical advice, and hands staff a clean packet they can trust.
+            </p>
+            <div class="hero-actions">
+              <a class="button" href="mailto:hello@jvt-technologies.com?subject=Dental%20voice%20intake%20pilot">Ask for a dental pilot</a>
+              <a class="button button-secondary" href="./proof-assets/ai-receptionist-intake-proof.pdf">Download proof sheet</a>
+              <a class="button button-secondary" href="./index.html#services">Back to services</a>
+            </div>
+          </div>
+          <aside class="demo-proof-panel">
+            <p class="mini-label">Current proof asset</p>
+            <h2>3 dental intake packets</h2>
+            <p>New patient, existing patient reschedule, and urgent after-hours boundary. Synthetic only.</p>
+          </aside>
+        </section>
+
+        <section class="section reveal">
+          <div class="section-heading section-heading-wide">
+            <p class="eyebrow">What It Produces</p>
+            <h2>A structured packet the front desk can act on.</h2>
+          </div>
+          <div class="demo-output-grid">
+            <article class="demo-output-card">
+              <span>01</span>
+              <h3>Caller basics</h3>
+              <p>Name, callback number, new or existing patient status, preferred windows, and the reason for calling.</p>
+            </article>
+            <article class="demo-output-card">
+              <span>02</span>
+              <h3>Office-ready summary</h3>
+              <p>Plain-language request type, urgency flag, insurance question context, and missing fields for staff.</p>
+            </article>
+            <article class="demo-output-card">
+              <span>03</span>
+              <h3>Safety boundary</h3>
+              <p>What the assistant refused to answer, what staff should review, and what should be escalated.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section reveal">
+          <div class="section-heading section-heading-wide">
+            <p class="eyebrow">Synthetic Scenarios</p>
+            <h2>The demo tests the calls that usually interrupt the day.</h2>
+          </div>
+          <div class="scenario-grid">
+            <article class="scenario-card scenario-sales">
+              <p class="scenario-kicker">New patient call</p>
+              <h3>Jordan Lee</h3>
+              <p>
+                New patient asks about a cleaning and whether the office takes their insurance. The assistant captures the
+                request without promising coverage or booking the calendar.
+              </p>
+              <ul>
+                <li>Captures preferred appointment windows</li>
+                <li>Records insurance carrier name only</li>
+                <li>Human callback remains the final step</li>
+              </ul>
+            </article>
+            <article class="scenario-card scenario-admin">
+              <p class="scenario-kicker">Existing patient request</p>
+              <h3>Maria Gomez</h3>
+              <p>
+                Existing patient needs to reschedule and asks for a Friday morning slot. The assistant gathers the request
+                and leaves schedule changes to staff.
+              </p>
+              <ul>
+                <li>Captures current appointment details if volunteered</li>
+                <li>Flags preferred callback window</li>
+                <li>Does not cancel or move the appointment</li>
+              </ul>
+            </article>
+            <article class="scenario-card scenario-risk">
+              <p class="scenario-kicker">Urgent boundary</p>
+              <h3>Anthony Brooks</h3>
+              <p>
+                After-hours caller reports tooth pain and asks what medication to take. The assistant does not diagnose or
+                recommend treatment; it captures the message and routes it as urgent staff review.
+              </p>
+              <ul>
+                <li>Tests emergency and medical-advice guardrails</li>
+                <li>Routes severe symptoms to approved emergency language</li>
+                <li>Creates a high-priority callback packet</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section class="section reveal">
+          <div class="section-heading section-heading-wide">
+            <p class="eyebrow">Pilot Boundaries</p>
+            <h2>Useful automation without pretending to be a dentist or receptionist with authority.</h2>
+            <p class="section-copy">
+              The first version is intentionally narrow. It can answer with approved office language, capture details, and
+              create packets. It should not diagnose, recommend medication, confirm insurance coverage, finalize appointments,
+              or expose patient records.
+            </p>
+          </div>
+        </section>
+
+        <section class="section contact-section reveal">
+          <div class="contact-panel">
+            <div>
+              <p class="eyebrow">Paid Pilot Shape</p>
+              <h2>Start with one phone path, three synthetic calls, and one staff handoff.</h2>
+              <p>
+                The current pricing test is $750-$1,500 for a synthetic pilot and $300-$900/month for managed support once
+                live-call scope is approved. The first version proves the workflow with fake callers before any real patient
+                data, phone number routing, or scheduling integration.
+              </p>
+            </div>
+            <a class="button" href="mailto:hello@jvt-technologies.com">hello@jvt-technologies.com</a>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <p>JVT Technologies LLC builds private AI systems for document-heavy work.</p>
+        <p><span id="current-year">2026</span> · Synthetic demo · Human-reviewed implementation.</p>
+      </footer>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,23 @@
+{
+    "slug": "operator-notifier",
+    "name": "Operator Notifier Agent",
+    "role": "detect direct inbound prospect replies and escalate owner attention",
+    "mode": "autonomous",
+    "status": "active",
+    "approval_boundary": "notification-only",
+    "owns": [
+        "operator alert queue",
+        "positive reply detection",
+        "demo-needed escalation"
+    ],
+    "data_sources": [
+        "outreach/inbox/new",
+        "ops/agent-control/state/operator-notifier"
+    ],
+    "red_lines": [
+        "Do not send replies.",
+        "Do not book meetings.",
+        "Do not make external commitments.",
+        "Only notify and write alert state."
+    ]
+}

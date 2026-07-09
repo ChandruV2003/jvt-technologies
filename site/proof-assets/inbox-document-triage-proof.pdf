@@ -1,0 +1,84 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R /F2 5 0 R >> >> /Contents 6 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+6 0 obj
+<< /Length 1999 >>
+stream
+BT
+0.05 0.13 0.11 rg 0 0 612 792 re f
+0.86 0.75 0.54 rg 42 724 118 22 re f
+0.97 0.95 0.91 rg /F2 10 Tf 48 731 Td (SYNTHETIC DEMO) Tj
+0.97 0.95 0.91 rg /F2 28 Tf 42 682 Td (Inbox And Document Triage Proof) Tj
+0.09 0.62 0.55 rg 42 635 10 10 re f
+0.97 0.95 0.91 rg /F2 15 Tf 62 634 Td (Target customer) Tj
+0.80 0.78 0.72 rg /F1 10.5 Tf
+52 610 Td (Shared-inbox-heavy law, accounting, insurance, property, and operations) Tj
+-52 -14 Td
+52 596 Td (teams.) Tj
+-52 -14 Td
+0.09 0.62 0.55 rg 42 568 10 10 re f
+0.97 0.95 0.91 rg /F2 15 Tf 62 567 Td (Pain) Tj
+0.80 0.78 0.72 rg /F1 10.5 Tf
+52 543 Td (Client requests, attachments, notices, vendor messages, and noise land) Tj
+-52 -14 Td
+52 529 Td (together with no reliable review queue.) Tj
+-52 -14 Td
+0.09 0.62 0.55 rg 42 501 10 10 re f
+0.97 0.95 0.91 rg /F2 15 Tf 62 500 Td (Offer) Tj
+0.80 0.78 0.72 rg /F1 10.5 Tf
+52 476 Td (Classify inbound messages, extract the real ask, flag missing details,) Tj
+-52 -14 Td
+52 462 Td (create a task queue, and draft reviewable replies.) Tj
+-52 -14 Td
+0.09 0.62 0.55 rg 42 434 10 10 re f
+0.97 0.95 0.91 rg /F2 15 Tf 62 433 Td (Proof) Tj
+0.80 0.78 0.72 rg /F1 10.5 Tf
+52 409 Td (Synthetic public sample backed by JVT's internal mailbox run: 1,795 imported) Tj
+-52 -14 Td
+52 395 Td (items triaged into direct, system, promotional, personal, and test buckets.) Tj
+-52 -14 Td
+0.09 0.62 0.55 rg 42 367 10 10 re f
+0.97 0.95 0.91 rg /F2 15 Tf 62 366 Td (Pricing test) Tj
+0.80 0.78 0.72 rg /F1 10.5 Tf
+52 342 Td ($1,500 setup plus $500/month support for one shared inbox and one review) Tj
+-52 -14 Td
+52 328 Td (workflow.) Tj
+-52 -14 Td
+0.09 0.62 0.55 rg 42 300 10 10 re f
+0.97 0.95 0.91 rg /F2 15 Tf 62 299 Td (Next validation) Tj
+0.80 0.78 0.72 rg /F1 10.5 Tf
+52 275 Td (Use the public proof page with admin-heavy offices and measure replies) Tj
+-52 -14 Td
+52 261 Td (asking for a pilot scope.) Tj
+-52 -14 Td
+0.86 0.75 0.54 rg /F2 10 Tf 42 42 Td (JVT Technologies LLC | hello@jvt-technologies.com | jvt-technologies.com) Tj
+ET
+endstream
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000251 00000 n 
+0000000321 00000 n 
+0000000396 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+2446
+%%EOF

@@ -14,12 +14,14 @@ This area keeps outward-facing business assets separate from product code while 
 - `runbooks`: operating instructions for site launch, demo recording, and outreach review
 - `client-work`: future client delivery templates and notes
 - `products`: incubated product and R&D areas, including `Private-AI-Lab`
+- `products/Private-AI-Lab/apps/jvt-inbound-voice-agent`: inbound-only AI receptionist scaffold for call intake
 
 ## Working Split
 
 - the company site and business operations live at this repo root
 - the incubated product/R&D workspace now lives in `products/Private-AI-Lab`
 - the active document assistant app now lives in `products/Private-AI-Lab/apps/private-doc-intel-demo`
+- the inbound voice intake scaffold lives in `products/Private-AI-Lab/apps/jvt-inbound-voice-agent`
 - the business website lives in `site`
 - synthetic demo material lives in `demo-packaging`
 - lead and outreach operations stay local-first and review-driven
@@ -34,6 +36,7 @@ JVT Technologies builds private AI systems and workflow automation for document-
 - premium static site for local preview and future deployment
 - offer foundation and positioning notes
 - demo script, operator flow, prospect explanation, and video workflow
+- inbound AI receptionist scaffold and safety runbook
 - synthetic sample documents for clean demos
 - local-first lead pipeline schema and seed data
 - reviewed outreach templates and conservative draft-generation tooling

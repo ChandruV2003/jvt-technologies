@@ -1,0 +1,31 @@
+{
+  "slug": "epic-agent",
+  "name": "Epic Agent",
+  "role": "Runs large, durable JVT story briefs through bounded Codex CLI execution on the M4 Mac mini.",
+  "mode": "autonomous",
+  "status": "active",
+  "approval_boundary": "May execute internal repo work from queued epic specs. Must stop before spending, sending, posting, applications, account changes, live trades, fund movement, wallets, mining, staking, or external commitments.",
+  "owns": [
+    "ops/agent-control/epics/queued",
+    "ops/agent-control/epics/running",
+    "ops/agent-control/epics/done",
+    "ops/agent-control/epics/blocked",
+    "ops/agent-control/epics/held",
+    "ops/agent-control/epics/architect-inbox",
+    "ops/agent-control/state/latest-epic-agent.json",
+    "ops/agent-control/policies/epic-agent-policy.json"
+  ],
+  "data_sources": [
+    "strategy/",
+    "runbooks/",
+    "ops/agent-control/state/",
+    "ops/agent-control/epics/"
+  ],
+  "launch_label": "com.jvt.epic-agent",
+  "runner": "ops/agent-control/epic_agent_runner.py",
+  "credit_policy": {
+    "max_codex_epics_per_day": 1,
+    "min_seconds_between_codex_epics": 21600,
+    "prefer_local_for_small_tasks": true
+  }
+}

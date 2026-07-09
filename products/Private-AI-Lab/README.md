@@ -24,4 +24,4 @@ The first scaffold in this workspace is a local-first private document intellige
 ## Repo Split
 
 - business-facing JVT assets live in the parent repo at `/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies`
-- the active product app keeps its own repo at `apps/private-doc-intel-demo`
+- the active product app currently lives inside this workspace at `apps/private-doc-intel-demo`

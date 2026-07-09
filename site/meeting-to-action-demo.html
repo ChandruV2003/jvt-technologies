@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Meeting-To-Action Packet Demo | JVT Technologies LLC</title>
+    <meta
+      name="description"
+      content="Synthetic meeting-to-action packet demo showing transcript cleanup, decisions, task owners, follow-up draft, and internal next steps."
+    />
+    <meta name="theme-color" content="#071512" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="manifest" href="./site.webmanifest" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <div class="ambient ambient-one"></div>
+      <div class="ambient ambient-two"></div>
+
+      <header class="site-header">
+        <a class="brand-mark" href="./index.html#top" aria-label="JVT Technologies home">
+          <img class="brand-lockup" src="./logo-lockup-light.svg" alt="JVT Technologies" />
+        </a>
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+          Menu
+        </button>
+        <nav id="site-nav" class="site-nav">
+          <a href="./index.html#services">Services</a>
+          <a href="./index.html#demos">Demo Lab</a>
+          <a href="./ai-receptionist-intake-demo.html">Intake Demo</a>
+          <a href="./index.html#contact">Contact</a>
+        </nav>
+      </header>
+
+      <main>
+        <section class="section demo-page-hero reveal">
+          <div>
+            <p class="eyebrow">Synthetic Demo</p>
+            <h1>Turn messy meetings into decisions, owners, and client-ready follow-up.</h1>
+            <p class="hero-lead">
+              This sample shows the package JVT can produce from a call recording or transcript: summary, decisions, action
+              items, open questions, and a reviewed follow-up draft.
+            </p>
+            <div class="hero-actions">
+              <a class="button" href="mailto:hello@jvt-technologies.com">Request a sample packet</a>
+              <a class="button button-secondary" href="./proof-assets/meeting-to-action-proof.pdf">Download proof sheet</a>
+              <a class="button button-secondary" href="./index.html#pricing">See starting prices</a>
+            </div>
+          </div>
+          <aside class="demo-proof-panel meeting-proof">
+            <p class="mini-label">Starting offer</p>
+            <h2>$75 per packet or $300/mo</h2>
+            <p>Best for advisors, agencies, CPA firms, consultants, and operators who lose tasks after calls.</p>
+          </aside>
+        </section>
+
+        <section class="section reveal">
+          <div class="demo-packet-layout">
+            <article class="transcript-card">
+              <p class="eyebrow">Input</p>
+              <h2>Raw meeting excerpt</h2>
+              <p>
+                "We need the client to send the April bank statement, confirm the payroll provider, and decide whether the
+                cleanup should include contractor payments. Sam can draft the request today. Priya will review it Friday.
+                We also need a short note explaining what is out of scope."
+              </p>
+            </article>
+            <article class="packet-card">
+              <p class="eyebrow">Output</p>
+              <h2>Action packet</h2>
+              <div class="packet-row">
+                <strong>Decision</strong>
+                <span>Cleanup scope includes bank reconciliation and payroll review. Contractor payments are pending.</span>
+              </div>
+              <div class="packet-row">
+                <strong>Owner</strong>
+                <span>Sam drafts the client request. Priya reviews before Friday close.</span>
+              </div>
+              <div class="packet-row">
+                <strong>Missing info</strong>
+                <span>April bank statement, payroll provider, contractor-payment decision.</span>
+              </div>
+              <div class="packet-row">
+                <strong>Follow-up draft</strong>
+                <span>Client-ready email asking for the three missing items and clarifying out-of-scope work.</span>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="section reveal">
+          <div class="section-heading section-heading-wide">
+            <p class="eyebrow">Packet Contents</p>
+            <h2>Useful output, not a wall of transcript text.</h2>
+          </div>
+          <div class="demo-output-grid">
+            <article class="demo-output-card">
+              <span>01</span>
+              <h3>Executive summary</h3>
+              <p>What happened, what changed, and what matters for the next step.</p>
+            </article>
+            <article class="demo-output-card">
+              <span>02</span>
+              <h3>Tasks and owners</h3>
+              <p>Action items with responsible person, due date, dependencies, and review status.</p>
+            </article>
+            <article class="demo-output-card">
+              <span>03</span>
+              <h3>Follow-up draft</h3>
+              <p>A client-ready email or internal note that a person can quickly review and send.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section contact-section reveal">
+          <div class="contact-panel">
+            <div>
+              <p class="eyebrow">Pilot Shape</p>
+              <h2>Start with five real meetings.</h2>
+              <p>
+                A practical validation path is five existing call recordings or transcripts, converted into packets, then
+                scored by the team for time saved and accuracy.
+              </p>
+            </div>
+            <a class="button" href="mailto:hello@jvt-technologies.com">hello@jvt-technologies.com</a>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <p>JVT Technologies LLC builds private AI systems for document-heavy work.</p>
+        <p><span id="current-year">2026</span> · Synthetic demo · Human-reviewed output.</p>
+      </footer>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

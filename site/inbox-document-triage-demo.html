@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Inbox and Document Triage Demo | JVT Technologies LLC</title>
+    <meta
+      name="description"
+      content="Synthetic inbox and document triage proof showing how JVT turns messy inbound email into review queues, missing-information checks, and draft replies."
+    />
+    <meta name="theme-color" content="#071512" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="manifest" href="./site.webmanifest" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <div class="ambient ambient-one"></div>
+      <div class="ambient ambient-two"></div>
+
+      <header class="site-header">
+        <a class="brand-mark" href="./index.html#top" aria-label="JVT Technologies home">
+          <img class="brand-lockup" src="./logo-lockup-light.svg" alt="JVT Technologies" />
+        </a>
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+          Menu
+        </button>
+        <nav id="site-nav" class="site-nav">
+          <a href="./index.html#services">Services</a>
+          <a href="./index.html#demos">Demo Lab</a>
+          <a href="./workflow-cleanup-demo.html">Workflow Proof</a>
+          <a href="./index.html#contact">Contact</a>
+        </nav>
+      </header>
+
+      <main>
+        <section class="section demo-page-hero reveal">
+          <div>
+            <p class="eyebrow">Synthetic Proof</p>
+            <h1>Turn one shared inbox into a reviewed work queue.</h1>
+            <p class="hero-lead">
+              This sample shows the inbox/document triage lane: classify inbound messages, pull out the actual request,
+              identify missing details, and prepare a draft response that a person reviews before sending.
+            </p>
+            <div class="hero-actions">
+              <a class="button" href="mailto:hello@jvt-technologies.com?subject=Inbox%20triage%20pilot">Request a pilot scope</a>
+              <a class="button button-secondary" href="./proof-assets/inbox-document-triage-proof.pdf">Download proof PDF</a>
+              <a class="button button-secondary" href="./index.html#pricing">See starting prices</a>
+            </div>
+          </div>
+          <aside class="demo-proof-panel meeting-proof">
+            <p class="mini-label">Starting offer</p>
+            <h2>$1,500 setup + $500/mo</h2>
+            <p>Best for offices where important requests, attachments, notices, and noise all land in the same inbox.</p>
+          </aside>
+        </section>
+
+        <section class="section reveal">
+          <div class="demo-packet-layout">
+            <article class="transcript-card">
+              <p class="eyebrow">Input</p>
+              <h2>Messy inbound email</h2>
+              <p>
+                "Hi, we still need the updated COI, the signed management agreement, and the current W-9 before Friday.
+                Also, can someone confirm whether the repair invoice should go to accounting or the property manager?"
+              </p>
+            </article>
+            <article class="packet-card">
+              <p class="eyebrow">Output</p>
+              <h2>Triage packet</h2>
+              <div class="packet-row">
+                <strong>Bucket</strong>
+                <span>Direct business request. Needs human review before reply.</span>
+              </div>
+              <div class="packet-row">
+                <strong>Missing documents</strong>
+                <span>Updated COI, signed management agreement, current W-9.</span>
+              </div>
+              <div class="packet-row">
+                <strong>Routing</strong>
+                <span>Accounting decision needed for repair invoice routing.</span>
+              </div>
+              <div class="packet-row">
+                <strong>Draft response</strong>
+                <span>Polite reply asking for the three files and confirming the invoice-routing owner.</span>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="section reveal">
+          <div class="section-heading section-heading-wide">
+            <p class="eyebrow">What Gets Controlled</p>
+            <h2>Every inbound item gets a bucket, owner, and review boundary.</h2>
+          </div>
+          <div class="demo-output-grid">
+            <article class="demo-output-card">
+              <span>01</span>
+              <h3>Classify</h3>
+              <p>Separate client/prospect requests from system messages, promotions, personal items, and low-value noise.</p>
+            </article>
+            <article class="demo-output-card">
+              <span>02</span>
+              <h3>Extract</h3>
+              <p>Pull sender, request type, documents, deadlines, routing needs, and missing fields into one packet.</p>
+            </article>
+            <article class="demo-output-card">
+              <span>03</span>
+              <h3>Draft for review</h3>
+              <p>Prepare reply text, but keep approval with the person responsible for client communication.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section contact-section reveal">
+          <div class="contact-panel">
+            <div>
+              <p class="eyebrow">Pilot Shape</p>
+              <h2>Start with one inbox, one routing rule set, and one review queue.</h2>
+              <p>
+                The first version should prove that real requests stop getting buried, noisy messages stop wasting time,
+                and every draft response has a clear human checkpoint.
+              </p>
+            </div>
+            <a class="button" href="mailto:hello@jvt-technologies.com">hello@jvt-technologies.com</a>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <p>JVT Technologies LLC builds controlled workflow systems for document-heavy work.</p>
+        <p><span id="current-year">2026</span> · Synthetic proof · Human-reviewed output.</p>
+      </footer>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

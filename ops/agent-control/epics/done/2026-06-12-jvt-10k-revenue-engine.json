@@ -1,0 +1,52 @@
+{
+  "id": "2026-06-12-jvt-10k-revenue-engine",
+  "title": "JVT $10k Revenue Engine Expansion",
+  "execution_mode": "codex_workspace_write",
+  "codex_enabled": true,
+  "requires_approval": false,
+  "priority": 1,
+  "created_at": "2026-06-12T13:05:00Z",
+  "timeout_seconds": 1800,
+  "story": "Build the next internal version of the JVT revenue engine so the business can push toward $10k gross cash collected by March 31, 2027. Treat this as a large implementation story, not a small ticket. Use the existing site, strategy, outreach, venture, content, and control-plane artifacts. Focus on concrete service cash flow before speculative ideas. Create or update internal repo artifacts only. Do not send emails, post publicly, spend money, submit applications, change accounts, trade live, mine, stake, or make external commitments.",
+  "scope_paths": [
+    "strategy/",
+    "runbooks/",
+    "ops/agent-control/",
+    "site/",
+    "outreach/templates/",
+    "client-work/synthetic-examples/"
+  ],
+  "deliverables": [
+    "Create a high-level implementation map for the $10k revenue engine.",
+    "Convert the strongest current offers into concrete epic or child-story specs.",
+    "Create at least one review-only proof or packet artifact if it can be done safely from existing material.",
+    "Identify what should be queued next for local task runner versus epic agent.",
+    "Write a final architect handoff with blockers, risks, and next recommended epic."
+  ],
+  "acceptance_criteria": [
+    "No external action is taken.",
+    "No credentials, secrets, money movement, platform posting, prospect sends, live trading, mining, staking, or applications are attempted.",
+    "The repo contains a clearer execution path than before this epic.",
+    "The architect inbox receives a final handoff with what changed and what needs a decision.",
+    "Validation commands or file checks are reported in the final handoff."
+  ],
+  "architect_callback_policy": "If blocked, write the exact blocker and one recommended decision into the final response so the runner captures it in architect-inbox.",
+  "epic_agent_result": {
+    "epic_file": "/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/ops/agent-control/epics/queued/2026-06-12-jvt-10k-revenue-engine.json",
+    "epic_id": "2026-06-12-jvt-10k-revenue-engine",
+    "execution_mode": "codex_workspace_write",
+    "ok": true,
+    "status": "done",
+    "returncode": 0,
+    "duration_ms": 558161,
+    "mode": "codex_workspace_write",
+    "sandbox": "workspace-write",
+    "log_dir": "/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/ops/agent-control/epics/logs/20260612T210659Z-2026-06-12-jvt-10k-revenue-engine",
+    "prompt_path": "/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/ops/agent-control/epics/logs/20260612T210659Z-2026-06-12-jvt-10k-revenue-engine/prompt.md",
+    "stdout_path": "/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/ops/agent-control/epics/logs/20260612T210659Z-2026-06-12-jvt-10k-revenue-engine/codex-events.jsonl",
+    "stderr_path": "/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/ops/agent-control/epics/logs/20260612T210659Z-2026-06-12-jvt-10k-revenue-engine/codex-stderr.log",
+    "last_message_path": "/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/ops/agent-control/epics/logs/20260612T210659Z-2026-06-12-jvt-10k-revenue-engine/last-message.md",
+    "architect_inbox_path": "/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/ops/agent-control/epics/architect-inbox/2026-06-12-jvt-10k-revenue-engine-done.md"
+  },
+  "epic_agent_updated_at": "2026-06-12T21:16:17+00:00"
+}

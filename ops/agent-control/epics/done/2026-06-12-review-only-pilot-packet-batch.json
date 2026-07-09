@@ -1,0 +1,54 @@
+{
+  "id": "2026-06-12-review-only-pilot-packet-batch",
+  "title": "JVT Review-Only Paid-Pilot Packet Batch",
+  "execution_mode": "codex_workspace_write",
+  "codex_enabled": true,
+  "requires_approval": false,
+  "priority": 1,
+  "created_at": "2026-06-12T21:40:00Z",
+  "timeout_seconds": 1800,
+  "roi_case": {
+    "revenue_goal_link": "$10,000 gross cash collected by 2027-03-31 through paid service pilots.",
+    "expected_business_value": "Creates review-only paid-pilot packet drafts for the strongest service lanes so the operator can approve real outbound/follow-up work faster.",
+    "why_codex_is_worth_it": "This is a cross-repo synthesis task across candidate lists, proof assets, templates, and packet staging. It should compress several hours of manual prep into one reviewed batch.",
+    "success_metric": "At least five internally reviewable pilot packet drafts or a documented blocker list that explains why fewer are safe.",
+    "fallback_if_not_run": "Leave the epic queued; local deterministic agents can continue refreshing segments, proof assets, and follow-up reports until the Codex budget opens."
+  },
+  "story": "Prepare the next internal batch of review-only paid-pilot packets for JVT's strongest lanes. Use the existing candidate lists, proof assets, and templates. Stop at packet drafts, proof-link packaging, and blocker notes. Do not send, verify externally, deploy publicly, or make commitments outside the repo.",
+  "scope_paths": [
+    "strategy/",
+    "outreach/templates/",
+    "ops/agent-control/",
+    "site/"
+  ],
+  "deliverables": [
+    "Create review-only packet drafts for the strongest AI receptionist and meeting-to-action candidates.",
+    "Tie each packet to one concrete workflow pain, one narrow ask, and one matching proof asset.",
+    "Write a blocker list for any candidate that still lacks enough internal fit or data quality.",
+    "Update the architect inbox with what is ready for manual review next."
+  ],
+  "acceptance_criteria": [
+    "No email is sent and no prospect is contacted.",
+    "No external verification or public posting is attempted.",
+    "Every packet remains review-only and internal.",
+    "The repo ends with a sharper manual-review batch than before the epic started."
+  ],
+  "epic_agent_result": {
+    "epic_file": "/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/ops/agent-control/epics/queued/2026-06-12-review-only-pilot-packet-batch.json",
+    "epic_id": "2026-06-12-review-only-pilot-packet-batch",
+    "execution_mode": "codex_workspace_write",
+    "ok": true,
+    "status": "done",
+    "returncode": 0,
+    "duration_ms": 338974,
+    "mode": "codex_workspace_write",
+    "sandbox": "workspace-write",
+    "log_dir": "/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/ops/agent-control/epics/logs/20260613T052255Z-2026-06-12-review-only-pilot-packet-batch",
+    "prompt_path": "/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/ops/agent-control/epics/logs/20260613T052255Z-2026-06-12-review-only-pilot-packet-batch/prompt.md",
+    "stdout_path": "/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/ops/agent-control/epics/logs/20260613T052255Z-2026-06-12-review-only-pilot-packet-batch/codex-events.jsonl",
+    "stderr_path": "/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/ops/agent-control/epics/logs/20260613T052255Z-2026-06-12-review-only-pilot-packet-batch/codex-stderr.log",
+    "last_message_path": "/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/ops/agent-control/epics/logs/20260613T052255Z-2026-06-12-review-only-pilot-packet-batch/last-message.md",
+    "architect_inbox_path": "/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/ops/agent-control/epics/architect-inbox/2026-06-12-review-only-pilot-packet-batch-done.md"
+  },
+  "epic_agent_updated_at": "2026-06-13T05:28:34+00:00"
+}

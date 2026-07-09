@@ -28,6 +28,8 @@ cat > "${PLIST_DEST}" <<EOF
       <string>127.0.0.1</string>
       <key>PORT</key>
       <string>8042</string>
+      <key>RELOAD</key>
+      <string>0</string>
     </dict>
     <key>WorkingDirectory</key>
     <string>${WORKDIR}</string>

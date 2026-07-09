@@ -1,20 +1,26 @@
-Subject: A small internal document workflow idea for {{company_name}}
+Subject: A workflow cleanup idea for {{company_name}}
 
 Hi {{contact_name}},
 
-I'm Chandru Vasudevan, founder of JVT Technologies. We build private AI and workflow systems for document-heavy teams.
+I'm Chandru Vasudevan, founder of JVT Technologies LLC.
 
-I came across {{company_name}} while looking at firms doing {{practice_area}} work in {{city_state}}. {{fit_reason}}
+I came across {{company_name}} while looking at {{lead_context}}. {{fit_reason}}
 
-One of the systems we're putting in front of firms right now is a private internal document assistant. It searches policies, templates, matter notes, and internal reference material, then returns cited answers instead of a generic summary.
+{{public_context}}
 
-The goal is simple: help a team find the right internal answer faster without pushing sensitive material into a public-facing tool.
+JVT builds small AI ops systems for the work that keeps getting stuck: intake notes, inbox triage, meeting follow-ups, internal document search, and draft packets a person can review.
 
-If that sounds relevant, I'd be happy to send a short demo and one concrete example tailored to {{company_name}}.
+For {{company_name}}, the first useful version would likely focus on {{likely_pain}}.
 
-You can get a quick sense of the company here: {{site_url}}
+{{personalized_offer}}
 
-If this is not a priority right now, no problem at all. If it is worth a look, just reply and I'll send something over.
+The goal is simple: take one repeated workflow, clean up the messy middle, and make the next step easier to approve. No giant AI rollout, no black-box handoff.
+
+If that sounds relevant, I can send a short example tailored to {{company_name}}. You can also skim the public demo lab here:
+
+{{site_url}}/#demos
+
+If it is worth a quick pass, just reply and I will send something concrete over.
 
 Best,
 {{sender_name}}

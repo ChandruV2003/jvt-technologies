@@ -1,0 +1,82 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R /F2 5 0 R >> >> /Contents 6 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+6 0 obj
+<< /Length 1907 >>
+stream
+BT
+0.05 0.13 0.11 rg 0 0 612 792 re f
+0.86 0.75 0.54 rg 42 724 118 22 re f
+0.97 0.95 0.91 rg /F2 10 Tf 48 731 Td (DRY-RUN DEMO) Tj
+0.97 0.95 0.91 rg /F2 28 Tf 42 682 Td (AI Receptionist Intake Proof) Tj
+0.09 0.62 0.55 rg 42 635 10 10 re f
+0.97 0.95 0.91 rg /F2 15 Tf 62 634 Td (Target customer) Tj
+0.80 0.78 0.72 rg /F1 10.5 Tf
+52 610 Td (Solo and small offices that miss calls or lose intake context after hours.) Tj
+-52 -14 Td
+0.09 0.62 0.55 rg 42 582 10 10 re f
+0.97 0.95 0.91 rg /F2 15 Tf 62 581 Td (Pain) Tj
+0.80 0.78 0.72 rg /F1 10.5 Tf
+52 557 Td (Calls arrive with urgency, missing fields, and questions staff should review) Tj
+-52 -14 Td
+52 543 Td (before answering.) Tj
+-52 -14 Td
+0.09 0.62 0.55 rg 42 515 10 10 re f
+0.97 0.95 0.91 rg /F2 15 Tf 62 514 Td (Offer) Tj
+0.80 0.78 0.72 rg /F1 10.5 Tf
+52 490 Td (Inbound AI intake that discloses itself, captures caller details, and routes) Tj
+-52 -14 Td
+52 476 Td (a human-reviewed packet.) Tj
+-52 -14 Td
+0.09 0.62 0.55 rg 42 448 10 10 re f
+0.97 0.95 0.91 rg /F2 15 Tf 62 447 Td (Proof) Tj
+0.80 0.78 0.72 rg /F1 10.5 Tf
+52 423 Td (Three synthetic scenarios: missed sales call, existing-client admin request,) Tj
+-52 -14 Td
+52 409 Td (and wrong-fit caller with financial-advice guardrails.) Tj
+-52 -14 Td
+0.09 0.62 0.55 rg 42 381 10 10 re f
+0.97 0.95 0.91 rg /F2 15 Tf 62 380 Td (Pricing test) Tj
+0.80 0.78 0.72 rg /F1 10.5 Tf
+52 356 Td ($500 setup plus $250/month support. Usage and phone-provider costs billed) Tj
+-52 -14 Td
+52 342 Td (separately after approval.) Tj
+-52 -14 Td
+0.09 0.62 0.55 rg 42 314 10 10 re f
+0.97 0.95 0.91 rg /F2 15 Tf 62 313 Td (Next validation) Tj
+0.80 0.78 0.72 rg /F1 10.5 Tf
+52 289 Td (Use the public demo page with phone-heavy businesses and measure demo) Tj
+-52 -14 Td
+52 275 Td (replies.) Tj
+-52 -14 Td
+0.86 0.75 0.54 rg /F2 10 Tf 42 42 Td (JVT Technologies LLC | hello@jvt-technologies.com | jvt-technologies.com) Tj
+ET
+endstream
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000251 00000 n 
+0000000321 00000 n 
+0000000396 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+2354
+%%EOF

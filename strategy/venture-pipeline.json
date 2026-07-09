@@ -1,0 +1,503 @@
+{
+    "updated_at": "2026-06-10T13:18:00-04:00",
+    "goal": "Generate $10,000 in gross collected cash by March 31, 2027 without relying on speculative returns.",
+    "operating_model": "Keep JVT services as the primary cash-flow engine. Use franchise, acquisition, trading, crypto, and hardware ideas as bounded research lanes until their math and approval gates justify action.",
+    "score_scale": "Each score is 1-5. Higher is better except risk_penalty and approval_load, where higher means more friction.",
+    "score_weights": {
+        "capital_fit": 1.6,
+        "speed_to_cash": 1.5,
+        "probability": 1.4,
+        "strategic_fit": 1.3,
+        "automation_fit": 1.0,
+        "risk_penalty": -1.1,
+        "approval_load": -0.8
+    },
+    "red_lines": [
+        "No spending, franchise fees, deposits, subscriptions, applications, or paid research tools without approval.",
+        "No third-party prospect emails without explicit send authorization.",
+        "No live trades, fund movement, broker setting changes, wallets, mining, staking, or custody workflows.",
+        "No legal, tax, financial, medical, or investment advice as an autonomous output.",
+        "No external commitments, signed terms, vendor registrations, or client promises without approval."
+    ],
+    "sources": [
+        {
+            "label": "Chick-fil-A franchise opportunity",
+            "url": "https://www.chick-fil-a.com/franchise",
+            "notes": "Official page confirms the low upfront fee, full-time hands-on requirement, and no conflicting active ventures."
+        },
+        {
+            "label": "SBA buying an existing business or franchise",
+            "url": "https://www.sba.gov/business-guide/plan-your-business/buy-existing-business-or-franchise",
+            "notes": "Useful diligence framework for franchise and acquisition lanes."
+        },
+        {
+            "label": "SBA become a federal contractor",
+            "url": "https://www.sba.gov/business-guide/grow-your-business/become-federal-contractor",
+            "notes": "Official requirements path for government contracting readiness."
+        },
+        {
+            "label": "SAM.gov entity registration",
+            "url": "https://sam.gov/entity-registration",
+            "notes": "Official registration system. Registration itself requires operator approval."
+        }
+    ],
+    "cadence": {
+        "daily": [
+            "Refresh growth pipeline report.",
+            "Refresh JVT outreach/inbox/watchdog/orchestrator status.",
+            "Pick one low-risk autonomous next action and move it forward when no approval is required."
+        ],
+        "weekly": [
+            "Review top 3 cash-flow lanes and kill or downgrade weak lanes.",
+            "Prepare one decision packet for any approval-gated path worth pursuing.",
+            "Update public offer or outreach assets only when they sharpen an active wedge."
+        ]
+    },
+    "opportunities": [
+        {
+            "id": "jvt-productized-services",
+            "name": "JVT productized services",
+            "status": "primary",
+            "category": "service-cashflow",
+            "target_customer": "Small professional offices, consultants, agencies, home-service operators, and admin-heavy local businesses.",
+            "pain": "Calls, meetings, inboxes, forms, and documents create repeated manual follow-up work.",
+            "offer": "Narrow fixed-scope pilots: AI receptionist/intake, meeting-to-action packets, inbox/document triage, workflow cleanup, and document generation.",
+            "pricing_hypothesis": "$500-$1,500 setup for first pilot, then $250-$1,000/mo support depending on scope.",
+            "startup_capital": "$0-$500 before paid provider usage.",
+            "time_to_first_revenue": "1-6 weeks if a warm or high-fit prospect agrees to a pilot.",
+            "delivery_complexity": "Medium.",
+            "risks": [
+                "Weak distribution",
+                "Too-broad positioning",
+                "Scope creep",
+                "Privacy expectations"
+            ],
+            "scores": {
+                "capital_fit": 5,
+                "speed_to_cash": 4,
+                "probability": 4,
+                "strategic_fit": 5,
+                "automation_fit": 5,
+                "risk_penalty": 2,
+                "approval_load": 2
+            },
+            "low_risk_next_actions": [
+                "Hold the five internal packet briefs for review before any queue staging or send approval.",
+                "Create or refresh one proof asset from existing dry-run/demo outputs.",
+                "Draft a paid-pilot decision packet for operator review."
+            ],
+            "approval_required_actions": [
+                "Send prospect emails.",
+                "Quote or commit to final pricing.",
+                "Enable paid live voice provider usage."
+            ],
+            "next_validation_step": "Convert the active proof assets into one paid-pilot ask aimed at high-fit businesses."
+        },
+        {
+            "id": "local-partner-channel",
+            "name": "Local partner and reseller channel",
+            "status": "active-research",
+            "category": "distribution",
+            "target_customer": "MSPs, web designers, bookkeeping firms, IT consultants, small agencies, and local business consultants.",
+            "pain": "They already have small-business trust but need practical AI/workflow implementation capacity.",
+            "offer": "White-label or referral-based workflow cleanup, meeting packets, intake automation, and inbox triage.",
+            "pricing_hypothesis": "10%-25% referral fee or fixed wholesale project pricing once a partner brings an approved client.",
+            "startup_capital": "$0-$250.",
+            "time_to_first_revenue": "2-8 weeks if warm introductions exist.",
+            "delivery_complexity": "Medium.",
+            "risks": [
+                "Partner trust takes time",
+                "Unclear margins",
+                "Need clean proof assets"
+            ],
+            "scores": {
+                "capital_fit": 5,
+                "speed_to_cash": 3,
+                "probability": 3,
+                "strategic_fit": 5,
+                "automation_fit": 4,
+                "risk_penalty": 2,
+                "approval_load": 3
+            },
+            "low_risk_next_actions": [
+                "Wait for operator review of the partner packet before any partner contact.",
+                "Draft a partner one-pager and referral terms for review.",
+                "Map which JVT proof assets would matter to each partner type."
+            ],
+            "approval_required_actions": [
+                "Contact partners.",
+                "Offer referral fees or revenue share.",
+                "Sign partnership or subcontracting terms."
+            ],
+            "next_validation_step": "Prepare a partner packet that explains one clean white-label offer and review it before outreach."
+        },
+        {
+            "id": "content-ops-distribution-engine",
+            "name": "YouTube and Instagram content operations engine",
+            "status": "active-research",
+            "category": "distribution",
+            "target_customer": "Internal JVT first; later small professional-service firms that need simple content packets from existing proof assets.",
+            "pain": "JVT has demos and service ideas, but weak public distribution and trust-building content.",
+            "offer": "Turn proof assets, demos, and workflow maps into approval-gated scripts, captions, thumbnail briefs, and post packets for YouTube/Instagram.",
+            "pricing_hypothesis": "Internal distribution first; if productized later, $500-$1,500 setup plus $300-$1,000/mo for weekly content packets.",
+            "startup_capital": "$0 for draft packets and manual posting; paid tools/API work require approval.",
+            "time_to_first_revenue": "2-4 weeks for internal visibility impact; 1-3 months before selling as a service.",
+            "delivery_complexity": "Medium.",
+            "risks": [
+                "Looking like generic AI spam",
+                "Unreviewed public claims",
+                "Platform policy violations",
+                "Copyright or consent issues",
+                "Time spent without qualified conversations"
+            ],
+            "scores": {
+                "capital_fit": 5,
+                "speed_to_cash": 2,
+                "probability": 3,
+                "strategic_fit": 4,
+                "automation_fit": 5,
+                "risk_penalty": 3,
+                "approval_load": 4
+            },
+            "low_risk_next_actions": [
+                "Hold the AI receptionist content packet for operator review before any manual post or API publishing work.",
+                "Create a content idea backlog from existing proof assets.",
+                "Define platform approval gates before any posting workflow."
+            ],
+            "approval_required_actions": [
+                "Connect YouTube or Instagram accounts.",
+                "Use OAuth/API tokens.",
+                "Publish or schedule posts.",
+                "Use paid scheduling or editing tools.",
+                "Automate comments, DMs, follows, likes, views, or other engagement."
+            ],
+            "next_validation_step": "Generate one review-only content packet from the AI receptionist or meeting-to-action demo."
+        },
+        {
+            "id": "vendor-subcontractor-readiness",
+            "name": "Vendor and subcontractor readiness",
+            "status": "active-research",
+            "category": "institutional-sales",
+            "target_customer": "Local governments, nonprofits, schools, small prime contractors, and agencies needing admin automation help.",
+            "pain": "Organizations need digital workflow support but procurement paths require capability statements and vendor setup.",
+            "offer": "Workflow automation, intake triage, document generation, meeting packets, and managed AI operations as a small-business vendor/subcontractor.",
+            "pricing_hypothesis": "$1,500-$10,000 small projects, then retainers where appropriate.",
+            "startup_capital": "$0 before registrations or certifications.",
+            "time_to_first_revenue": "2-6 months.",
+            "delivery_complexity": "Medium-high.",
+            "risks": [
+                "Long procurement cycle",
+                "Administrative burden",
+                "Compliance expectations",
+                "May need formal registrations"
+            ],
+            "scores": {
+                "capital_fit": 4,
+                "speed_to_cash": 2,
+                "probability": 3,
+                "strategic_fit": 4,
+                "automation_fit": 3,
+                "risk_penalty": 3,
+                "approval_load": 4
+            },
+            "low_risk_next_actions": [
+                "Review the draft JVT capabilities statement and mark any NAICS or service claims that need operator approval.",
+                "List likely NAICS/PSC categories for review.",
+                "Identify five local primes or nonprofits with technology/admin workflow needs."
+            ],
+            "approval_required_actions": [
+                "Register or update SAM.gov.",
+                "Submit vendor applications.",
+                "Represent certifications or contracting status externally."
+            ],
+            "next_validation_step": "Prepare a vendor-readiness packet before any registration or outreach."
+        },
+        {
+            "id": "low-overhead-service-franchises",
+            "name": "Low-overhead service franchises",
+            "status": "monitor",
+            "category": "franchise-research",
+            "target_customer": "Business owner/operator path outside JVT: commercial cleaning, mobile services, maintenance, admin support, or B2B local services.",
+            "pain": "Need a more concrete cash-flow business model than speculative trading or crypto.",
+            "offer": "Evaluate franchise/operator systems with low initial capital, recurring revenue, and manageable operations.",
+            "pricing_hypothesis": "Owner cash flow depends on local execution; no revenue assumption until FDD/unit economics are reviewed.",
+            "startup_capital": "$5,000-$50,000+ depending on franchise and working capital.",
+            "time_to_first_revenue": "1-6 months after selection and launch.",
+            "delivery_complexity": "Medium-high.",
+            "risks": [
+                "Franchise fees",
+                "Territory restrictions",
+                "Labor management",
+                "FDD obligations",
+                "Can distract from JVT"
+            ],
+            "scores": {
+                "capital_fit": 2,
+                "speed_to_cash": 2,
+                "probability": 3,
+                "strategic_fit": 2,
+                "automation_fit": 2,
+                "risk_penalty": 4,
+                "approval_load": 5
+            },
+            "low_risk_next_actions": [
+                "Use the franchise diligence checklist to build a no-contact compare sheet for five service franchises.",
+                "Shortlist five service franchises by total investment, recurring revenue, owner involvement, and territory model.",
+                "Reject any franchise that requires capital or commitments before FDD review."
+            ],
+            "approval_required_actions": [
+                "Request franchise information using personal contact details.",
+                "Submit applications.",
+                "Pay fees or deposits.",
+                "Sign franchise or financing documents."
+            ],
+            "next_validation_step": "Build a compare sheet for five low-overhead service franchises with no contact or commitments."
+        },
+        {
+            "id": "chick-fil-a-operator-path",
+            "name": "Chick-fil-A operator path",
+            "status": "lottery-monitor",
+            "category": "franchise-research",
+            "target_customer": "Personal owner-operator path, not passive JVT investing.",
+            "pain": "Potentially high-income operating role with unusually low initial franchise fee.",
+            "offer": "Track requirements and prepare a candidacy profile only if full-time restaurant operation is actually desired.",
+            "pricing_hypothesis": "$10,000 initial franchise fee if selected, but not an asset purchase or passive investment.",
+            "startup_capital": "$10,000 non-gifted, non-borrowed initial fee plus personal runway and opportunity cost.",
+            "time_to_first_revenue": "Long and uncertain; selection can be highly competitive.",
+            "delivery_complexity": "High.",
+            "risks": [
+                "Very selective",
+                "Full-time hands-on commitment",
+                "Conflicts with active JVT work",
+                "No passive ownership"
+            ],
+            "scores": {
+                "capital_fit": 3,
+                "speed_to_cash": 1,
+                "probability": 1,
+                "strategic_fit": 1,
+                "automation_fit": 1,
+                "risk_penalty": 4,
+                "approval_load": 5
+            },
+            "low_risk_next_actions": [
+                "Keep a one-page fact sheet with official requirements.",
+                "List profile gaps: full-time availability, leadership history, community involvement, and business focus.",
+                "Decide whether this conflicts with the JVT $10k target before doing anything external."
+            ],
+            "approval_required_actions": [
+                "Submit any application.",
+                "Pay any fee.",
+                "Represent intent to divest or commit full-time."
+            ],
+            "next_validation_step": "Treat as monitored optionality, not a near-term cash-flow plan."
+        },
+        {
+            "id": "business-acquisition-search",
+            "name": "Small business acquisition search",
+            "status": "research",
+            "category": "acquisition",
+            "target_customer": "Existing local or online business owners looking to sell small cash-flow assets.",
+            "pain": "Buying revenue can be faster than building from scratch if diligence is strong and capital is available.",
+            "offer": "Screen micro-acquisitions: local service businesses, small SaaS/tools, content sites, or admin-service books.",
+            "pricing_hypothesis": "Target payback under 24-36 months only after verified books; no assumed return yet.",
+            "startup_capital": "$5,000-$100,000+ depending on asset and financing.",
+            "time_to_first_revenue": "Revenue exists if acquisition closes; diligence and financing can take months.",
+            "delivery_complexity": "High.",
+            "risks": [
+                "Bad books",
+                "Seller misrepresentation",
+                "Hidden liabilities",
+                "Operator burden",
+                "Financing risk"
+            ],
+            "scores": {
+                "capital_fit": 2,
+                "speed_to_cash": 2,
+                "probability": 2,
+                "strategic_fit": 3,
+                "automation_fit": 3,
+                "risk_penalty": 5,
+                "approval_load": 5
+            },
+            "low_risk_next_actions": [
+                "Use the acquisition filter to create a no-contact watchlist schema before looking at listings.",
+                "Create a diligence checklist.",
+                "Build a no-contact watchlist of public listings for pattern learning."
+            ],
+            "approval_required_actions": [
+                "Contact sellers.",
+                "Submit LOIs.",
+                "Share financial documents.",
+                "Pay deposits or due diligence fees."
+            ],
+            "next_validation_step": "Create an acquisition filter before looking at listings seriously."
+        },
+        {
+            "id": "paper-autotrader-r-and-d",
+            "name": "Paper AutoTrader research",
+            "status": "research-only",
+            "category": "market-research",
+            "target_customer": "Internal learning and possible future strategy validation.",
+            "pain": "Manual trading ideas are emotional and hard to validate.",
+            "offer": "Paper-only market data, backtests, catalyst scoring, and risk reports.",
+            "pricing_hypothesis": "No revenue counted toward the March 2027 goal until a verified edge exists.",
+            "startup_capital": "$0 while paper-only.",
+            "time_to_first_revenue": "Not applicable yet.",
+            "delivery_complexity": "Medium.",
+            "risks": [
+                "No proven edge",
+                "Overfitting",
+                "Slippage",
+                "Drawdowns",
+                "Live-money temptation"
+            ],
+            "scores": {
+                "capital_fit": 5,
+                "speed_to_cash": 1,
+                "probability": 1,
+                "strategic_fit": 2,
+                "automation_fit": 4,
+                "risk_penalty": 4,
+                "approval_load": 5
+            },
+            "low_risk_next_actions": [
+                "Refresh paper-only account snapshot and backtest reports.",
+                "Add walk-forward validation before any strategy promotion.",
+                "Surface paper trader status in the control panel."
+            ],
+            "approval_required_actions": [
+                "Enable paper order execution.",
+                "Use live endpoint or live keys.",
+                "Move funds or change broker settings."
+            ],
+            "next_validation_step": "Build a 30-60 day paper tracking record with benchmark comparisons."
+        },
+        {
+            "id": "crypto-compute-mining-research",
+            "name": "Crypto, compute, and mining research",
+            "status": "research-only",
+            "category": "speculative-research",
+            "target_customer": "Internal feasibility first; no public offer unless a real edge appears.",
+            "pain": "Mining and compute-hosting hype hides power, heat, capex, depreciation, custody, and utilization risk.",
+            "offer": "Read-only feasibility calculator and hardware/power watchlist.",
+            "pricing_hypothesis": "No revenue counted until hardware and power economics are proven.",
+            "startup_capital": "$0 while research-only; hardware would require separate approval.",
+            "time_to_first_revenue": "Unknown; likely poor without cheap power or differentiated hosting demand.",
+            "delivery_complexity": "Medium for calculator, high for real operations.",
+            "risks": [
+                "Poor economics",
+                "Power cost",
+                "Heat/noise",
+                "Hardware depreciation",
+                "Scams",
+                "Custody/security"
+            ],
+            "scores": {
+                "capital_fit": 4,
+                "speed_to_cash": 1,
+                "probability": 1,
+                "strategic_fit": 1,
+                "automation_fit": 3,
+                "risk_penalty": 5,
+                "approval_load": 5
+            },
+            "low_risk_next_actions": [
+                "Keep profitability math read-only.",
+                "Compare mining, staking, and GPU hosting assumptions without creating accounts or wallets.",
+                "Document why a hardware buy is or is not justified."
+            ],
+            "approval_required_actions": [
+                "Buy hardware.",
+                "Run miners.",
+                "Create wallets.",
+                "Stake assets.",
+                "Join compute marketplaces with payment/custody terms."
+            ],
+            "next_validation_step": "Refresh read-only feasibility assumptions and reject paths with bad payback."
+        },
+        {
+            "id": "dental-ai-voice-intake-pilot",
+            "name": "Dental office AI voice intake pilot",
+            "status": "active-research",
+            "category": "service-cashflow",
+            "target_customer": "Small dental offices and specialty practices that miss calls, handle after-hours requests, or need better intake notes before staff follow-up.",
+            "pain": "Patients call with scheduling, insurance, urgency, and callback needs. Staff lose time collecting the same details and after-hours callers often leave incomplete voicemails.",
+            "offer": "AI-disclosed voice intake assistant that captures caller name, callback number, patient/new-patient status, request type, urgency flags, preferred windows, and insurance carrier name only, then creates a staff-review packet. It does not diagnose, confirm coverage, or book final appointments without office approval.",
+            "pricing_hypothesis": "$750-$1,500 setup for a dry-run pilot, then $300-$900/mo for monitored intake/support once provider costs and call volume are known.",
+            "startup_capital": "$0 for dry-run demo and script design; paid phone/provider usage requires approval.",
+            "time_to_first_revenue": "1-4 weeks if the warm dental lead agrees to a scoped pilot.",
+            "delivery_complexity": "Medium.",
+            "risks": [
+                "Medical/health privacy expectations",
+                "Caller disclosure and consent",
+                "Latency and voice quality",
+                "Scope creep into scheduling or advice",
+                "Provider cost if call volume grows"
+            ],
+            "scores": {
+                "capital_fit": 5,
+                "speed_to_cash": 4,
+                "probability": 4,
+                "strategic_fit": 5,
+                "automation_fit": 5,
+                "risk_penalty": 3,
+                "approval_load": 4
+            },
+            "low_risk_next_actions": [
+                "Create a dental-intake decision packet from the existing BrightPath dry-run intakes and Chandru voice sample constraints.",
+                "Prepare a one-page pilot scope with hard boundaries: no diagnosis, no medication advice, no final booking, no coverage confirmation.",
+                "Build a latency/quality checklist before any live phone-provider test."
+            ],
+            "approval_required_actions": [
+                "Contact the dental office officially.",
+                "Enable paid phone-provider usage.",
+                "Use live patient calls.",
+                "Represent HIPAA, legal, or medical compliance externally.",
+                "Quote or commit to final pricing."
+            ],
+            "next_validation_step": "Generate a review-only dental pilot packet and collect the office's real workflow details before outreach."
+        },
+        {
+            "id": "bits-ballot-workflow-automation-pilot",
+            "name": "BITS-style ballot and board-meeting workflow automation pilot",
+            "status": "active-research",
+            "category": "service-cashflow",
+            "target_customer": "IT/AV consulting firms that support housing complexes, election committees, board meetings, and third-party ballot/election administration workflows.",
+            "pain": "Ballot and board-meeting services involve repetitive packet creation, deadline tracking, voter/resident communication, meeting artifacts, evidence organization, and handoff checklists where mistakes create trust and compliance risk.",
+            "offer": "Human-reviewed workflow assistant for ballot project setup, checklist generation, document packet assembly, meeting-to-action notes, status summaries, and exception tracking. It does not certify election results or make legal/compliance determinations.",
+            "pricing_hypothesis": "$1,000-$2,500 discovery/build pilot for one workflow slice, then $500-$1,500/mo managed AI operations depending on volume and review load.",
+            "startup_capital": "$0-$250 for internal demo/prototype work before any paid integrations.",
+            "time_to_first_revenue": "2-6 weeks if a warm BITS-style contact agrees to a narrow pilot.",
+            "delivery_complexity": "Medium-high.",
+            "risks": [
+                "Sensitive election/association records",
+                "Accuracy and auditability requirements",
+                "Legal/compliance boundaries",
+                "Integrations with existing ballot tools",
+                "Custom workflow discovery may expand scope"
+            ],
+            "scores": {
+                "capital_fit": 5,
+                "speed_to_cash": 3,
+                "probability": 4,
+                "strategic_fit": 5,
+                "automation_fit": 5,
+                "risk_penalty": 3,
+                "approval_load": 4
+            },
+            "low_risk_next_actions": [
+                "Create a research packet that maps ballot lifecycle stages, repeatable artifacts, approval gates, and no-go compliance boundaries.",
+                "Prepare a discovery questionnaire for the warm contact before any technical build.",
+                "Draft a demo concept using synthetic board/ballot data only."
+            ],
+            "approval_required_actions": [
+                "Contact the company officially.",
+                "Handle real resident, voter, board, or client records.",
+                "Claim election/legal compliance coverage.",
+                "Commit pricing, delivery dates, or integrations."
+            ],
+            "next_validation_step": "Generate a review-only ballot workflow discovery packet using synthetic data and explicit human-review boundaries."
+        }
+    ]
+}

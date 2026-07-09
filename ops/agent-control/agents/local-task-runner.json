@@ -1,0 +1,23 @@
+{
+  "slug": "local-task-runner",
+  "name": "Local Task Runner Agent",
+  "role": "allowlisted local execution for safe internal prep tasks",
+  "mode": "autonomous",
+  "status": "active",
+  "approval_boundary": "autonomous only for hardcoded internal task types; required before arbitrary shell, sends, spending, account changes, live trades, wallets, mining, staking, platform posting, applications, registrations, third-party contacts, or external commitments",
+  "owns": [
+    "pending safe task queue",
+    "allowlisted local task execution",
+    "task proof artifacts",
+    "task hold/failure reports",
+    "runtime capability snapshots"
+  ],
+  "data_sources": [
+    "ops/agent-control/tasks",
+    "ops/agent-control/state/latest-eom-brief.json",
+    "ops/agent-control/state/latest-local-task-runner.json",
+    "strategy/content-ops",
+    "strategy/venture-scout",
+    "/Users/c.s.d.v.r.s./Developer/JVT-AutoTrader/state"
+  ]
+}

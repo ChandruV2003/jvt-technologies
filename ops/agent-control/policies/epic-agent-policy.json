@@ -1,0 +1,15 @@
+{
+  "codex_cli_enabled": true,
+  "max_codex_epics_per_day": 1,
+  "min_seconds_between_codex_epics": 21600,
+  "require_roi_case_for_codex_epics": true,
+  "required_roi_fields": [
+    "revenue_goal_link",
+    "expected_business_value",
+    "why_codex_is_worth_it",
+    "success_metric",
+    "fallback_if_not_run"
+  ],
+  "prefer_local_for_small_tasks": true,
+  "local_first_note": "Use ops/agent-control/tasks and local deterministic/model agents for small recurring work. Reserve Codex CLI for large queued epics only."
+}

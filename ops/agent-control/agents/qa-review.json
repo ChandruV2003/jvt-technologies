@@ -1,0 +1,26 @@
+{
+  "slug": "qa-review",
+  "name": "QA And Review Agent",
+  "role": "quality and groundedness checks",
+  "mode": "autonomous",
+  "status": "active",
+  "approval_boundary": "escalate-on-risk",
+  "owns": [
+    "groundedness checks",
+    "citation checks",
+    "deliverable review",
+    "revision recommendations",
+    "lead-quality veto review",
+    "pre-send proof checks"
+  ],
+  "data_sources": [
+    "/Users/c.s.d.v.r.s./Documents/JVT-Technologies/40-deliverables",
+    "products/Private-AI-Lab",
+    "outreach/queue"
+  ],
+  "red_lines": [
+    "Do not approve your own failed deterministic quality gates.",
+    "Do not send, publish, trade, spend, or contact third parties.",
+    "Escalate any privacy, compliance, medical, legal, financial, or identity-risk finding."
+  ]
+}

@@ -12,5 +12,6 @@ if [ -f "$LOCAL_ENV_FILE" ]; then
 fi
 
 PYTHON_BIN="${JVT_PYTHON_BIN:-python3}"
+export PYTHONUNBUFFERED=1
 
 exec "$PYTHON_BIN" "$SCRIPT_DIR/mailbox_listener.py"

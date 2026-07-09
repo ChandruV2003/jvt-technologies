@@ -1,0 +1,19 @@
+{
+  "slug": "lead-research",
+  "name": "Lead Research Agent",
+  "role": "pipeline sourcing",
+  "mode": "autonomous",
+  "status": "active",
+  "approval_boundary": "none-for-research-only",
+  "owns": [
+    "target discovery",
+    "lead enrichment",
+    "fit scoring",
+    "dated research tranches"
+  ],
+  "data_sources": [
+    "lead-pipeline/data/jvt_leads.sqlite3",
+    "lead-pipeline/data",
+    "lead-pipeline/state"
+  ]
+}
