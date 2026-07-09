@@ -11,6 +11,7 @@ import re
 import sqlite3
 import subprocess
 import sys
+from collections import Counter
 from datetime import datetime
 from html import unescape
 from pathlib import Path
@@ -176,6 +177,11 @@ LANE_QUERIES = {
         "dentist office \"appointment\" \"contact@\" \"New Jersey\"",
         "dental practice \"forms\" \"info@\" \"Pennsylvania\"",
         "cosmetic dentistry practice consultation request email",
+        "family dentistry office front desk appointment contact email",
+        "dental office insurance verification new patient forms contact email",
+        "oral surgery referral coordinator patient intake contact email",
+        "orthodontist new patient consultation office email",
+        "dental practice missed calls voicemail appointment requests email",
     ],
     "it_ballot": [
         "HOA election services ballot inspector contact email",
@@ -188,6 +194,11 @@ LANE_QUERIES = {
         "HOA management election vendor ballot processing \"info@\"",
         "association voting platform services contact email",
         "third party election services condominium association",
+        "HOA inspector of elections ballot tabulation contact email",
+        "condominium election inspector annual meeting ballot vendor email",
+        "community association voting services ballot processing contact",
+        "board election services HOA meeting AV ballot support email",
+        "association election vendor proxy ballot tabulation contact",
     ],
     "local_receptionist": [
         "home services company missed calls appointment requests \"info@\"",
@@ -200,6 +211,11 @@ LANE_QUERIES = {
         "physical therapy clinic appointment requests public email",
         "property manager maintenance calls public email",
         "title agency closing status calls \"info@\"",
+        "HVAC contractor appointment scheduling service calls contact email",
+        "plumbing company missed calls emergency dispatch contact email",
+        "roofing contractor estimate request office email",
+        "med spa consultation request front desk email",
+        "physical therapy clinic new patient appointment scheduling email",
     ],
 }
 
@@ -544,6 +560,51 @@ STATE_CODES = (
 CITY_STATE_RE = re.compile(rf"\b([A-Z][A-Za-z .'-]+,\s(?:{STATE_CODES}))\b")
 CITY_STATE_EXACT_RE = re.compile(rf"^[A-Z][A-Za-z .'-]+,\s(?:{STATE_CODES})$")
 EMAIL_RE = re.compile(r"\b[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}\b", re.I)
+PREFERRED_PUBLIC_EMAIL_LOCALS = {
+    "admin",
+    "appointments",
+    "billing",
+    "claims",
+    "contact",
+    "frontdesk",
+    "hello",
+    "info",
+    "intake",
+    "office",
+    "operations",
+    "ops",
+    "reception",
+    "schedule",
+    "scheduling",
+    "service",
+    "team",
+}
+SECONDARY_PUBLIC_EMAIL_LOCALS = {
+    "customerservice",
+    "inquiries",
+    "mail",
+    "sales",
+    "support",
+}
+REJECT_EMAIL_LOCALS = {
+    "abuse",
+    "careers",
+    "donotreply",
+    "employment",
+    "hr",
+    "jobs",
+    "marketing",
+    "media",
+    "newsletter",
+    "no-reply",
+    "noreply",
+    "postmaster",
+    "press",
+    "privacy",
+    "recruiting",
+    "resumes",
+    "webmaster",
+}
 TITLE_RE = re.compile(r"<title[^>]*>(.*?)</title>", re.I | re.S)
 META_SITE_NAME_RE = re.compile(
     r'<meta[^>]+(?:property|name)=["\'](?:og:site_name|application-name)["\'][^>]+content=["\']([^"\']+)',
@@ -1034,6 +1095,10 @@ def looks_like_company_name(name: str) -> bool:
         )
     ):
         return False
+    if any(term in lowered for term in ("teleservices", "telecommunications", "call center", "answering service")):
+        return False
+    if "communications" in lowered and any(term in lowered for term in ("med spa", "dental", "health", "clinic")):
+        return False
     if lowered.startswith("jobs and staffing solutions"):
         return False
     if lowered.startswith("title company "):
@@ -1118,16 +1183,31 @@ def extract_emails(text: str) -> list[str]:
     return emails
 
 
+def email_local_part(email: str) -> str:
+    return email.rsplit("@", 1)[0].lower().replace(".", "").replace("_", "").replace("-", "")
+
+
+def public_email_rank(email: str) -> tuple[int, str]:
+    local = email_local_part(email)
+    if local in REJECT_EMAIL_LOCALS or any(token in local for token in ("career", "recruit", "resume", "noreply")):
+        return (99, email)
+    if local in PREFERRED_PUBLIC_EMAIL_LOCALS:
+        return (0, email)
+    if local in SECONDARY_PUBLIC_EMAIL_LOCALS:
+        return (1, email)
+    if any(local.startswith(prefix) for prefix in ("info", "contact", "office", "intake", "schedule", "frontdesk")):
+        return (2, email)
+    return (5, email)
+
+
 def pick_public_email(emails: Iterable[str]) -> str:
-    emails = list(emails)
-    if not emails:
+    ranked = sorted(
+        ((public_email_rank(email), email) for email in dict.fromkeys(emails)),
+        key=lambda item: item[0],
+    )
+    if not ranked or ranked[0][0][0] >= 99:
         return ""
-    preferred = [
-        email
-        for email in emails
-        if email.startswith(("info@", "contact@", "hello@", "admin@", "office@"))
-    ]
-    return (preferred or emails)[0]
+    return ranked[0][1]
 
 
 def detect_practice_areas(text: str) -> list[str]:
@@ -1277,6 +1357,11 @@ def save_state(state_path: Path, state: dict) -> None:
     state_path.parent.mkdir(parents=True, exist_ok=True)
     state["seen_domains"] = sorted(set(state.get("seen_domains", [])))[-5000:]
     state_path.write_text(json.dumps(state, indent=2) + "\n", encoding="utf-8")
+
+
+def write_json(path: Path, payload: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
 
 def env_flag(name: str, default: bool = False) -> bool:
@@ -1529,14 +1614,47 @@ def generate_drafts(root: Path, db_path: Path, rows: list[dict[str, str]], limit
     return created
 
 
-def write_status(status_path: Path, *, queries: list[dict[str, str]], csv_path: Path | None, added: list[dict[str, str]], total_leads: int, drafted: list[str], model_screen_runs: list[dict]) -> None:
+def write_status(
+    status_path: Path,
+    *,
+    queries: list[dict[str, str]],
+    csv_path: Path | None,
+    added: list[dict[str, str]],
+    total_leads: int,
+    drafted: list[str],
+    model_screen_runs: list[dict],
+    drop_reasons: dict[str, int] | None = None,
+) -> None:
     status_path.parent.mkdir(parents=True, exist_ok=True)
+    generated_at = datetime.now().isoformat(timespec="seconds")
     industry_counts: dict[str, int] = {}
     for row in added:
         industry = row.get("industry") or "unknown"
         industry_counts[industry] = industry_counts.get(industry, 0) + 1
+    status_json = {
+        "generated_at": generated_at,
+        "total_leads": total_leads,
+        "new_leads_added": len(added),
+        "csv_tranche": str(csv_path) if csv_path else "",
+        "queries": queries,
+        "industries_added": industry_counts,
+        "model_screen_runs": model_screen_runs,
+        "new_leads": [
+            {
+                "company_name": row.get("company_name", ""),
+                "industry": row.get("industry", ""),
+                "fit_score": row.get("fit_score", ""),
+                "website": row.get("website", ""),
+                "public_email": row.get("public_email", ""),
+            }
+            for row in sorted(added, key=lambda item: int(item["fit_score"]), reverse=True)
+        ],
+        "drafts_created": drafted,
+        "drop_reasons": dict(sorted((drop_reasons or {}).items())),
+    }
+    write_json(status_path.with_suffix(".json"), status_json)
     lines = [
-        f"last_run: {datetime.now().isoformat(timespec='seconds')}",
+        f"last_run: {generated_at}",
         f"total_leads: {total_leads}",
         f"new_leads_added: {len(added)}",
         f"csv_tranche: {csv_path if csv_path else 'none'}",
@@ -1568,6 +1686,11 @@ def write_status(status_path: Path, *, queries: list[dict[str, str]], csv_path: 
         lines.append("- none")
     lines.extend(["", "drafts_created:"])
     lines.extend(f"- {name}" for name in drafted) if drafted else lines.append("- none")
+    lines.extend(["", "drop_reasons:"])
+    if drop_reasons:
+        lines.extend(f"- {reason}: {count}" for reason, count in sorted(drop_reasons.items(), key=lambda item: (-item[1], item[0])))
+    else:
+        lines.append("- none")
     status_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
@@ -1615,18 +1738,22 @@ def main() -> None:
     queries = pick_queries(state, args.queries_per_run, lanes or None)
 
     candidates: list[dict[str, str]] = []
+    drop_reasons: Counter[str] = Counter()
     for picked_query in queries:
         lane = picked_query["lane"]
         query = picked_query["query"]
         for result in search(query, args.results_per_query):
             homepage = normalize_homepage(result["url"])
             if not homepage:
+                drop_reasons["not_normalized_homepage"] += 1
                 continue
             host = domain(homepage)
             if host in existing_hosts or host in seen_domains:
+                drop_reasons["already_seen_or_existing_host"] += 1
                 continue
             homepage_html = fetch_html(homepage)
             if not homepage_html:
+                drop_reasons["homepage_fetch_failed"] += 1
                 seen_domains.add(host)
                 continue
             homepage_title = extract_title(homepage_html)
@@ -1647,10 +1774,12 @@ def main() -> None:
                 host=host,
             )
             if not company_name:
+                drop_reasons["company_name_rejected"] += 1
                 seen_domains.add(host)
                 continue
             company_key = company_name.strip().lower()
             if company_key in existing_names:
+                drop_reasons["duplicate_company_name"] += 1
                 seen_domains.add(host)
                 continue
             combined = "\n".join([result["title"], result["snippet"], homepage_html[:120000], contact_html[:120000]])
@@ -1658,20 +1787,25 @@ def main() -> None:
             industry = infer_industry(combined, practice_areas)
             expected_industries = LANE_EXPECTED_INDUSTRIES.get(lane)
             if expected_industries and industry not in expected_industries:
+                drop_reasons["industry_mismatch_for_lane"] += 1
                 seen_domains.add(host)
                 continue
             public_email = pick_public_email(extract_emails(combined))
             if not public_email:
+                drop_reasons["missing_quality_public_email"] += 1
                 seen_domains.add(host)
                 continue
             if not email_matches_host(public_email, host):
+                drop_reasons["email_domain_mismatch"] += 1
                 seen_domains.add(host)
                 continue
             if not has_name_domain_overlap(company_name, host, public_email):
+                drop_reasons["company_domain_overlap_failed"] += 1
                 seen_domains.add(host)
                 continue
             fit_score = score_fit(combined, contact_page, public_email, practice_areas, industry)
             if fit_score < 80 or not practice_areas:
+                drop_reasons["fit_score_or_practice_area_failed"] += 1
                 seen_domains.add(host)
                 continue
             city_state = find_city_state(result["snippet"], contact_html, homepage_html)
@@ -1725,7 +1859,16 @@ def main() -> None:
     state["last_run"] = datetime.now().isoformat(timespec="seconds")
     save_state(state_path, state)
     total_leads = fetch_total_leads(db_path)
-    write_status(status_path, queries=queries, csv_path=csv_path, added=added, total_leads=total_leads, drafted=drafted, model_screen_runs=model_screen_runs)
+    write_status(
+        status_path,
+        queries=queries,
+        csv_path=csv_path,
+        added=added,
+        total_leads=total_leads,
+        drafted=drafted,
+        model_screen_runs=model_screen_runs,
+        drop_reasons=drop_reasons,
+    )
     print(f"queries={len(queries)} candidates={len(candidates)} added={len(added)} total_leads={total_leads}")
     if csv_path:
         print(csv_path)

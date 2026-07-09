@@ -19,6 +19,7 @@ ENV_PATH = VOICE_ROOT / ".env.local"
 REPORT_JSON = STATE_ROOT / "latest-voice-readiness.json"
 REPORT_MD = STATE_ROOT / "latest-voice-readiness.md"
 MODEL_ROUTER_HEALTH_URL = "http://127.0.0.1:8760/health"
+DEFAULT_LOCAL_AUDIO_BRIDGE_HEALTH_URL = "http://127.0.0.1:8761/health"
 
 
 def utc_now() -> str:
@@ -80,6 +81,7 @@ def build_report() -> dict[str, Any]:
     dry_run = str(env.get("JVT_VOICE_DRY_RUN", "1")).lower() in {"1", "true", "yes", "on"}
     phone_provider_configured = str(env.get("JVT_VOICE_PHONE_PROVIDER_CONFIGURED", "0")).lower() in {"1", "true", "yes", "on"}
     local_audio_bridge_ready = str(env.get("JVT_VOICE_LOCAL_AUDIO_BRIDGE_READY", "0")).lower() in {"1", "true", "yes", "on"}
+    local_audio_bridge_health_url = env.get("JVT_VOICE_LOCAL_AUDIO_BRIDGE_HEALTH_URL") or DEFAULT_LOCAL_AUDIO_BRIDGE_HEALTH_URL
     openai_required = response_engine in {"openai", "openai-realtime"}
     public_health_url = f"{public_base_url.rstrip('/')}/health" if public_base_url.startswith("http") else ""
     samples = QUALITY_ROOT / "samples"
@@ -93,10 +95,11 @@ def build_report() -> dict[str, Any]:
     scorecard_count = count_files(scorecards, (".json", ".md"))
     local_health = http_health("http://127.0.0.1:8066/health")
     model_router_health = http_health(MODEL_ROUTER_HEALTH_URL)
+    local_audio_bridge_health = http_health(local_audio_bridge_health_url) if response_engine in {"local-audio-bridge", "local-realtime"} else {"ok": False, "skipped": True}
     public_health = http_health(public_health_url) if public_health_url else {"ok": False, "error": "No public base URL configured."}
     local_model_router_ok = bool(model_router_health.get("ok"))
     live_audio_backend_ready = (openai_required and has_openai_key) or (
-        response_engine in {"local-audio-bridge", "local-realtime"} and local_audio_bridge_ready
+        response_engine in {"local-audio-bridge", "local-realtime"} and local_audio_bridge_ready and bool(local_audio_bridge_health.get("ok"))
     )
     gates = {
         "app_exists": VOICE_ROOT.exists(),
@@ -135,6 +138,8 @@ def build_report() -> dict[str, Any]:
         "openai_required": openai_required,
         "local_health": local_health,
         "model_router_health": model_router_health,
+        "local_audio_bridge_health": local_audio_bridge_health,
+        "local_audio_bridge_health_url": local_audio_bridge_health_url,
         "public_health": public_health,
         "sample_count": sample_count,
         "sample_metadata_count": metadata_count,

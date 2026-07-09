@@ -229,7 +229,32 @@ def response_engine() -> str:
 
 
 def local_audio_bridge_ready() -> bool:
-    return truthy(env_value("JVT_VOICE_LOCAL_AUDIO_BRIDGE_READY", "0"))
+    return truthy(env_value("JVT_VOICE_LOCAL_AUDIO_BRIDGE_READY", "0")) and local_audio_bridge_health().get("ok") is True
+
+
+def local_audio_bridge_url() -> str:
+    return env_value("JVT_VOICE_LOCAL_AUDIO_BRIDGE_URL", "ws://127.0.0.1:8761/twilio-media")
+
+
+def local_audio_bridge_health_url() -> str:
+    return env_value("JVT_VOICE_LOCAL_AUDIO_BRIDGE_HEALTH_URL", "http://127.0.0.1:8761/health")
+
+
+def local_audio_bridge_health() -> Dict[str, Any]:
+    url = local_audio_bridge_health_url()
+    if not url:
+        return {"ok": False, "error": "No local audio bridge health URL configured."}
+    try:
+        response = httpx.get(url, timeout=2.5)
+        payload = response.json() if response.headers.get("content-type", "").startswith("application/json") else {}
+        return {
+            "ok": response.status_code == 200 and bool(payload.get("ok", payload.get("ready", False))),
+            "status_code": response.status_code,
+            "url": url,
+            "payload": payload,
+        }
+    except Exception as exc:
+        return {"ok": False, "url": url, "error": str(exc)}
 
 
 def dry_run_enabled() -> bool:
@@ -796,6 +821,9 @@ def status_payload() -> Dict[str, Any]:
         "openai_required": openai_required,
         "response_engine": engine,
         "local_model_router_url": env_value("JVT_MODEL_ROUTER_URL", "http://127.0.0.1:8760"),
+        "local_audio_bridge_url": local_audio_bridge_url(),
+        "local_audio_bridge_health_url": local_audio_bridge_health_url(),
+        "local_audio_bridge_health": local_audio_bridge_health(),
         "local_audio_bridge_ready": local_audio_bridge_ready(),
         "live_audio_backend_ready": live_audio_backend_ready,
         "model": realtime_model(),
@@ -871,6 +899,15 @@ async def configure_openai_session(openai_ws: Any) -> None:
         },
     }
     await openai_ws.send(json.dumps(event))
+
+
+async def connect_local_audio_bridge():
+    url = local_audio_bridge_url()
+    return await websockets.connect(url)
+
+
+def is_local_bridge_engine() -> bool:
+    return response_engine() in {"local-audio-bridge", "local-realtime"}
 
 
 @app.get("/health")
@@ -1033,6 +1070,73 @@ async def twilio_media_stream(websocket: WebSocket) -> None:
         finally:
             record.ended_at = utc_now()
             write_call_record(record)
+        return
+
+    if is_local_bridge_engine():
+        try:
+            bridge_ws = await connect_local_audio_bridge()
+        except Exception as exc:
+            record.errors.append(f"local_audio_bridge_connect_failed: {exc}")
+            record.ended_at = utc_now()
+            write_call_record(record)
+            await websocket.close()
+            return
+
+        async def twilio_to_bridge() -> None:
+            try:
+                while True:
+                    raw = await websocket.receive_text()
+                    event = json.loads(raw)
+                    event_name = event.get("event")
+                    if event_name == "start":
+                        start = event.get("start") or {}
+                        record.stream_sid = str(start.get("streamSid") or "")
+                        record.call_sid = str(start.get("callSid") or "")
+                    elif event_name == "media":
+                        record.media_events += 1
+                    elif event_name == "stop":
+                        await bridge_ws.send(raw)
+                        break
+                    await bridge_ws.send(raw)
+            except WebSocketDisconnect:
+                pass
+            finally:
+                await bridge_ws.close()
+
+        async def bridge_to_twilio() -> None:
+            try:
+                async for raw in bridge_ws:
+                    event = json.loads(raw)
+                    event_type = str(event.get("type") or event.get("event") or "")
+                    transcript = event.get("transcript") or event.get("text")
+                    if transcript:
+                        record.transcript_fragments.append(str(transcript))
+                    if event.get("event") == "media":
+                        await websocket.send_json(event)
+                    elif event_type == "media" and record.stream_sid and event.get("payload"):
+                        await websocket.send_json({
+                            "event": "media",
+                            "streamSid": record.stream_sid,
+                            "media": {"payload": event.get("payload")},
+                        })
+                    elif event_type in {"error", "bridge.error"}:
+                        record.errors.append(json.dumps(event))
+            except Exception as exc:
+                record.errors.append(f"local_audio_bridge_stream_failed: {exc}")
+
+        try:
+            await asyncio.gather(twilio_to_bridge(), bridge_to_twilio())
+        finally:
+            record.ended_at = utc_now()
+            write_call_record(record)
+            if record.transcript_fragments:
+                write_intake_packet({
+                    "source": "voice-call-local-bridge",
+                    "call_id": record.call_id,
+                    "call_sid": record.call_sid,
+                    "transcript": " ".join(record.transcript_fragments).strip(),
+                    "captured_at": record.ended_at or utc_now(),
+                })
         return
 
     try:

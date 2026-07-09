@@ -24,6 +24,7 @@ VOICE_READINESS_STATE = STATE_ROOT / "latest-voice-readiness.json"
 PAPER_TRADER_HEALTH_STATE = STATE_ROOT / "latest-paper-trader-health.json"
 SOURCE_HYGIENE_STATE = STATE_ROOT / "latest-source-hygiene.json"
 SYSTEM_RESOURCES_STATE = STATE_ROOT / "latest-system-resources.json"
+LEAD_RESEARCH_STATUS = ROOT / "lead-pipeline" / "state" / "auto-research-status.json"
 
 
 def utc_now() -> str:
@@ -206,6 +207,7 @@ def build_snapshot() -> dict[str, Any]:
     paper_trader_health = load_json(PAPER_TRADER_HEALTH_STATE, {})
     source_hygiene = load_json(SOURCE_HYGIENE_STATE, {})
     system_resources = load_json(SYSTEM_RESOURCES_STATE, {})
+    lead_research = load_json(LEAD_RESEARCH_STATUS, {})
     queues = {name: safe_count(ROOT / "outreach" / "queue" / name) for name in ("draft", "review", "approved", "sent", "replied")}
     return {
         "orchestrator": {
@@ -291,6 +293,13 @@ def build_snapshot() -> dict[str, Any]:
             "findings": paper_trader_health.get("findings"),
             "decision": paper_trader_health.get("decision"),
         },
+        "lead_research": {
+            "generated_at": lead_research.get("generated_at"),
+            "new_leads_added": lead_research.get("new_leads_added"),
+            "drafts_created": lead_research.get("drafts_created"),
+            "drop_reasons": lead_research.get("drop_reasons"),
+            "queries": lead_research.get("queries"),
+        },
         "source_hygiene": {
             "generated_at": source_hygiene.get("generated_at"),
             "status_count": source_hygiene.get("status_count"),
@@ -350,6 +359,17 @@ def deterministic_directives(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
             "action": "Continue strict auto-review of review backlog; promote only clean packets and hold questionable records.",
             "autonomous": True,
         })
+    lead_research = snapshot.get("lead_research") or {}
+    new_leads_added = int(lead_research.get("new_leads_added") or 0)
+    drop_reasons = lead_research.get("drop_reasons") if isinstance(lead_research.get("drop_reasons"), dict) else {}
+    if new_leads_added <= 1:
+        top_drop = ", ".join(f"{key}={value}" for key, value in sorted(drop_reasons.items(), key=lambda item: (-int(item[1]), item[0]))[:3])
+        directives.append({
+            "priority": 2,
+            "lane": "lead-source-quality",
+            "action": f"Lead research is starved or weak. Rotate higher-intent vertical queries and inspect drop reasons before loosening gates. Top drops: {top_drop or 'none recorded'}.",
+            "autonomous": True,
+        })
     if int(quotas.get("approved_backlog") or 0) > 0 and bool(quotas.get("send_allowed_now")):
         directives.append({
             "priority": 2,
@@ -393,6 +413,7 @@ def deterministic_directives(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
 
 def seed_director_tasks(directives: list[dict[str, Any]], *, write: bool) -> list[dict[str, Any]]:
     today = datetime.now().date().isoformat()
+    hour_bucket = datetime.now(timezone.utc).strftime("%Y-%m-%d-h%H")
     candidates = [
         make_task(f"{today}-ai-director-model-router-status", "model_router_status", "AI Director requested model router readiness refresh."),
         make_task(f"{today}-ai-director-codex-escalation-status", "codex_escalation_status", "AI Director requested Codex escalation readiness refresh without executing Codex."),
@@ -405,6 +426,21 @@ def seed_director_tasks(directives: list[dict[str, Any]], *, write: bool) -> lis
         make_task(f"{today}-ai-director-vertical-lead-research-refresh", "vertical_lead_research_refresh", "AI Director requested refreshed vertical lead research for active service lines."),
         make_task(f"{today}-ai-director-service-pilot-package-refresh", "service_pilot_package_refresh", "AI Director requested refreshed pilot proof packages for active service lines."),
     ]
+    if any(item.get("lane") == "lead-source-quality" for item in directives):
+        task = make_task(
+            f"{hour_bucket}-ai-director-lead-source-quality-refresh",
+            "vertical_lead_research_refresh",
+            "AI Director requested another targeted lead research pass because the previous pass was starved or weak.",
+        )
+        if task:
+            task.update({
+                "lanes": ["dental_voice", "it_ballot", "local_receptionist", "insurance", "property", "construction"],
+                "queries_per_run": 8,
+                "results_per_query": 10,
+                "max_new_leads": 8,
+                "draft_limit": 4,
+            })
+            candidates.append(task)
     tasks = [task for task in candidates if task]
     if write:
         pending = TASK_ROOT / "pending"
