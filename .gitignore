@@ -58,6 +58,7 @@ ops/agent-control/tasks/
 ops/agent-control/logs/
 
 ops/control-panel/*.log
+ops/watchdog/state/
 
 products/Private-AI-Lab/apps/jvt-inbound-voice-agent/.env.local
 products/Private-AI-Lab/apps/jvt-inbound-voice-agent/*.log
