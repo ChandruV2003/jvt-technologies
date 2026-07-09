@@ -67,8 +67,26 @@ def http_health(url: str) -> dict[str, Any]:
         with urllib.request.urlopen(request, timeout=8) as response:
             body = response.read().decode("utf-8", errors="ignore")[:500]
             compact = body.replace(" ", "").replace("\n", "")
-            ok = response.status == 200 and ('"status":"ok"' in compact or '"ok":true' in compact)
-            return {"ok": ok, "status": response.status, "body_preview": body}
+            payload: dict[str, Any] = {}
+            try:
+                parsed = json.loads(body)
+                payload = parsed if isinstance(parsed, dict) else {}
+            except json.JSONDecodeError:
+                payload = {}
+            service_status = payload.get("status")
+            ready = payload.get("ready")
+            ok = response.status == 200 and (
+                payload.get("ok") is True
+                or service_status == "ok"
+                or '"status":"ok"' in compact
+                or '"ok":true' in compact
+            )
+            result: dict[str, Any] = {"ok": ok, "status": response.status, "http_status": response.status, "body_preview": body}
+            if service_status is not None:
+                result["service_status"] = service_status
+            if ready is not None:
+                result["ready"] = ready
+            return result
     except (OSError, urllib.error.URLError) as exc:
         return {"ok": False, "error": str(exc)}
 
@@ -80,7 +98,7 @@ def build_report() -> dict[str, Any]:
     has_openai_key = bool(env.get("OPENAI_API_KEY") or os.environ.get("OPENAI_API_KEY"))
     dry_run = str(env.get("JVT_VOICE_DRY_RUN", "1")).lower() in {"1", "true", "yes", "on"}
     phone_provider_configured = str(env.get("JVT_VOICE_PHONE_PROVIDER_CONFIGURED", "0")).lower() in {"1", "true", "yes", "on"}
-    local_audio_bridge_ready = str(env.get("JVT_VOICE_LOCAL_AUDIO_BRIDGE_READY", "0")).lower() in {"1", "true", "yes", "on"}
+    local_audio_bridge_enabled = str(env.get("JVT_VOICE_LOCAL_AUDIO_BRIDGE_READY", "0")).lower() in {"1", "true", "yes", "on"}
     local_audio_bridge_health_url = env.get("JVT_VOICE_LOCAL_AUDIO_BRIDGE_HEALTH_URL") or DEFAULT_LOCAL_AUDIO_BRIDGE_HEALTH_URL
     openai_required = response_engine in {"openai", "openai-realtime"}
     public_health_url = f"{public_base_url.rstrip('/')}/health" if public_base_url.startswith("http") else ""
@@ -95,9 +113,14 @@ def build_report() -> dict[str, Any]:
     scorecard_count = count_files(scorecards, (".json", ".md"))
     local_health = http_health("http://127.0.0.1:8066/health")
     model_router_health = http_health(MODEL_ROUTER_HEALTH_URL)
-    local_audio_bridge_health = http_health(local_audio_bridge_health_url) if response_engine in {"local-audio-bridge", "local-realtime"} else {"ok": False, "skipped": True}
+    local_audio_bridge_health = http_health(local_audio_bridge_health_url)
     public_health = http_health(public_health_url) if public_health_url else {"ok": False, "error": "No public base URL configured."}
     local_model_router_ok = bool(model_router_health.get("ok"))
+    local_audio_bridge_ready = (
+        local_audio_bridge_enabled
+        and bool(local_audio_bridge_health.get("ok"))
+        and bool(local_audio_bridge_health.get("ready", local_audio_bridge_health.get("ok")))
+    )
     live_audio_backend_ready = (openai_required and has_openai_key) or (
         response_engine in {"local-audio-bridge", "local-realtime"} and local_audio_bridge_ready and bool(local_audio_bridge_health.get("ok"))
     )

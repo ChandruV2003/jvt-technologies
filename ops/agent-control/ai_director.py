@@ -285,6 +285,9 @@ def build_snapshot() -> dict[str, Any]:
             "live_ready": voice_readiness.get("live_ready"),
             "mode": voice_readiness.get("mode"),
             "blockers": voice_readiness.get("blockers"),
+            "gates": voice_readiness.get("gates"),
+            "local_audio_bridge_health": voice_readiness.get("local_audio_bridge_health"),
+            "response_engine": voice_readiness.get("response_engine"),
         },
         "paper_trader_health": {
             "generated_at": paper_trader_health.get("generated_at"),
@@ -349,6 +352,20 @@ def deterministic_directives(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
             "priority": 2,
             "lane": "codex-escalation",
             "action": "Keep Codex escalation disabled for autonomous use until CLI auth, policy, and daily caps report ready.",
+            "autonomous": True,
+        })
+
+    voice = snapshot.get("voice_readiness") or {}
+    voice_gates = voice.get("gates") if isinstance(voice.get("gates"), dict) else {}
+    bridge_health = voice.get("local_audio_bridge_health") if isinstance(voice.get("local_audio_bridge_health"), dict) else {}
+    if voice.get("demo_ready") and not voice.get("live_ready") and not voice_gates.get("local_audio_bridge_ready"):
+        directives.append({
+            "priority": 2,
+            "lane": "voice-bridge",
+            "action": (
+                "Local audio bridge is present but not live-ready. Create and execute the next internal bridge-readiness "
+                f"task before treating voice as production-capable. Bridge health: {bridge_health.get('service_status') or bridge_health.get('status') or 'unknown'}."
+            ),
             "autonomous": True,
         })
 
@@ -439,6 +456,18 @@ def seed_director_tasks(directives: list[dict[str, Any]], *, write: bool) -> lis
                 "results_per_query": 10,
                 "max_new_leads": 8,
                 "draft_limit": 4,
+            })
+            candidates.append(task)
+    if any(item.get("lane") == "voice-bridge" for item in directives):
+        task = make_task(
+            f"{hour_bucket}-ai-director-local-audio-bridge-next-step",
+            "local_audio_bridge_next_step",
+            "AI Director detected the local audio bridge is running but not ready and requested the next internal readiness step.",
+        )
+        if task:
+            task.update({
+                "lane": "voice-bridge",
+                "approval_boundary": "Do not enable live calls, provider credentials, or production routing.",
             })
             candidates.append(task)
     tasks = [task for task in candidates if task]

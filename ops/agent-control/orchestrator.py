@@ -40,6 +40,7 @@ AGENT_INTEROP_STATE = CONTROL_ROOT / "state" / "latest-agent-interop.json"
 SERVICE_BOARD = REPO_ROOT / "strategy" / "service-line-execution-board.json"
 REVENUE_OPPORTUNITIES = REPO_ROOT / "strategy" / "revenue-opportunities.json"
 VOICE_AGENT_DATA_ROOT = REPO_ROOT / "products" / "Private-AI-Lab" / "apps" / "jvt-inbound-voice-agent" / "data"
+VOICE_READINESS_STATE = STATE_ROOT / "latest-voice-readiness.json"
 TRADER_ROOT = Path("/Users/c.s.d.v.r.s./Developer/JVT-AutoTrader")
 CRYPTO_LAB_ROOT = Path("/Users/c.s.d.v.r.s./Developer/JVT-Crypto-Intelligence-Lab")
 CRYPTO_LAB_REPORT = CRYPTO_LAB_ROOT / "reports" / "latest-feasibility.json"
@@ -366,11 +367,19 @@ def voice_summary() -> dict[str, Any]:
     intake = VOICE_AGENT_DATA_ROOT / "intake"
     intake_paths = list(intake.glob("*.json")) if intake.exists() else []
     latest_intake = max(intake_paths, key=lambda path: path.stat().st_mtime) if intake_paths else None
+    readiness = load_json(VOICE_READINESS_STATE, {})
     return {
         "data_root_exists": VOICE_AGENT_DATA_ROOT.exists(),
         "call_count": count_json(calls),
         "intake_count": count_json(intake),
         "latest_intake_age_seconds": path_age_seconds(latest_intake) if latest_intake else None,
+        "demo_ready": readiness.get("demo_ready") if isinstance(readiness, dict) else None,
+        "live_ready": readiness.get("live_ready") if isinstance(readiness, dict) else None,
+        "mode": readiness.get("mode") if isinstance(readiness, dict) else "",
+        "response_engine": readiness.get("response_engine") if isinstance(readiness, dict) else "",
+        "gates": readiness.get("gates") if isinstance(readiness, dict) else {},
+        "blockers": readiness.get("blockers") if isinstance(readiness, dict) else [],
+        "local_audio_bridge_health": readiness.get("local_audio_bridge_health") if isinstance(readiness, dict) else {},
     }
 
 
@@ -735,6 +744,18 @@ def build_work_items(
             "Voice intake has no recent captured intake packet in this state view.",
             "Run a dry-run intake scenario and keep the public proof flow current.",
             "stage-only",
+        ))
+    voice_gates = voice.get("gates") if isinstance(voice.get("gates"), dict) else {}
+    bridge_health = voice.get("local_audio_bridge_health") if isinstance(voice.get("local_audio_bridge_health"), dict) else {}
+    if voice.get("demo_ready") and not voice.get("live_ready") and not voice_gates.get("local_audio_bridge_ready"):
+        bridge_status = bridge_health.get("service_status") or bridge_health.get("status") or "unknown"
+        items.append(work_item(
+            4,
+            "voice-intake",
+            "Advance local audio bridge readiness",
+            f"Voice demo mode is ready, but the local audio bridge is not production-ready. Bridge status: {bridge_status}.",
+            "Run the local-audio-bridge next-step task, update bridge readiness evidence, and keep live routing disabled until the health gate is true.",
+            "autonomous-detection",
         ))
 
     stale_trader = trader.get("paper_bot_age_seconds") is None or int(trader.get("paper_bot_age_seconds") or 0) > 24 * 3600

@@ -1152,6 +1152,142 @@ def voice_readiness_check(_task: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def local_audio_bridge_next_step(_task: dict[str, Any]) -> dict[str, Any]:
+    health_step = run_command(
+        "local_audio_bridge_health",
+        [
+            "python3",
+            "-c",
+            (
+                "import json, urllib.request\n"
+                "url='http://127.0.0.1:8761/health'\n"
+                "try:\n"
+                "    data=json.loads(urllib.request.urlopen(url, timeout=5).read().decode('utf-8'))\n"
+                "except Exception as exc:\n"
+                "    data={'ok': False, 'ready': False, 'error': str(exc)}\n"
+                "print(json.dumps(data, sort_keys=True))\n"
+            ),
+        ],
+        timeout=20,
+    )
+    readiness_step = report_script("voice_readiness_check", "voice_readiness_check.py")
+    tool_steps = [
+        run_command("ffmpeg_path", ["bash", "-lc", "command -v ffmpeg || true"], timeout=15),
+        run_command("sox_path", ["bash", "-lc", "command -v sox || true"], timeout=15),
+        run_command("mac_say_path", ["bash", "-lc", "command -v say || true"], timeout=15),
+        run_command(
+            "python_audio_module_probe",
+            [
+                "python3",
+                "-c",
+                (
+                    "import importlib.util, json\n"
+                    "mods=['numpy','soundfile','websockets','webrtcvad','faster_whisper']\n"
+                    "print(json.dumps({name: bool(importlib.util.find_spec(name)) for name in mods}, sort_keys=True))\n"
+                ),
+            ],
+            timeout=20,
+        ),
+    ]
+
+    bridge_health: dict[str, Any] = {}
+    if health_step.get("stdout_tail"):
+        raw_health = "\n".join(str(line) for line in health_step.get("stdout_tail") or [])
+        try:
+            bridge_health = json.loads(raw_health)
+        except json.JSONDecodeError:
+            bridge_health = {"ok": False, "ready": False, "parse_error": raw_health[-500:]}
+
+    readiness = load_json(STATE_ROOT / "latest-voice-readiness.json", {})
+    gates = readiness.get("gates") if isinstance(readiness, dict) and isinstance(readiness.get("gates"), dict) else {}
+    next_steps = [
+        {
+            "step": "replace contract-only bridge with real audio turn pipeline",
+            "detail": "Decode Twilio PCMU frames, buffer speech turns with VAD, transcribe locally, route text through the model router, synthesize reply audio, and encode outbound PCMU frames.",
+            "owner": "voice-bridge-agent",
+        },
+        {
+            "step": "select local STT backend",
+            "detail": "Prefer the lowest-latency local backend that can run on the M4 without cloud keys. Validate with recorded dental/JVT prompt samples before live routing.",
+            "owner": "voice-bridge-agent",
+        },
+        {
+            "step": "select low-latency TTS path",
+            "detail": "Use the current voice samples for style direction, but do not deploy cloned voice audio until latency, consent, and disclosure wording are approved.",
+            "owner": "voice-quality-agent",
+        },
+        {
+            "step": "add synthetic media-stream regression",
+            "detail": "Feed sample inbound frames through the websocket bridge and require health to report ready only after STT, model, TTS, and return-audio checks pass.",
+            "owner": "qa-agent",
+        },
+    ]
+    report = {
+        "generated_at": utc_now(),
+        "ok": bool(readiness_step.get("ok")),
+        "bridge_health": bridge_health,
+        "voice_readiness": {
+            "demo_ready": readiness.get("demo_ready") if isinstance(readiness, dict) else None,
+            "live_ready": readiness.get("live_ready") if isinstance(readiness, dict) else None,
+            "mode": readiness.get("mode") if isinstance(readiness, dict) else "",
+            "response_engine": readiness.get("response_engine") if isinstance(readiness, dict) else "",
+            "gates": gates,
+            "blockers": readiness.get("blockers") if isinstance(readiness, dict) else [],
+        },
+        "next_steps": next_steps,
+        "health_gate": {
+            "current": bool(gates.get("local_audio_bridge_ready")),
+            "required_before_live": [
+                "bridge health reports ready=true",
+                "synthetic media-stream regression passes",
+                "provider routing stays dry-run until explicitly approved",
+            ],
+        },
+        "guardrail": "Internal bridge-readiness work only. No provider credentials, live routing, or outbound calls are enabled.",
+        "steps": [health_step, readiness_step, *tool_steps],
+    }
+
+    state_json = STATE_ROOT / "latest-local-audio-bridge-next-step.json"
+    state_md = STATE_ROOT / "latest-local-audio-bridge-next-step.md"
+    strategy_md = REPO_ROOT / "strategy" / "voice" / f"local-audio-bridge-next-step-{today_slug()}.md"
+    lines = [
+        "# Local Audio Bridge Next Step",
+        "",
+        f"- Generated: `{report['generated_at']}`",
+        f"- Bridge health: `{bridge_health.get('status') or 'unknown'}`",
+        f"- Bridge ready: `{bridge_health.get('ready')}`",
+        f"- Voice live-ready: `{report['voice_readiness'].get('live_ready')}`",
+        f"- Local bridge gate: `{gates.get('local_audio_bridge_ready')}`",
+        "",
+        "## Required Build Steps",
+        "",
+    ]
+    for item in next_steps:
+        lines.extend([
+            f"- `{item['owner']}`: {item['step']}. {item['detail']}",
+        ])
+    lines.extend([
+        "",
+        "## Guardrail",
+        "",
+        report["guardrail"],
+        "",
+        "Do not mark the bridge ready until health reports `ready=true` and the synthetic media-stream regression proves local STT, model response, TTS, and return audio.",
+        "",
+    ])
+    write_json(state_json, report)
+    state_md.write_text("\n".join(lines), encoding="utf-8")
+    strategy_md.parent.mkdir(parents=True, exist_ok=True)
+    strategy_md.write_text("\n".join(lines), encoding="utf-8")
+    return {
+        "ok": report["ok"],
+        "steps": [health_step, readiness_step, *tool_steps],
+        "artifacts": [str(state_json), str(state_md), str(strategy_md)],
+        "bridge_ready": bool(gates.get("local_audio_bridge_ready")),
+        "guardrail": report["guardrail"],
+    }
+
+
 def vertical_lead_research_refresh(task: dict[str, Any]) -> dict[str, Any]:
     raw_lanes = task.get("lanes") or [
         "dental_voice",
@@ -1325,6 +1461,7 @@ HANDLERS = {
     "service_pilot_package_refresh": service_pilot_package_refresh,
     "voice_quality_sample_inventory": voice_quality_sample_inventory,
     "voice_readiness_check": voice_readiness_check,
+    "local_audio_bridge_next_step": local_audio_bridge_next_step,
     "paper_trader_health": paper_trader_health,
     "source_hygiene_report": source_hygiene_report,
     "system_resource_report": system_resource_report,
