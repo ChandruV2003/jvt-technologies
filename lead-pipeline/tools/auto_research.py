@@ -959,7 +959,7 @@ def has_name_domain_overlap(company_name: str, host: str, public_email: str = ""
     email_tokens = domain_name_tokens(email_host) if email_host else set()
     comparison_tokens = host_tokens | email_tokens
     if not name_tokens or not comparison_tokens:
-        return True
+        return False
     if name_tokens & comparison_tokens:
         return True
     compact_domains = [
@@ -1012,6 +1012,7 @@ def looks_like_company_name(name: str) -> bool:
     if lowered.startswith("about "):
         return False
     if lowered in {
+        "cpa mba",
         "professional staffing agency",
         "temporary employment services & staffing agency",
         "property management",
@@ -1026,6 +1027,8 @@ def looks_like_company_name(name: str) -> bool:
             "expert tax services at your fingertips",
             "global business process outsourcing",
             "online bookkeeping & payroll",
+            "accounting payroll tax business services",
+            "cpa accounting payroll tax",
             "outsourced accounting",
             "outsourced bookkeeping",
         )
