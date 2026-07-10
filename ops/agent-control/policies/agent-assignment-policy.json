@@ -48,6 +48,12 @@
       "model_tier": "deterministic",
       "self_review": "standard"
     },
+    "work_item_materializer": {
+      "level": "feature",
+      "feature": "company-autonomy",
+      "model_tier": "deterministic",
+      "self_review": "strict"
+    },
     "model_router_status": {
       "level": "task",
       "feature": "model-runtime",

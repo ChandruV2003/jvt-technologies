@@ -1600,6 +1600,19 @@ def business_readiness_sweep(_task: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def work_item_materializer(_task: dict[str, Any]) -> dict[str, Any]:
+    step = report_script("work_item_materializer", "work_item_materializer.py")
+    return {
+        "ok": bool(step["ok"]),
+        "steps": [step],
+        "artifacts": [
+            str(STATE_ROOT / "latest-work-item-materializer.json"),
+            str(STATE_ROOT / "latest-work-item-materializer.md"),
+        ],
+        "guardrail": "Materializes orchestrator work items into internal allowlisted tasks/specs only. No external outreach delivery, spending, market orders, crypto custody/network participation, public posting, provider enablement, or commitments.",
+    }
+
+
 HANDLERS = {
     "refresh_growth_state": refresh_growth_state,
     "codex_cli_version_snapshot": codex_cli_version_snapshot,
@@ -1617,6 +1630,7 @@ HANDLERS = {
     "source_hygiene_report": source_hygiene_report,
     "system_resource_report": system_resource_report,
     "business_readiness_sweep": business_readiness_sweep,
+    "work_item_materializer": work_item_materializer,
     "inbox_triage_brief": inbox_triage_brief,
     "outreach_review_queue_brief": outreach_review_queue_brief,
     "followup_review_brief": followup_review_brief,

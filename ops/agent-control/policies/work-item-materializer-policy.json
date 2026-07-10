@@ -1,0 +1,140 @@
+{
+  "version": 1,
+  "enabled": true,
+  "materializer": {
+    "default_cadence": "daily",
+    "dedupe_scope": "cadence_bucket_and_work_item_id",
+    "max_items_per_run": 20
+  },
+  "rules": [
+    {
+      "name": "voice bridge readiness next step",
+      "lane": "voice-intake",
+      "title_contains": [
+        "local audio bridge"
+      ],
+      "action": "task",
+      "task_type": "local_audio_bridge_next_step",
+      "cadence": "hourly",
+      "level": "story",
+      "feature": "voice-intake",
+      "model_tier": "deterministic-plus-m4-local-review",
+      "self_review": "strict"
+    },
+    {
+      "name": "follow-up review queue brief",
+      "lane": "followups",
+      "title_contains": [
+        "follow-up"
+      ],
+      "action": "task",
+      "task_type": "followup_review_brief",
+      "cadence": "daily",
+      "level": "task",
+      "feature": "followups",
+      "model_tier": "deterministic",
+      "self_review": "strict"
+    },
+    {
+      "name": "outreach review queue brief",
+      "lane": "qa-review",
+      "title_contains": [
+        "outreach"
+      ],
+      "action": "task",
+      "task_type": "outreach_review_queue_brief",
+      "cadence": "daily",
+      "level": "task",
+      "feature": "outreach-quality",
+      "model_tier": "deterministic",
+      "self_review": "strict"
+    },
+    {
+      "name": "voice intake proof asset refresh",
+      "lane": "offer-demos",
+      "title_contains": [
+        "ai receptionist",
+        "voice intake"
+      ],
+      "action": "task",
+      "task_type": "service_pilot_package_refresh",
+      "cadence": "daily",
+      "dedupe": "rule",
+      "level": "feature",
+      "feature": "service-lines",
+      "model_tier": "m4-local-with-macbook-large-available",
+      "self_review": "standard"
+    },
+    {
+      "name": "productized services summary",
+      "lane": "venture-growth",
+      "title_contains": [
+        "productized services"
+      ],
+      "action": "task",
+      "task_type": "offer_segment_summary",
+      "cadence": "daily",
+      "level": "story",
+      "feature": "service-lines",
+      "model_tier": "m4-local-with-macbook-large-available",
+      "self_review": "standard"
+    },
+    {
+      "name": "dental voice pilot brief",
+      "lane": "venture-growth",
+      "title_contains": [
+        "dental",
+        "voice"
+      ],
+      "action": "task",
+      "task_type": "dental_voice_intake_pilot_brief",
+      "cadence": "daily",
+      "level": "story",
+      "feature": "voice-intake",
+      "model_tier": "m4-local-with-macbook-large-available",
+      "self_review": "standard"
+    },
+    {
+      "name": "bits ballot workflow pilot brief",
+      "lane": "venture-growth",
+      "title_contains": [
+        "ballot"
+      ],
+      "action": "task",
+      "task_type": "it_ballot_workflow_pilot_brief",
+      "cadence": "daily",
+      "level": "story",
+      "feature": "workflow-automation",
+      "model_tier": "m4-local-with-macbook-large-available",
+      "self_review": "standard"
+    },
+    {
+      "name": "crypto feasibility read-only refresh",
+      "lane": "research-labs",
+      "title_contains": [
+        "crypto feasibility"
+      ],
+      "action": "task",
+      "task_type": "venture_scout_index",
+      "cadence": "daily",
+      "level": "task",
+      "feature": "venture-research",
+      "model_tier": "deterministic",
+      "self_review": "standard"
+    }
+  ],
+  "epic_rules": [
+    {
+      "name": "unmapped stage-only work item review",
+      "automation_level": "stage-only",
+      "action": "epic_spec",
+      "cadence": "daily",
+      "min_priority": 5,
+      "level": "epic",
+      "feature": "company-autonomy",
+      "model_tier": "codex-cli-capped",
+      "enabled": false,
+      "reason": "Disabled by default to prevent broad Codex CLI usage. Enable only after ROI and acceptance criteria are explicit."
+    }
+  ]
+}

@@ -214,6 +214,7 @@ def build_snapshot() -> dict[str, Any]:
             "generated_at": orchestrator.get("generated_at"),
             "status": orchestrator.get("status"),
             "quotas": orchestrator.get("quotas"),
+            "work_item_count": len(orchestrator.get("work_items") or []) if isinstance(orchestrator.get("work_items"), list) else 0,
         },
         "watchdog": {
             "generated_at": watchdog.get("generated_at"),
@@ -401,6 +402,13 @@ def deterministic_directives(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
             "action": "Generate and strictly review no-reply follow-ups; no-reply remains an active queue state.",
             "autonomous": True,
         })
+    if int(((snapshot.get("orchestrator") or {}).get("work_item_count") or 0)) > 0:
+        directives.append({
+            "priority": 3,
+            "lane": "work-materializer",
+            "action": "Materialize current orchestrator work items into allowlisted internal tasks or capped epic specs so detected gaps become executable work.",
+            "autonomous": True,
+        })
     directives.append({
         "priority": 4,
         "lane": "revenue-development",
@@ -443,6 +451,18 @@ def seed_director_tasks(directives: list[dict[str, Any]], *, write: bool) -> lis
         make_task(f"{today}-ai-director-vertical-lead-research-refresh", "vertical_lead_research_refresh", "AI Director requested refreshed vertical lead research for active service lines."),
         make_task(f"{today}-ai-director-service-pilot-package-refresh", "service_pilot_package_refresh", "AI Director requested refreshed pilot proof packages for active service lines."),
     ]
+    if any(item.get("lane") == "work-materializer" for item in directives):
+        task = make_task(
+            f"{hour_bucket}-ai-director-work-item-materializer",
+            "work_item_materializer",
+            "AI Director requested materializing current orchestrator work items into allowlisted internal tasks or capped epic specs.",
+        )
+        if task:
+            task.update({
+                "lane": "work-materializer",
+                "approval_boundary": "Create internal tasks/specs only. No external outreach delivery, spending, market orders, crypto custody/network participation, public release, or external commitments.",
+            })
+            candidates.append(task)
     if any(item.get("lane") == "lead-source-quality" for item in directives):
         task = make_task(
             f"{hour_bucket}-ai-director-lead-source-quality-refresh",
