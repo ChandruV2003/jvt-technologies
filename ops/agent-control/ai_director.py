@@ -538,7 +538,7 @@ def main() -> None:
     directives = deterministic_directives(snapshot)
     prompt = (
         "You are the local JVT AI Director. Review this machine state and propose only safe next actions. "
-        "Do not recommend random mass email, spending, live trading, wallets, mining, staking, applications, or external commitments. "
+        "Do not recommend random mass outreach, spending, market orders, crypto custody/network participation, external forms, or external commitments. "
         "Return concise operational guidance in 6 bullets or fewer. "
         f"State JSON: {json.dumps(snapshot, sort_keys=True)[:6000]}"
     )
@@ -551,7 +551,7 @@ def main() -> None:
         "directives": directives,
         "seeded_tasks": seeded_tasks,
         "local_model": local_model,
-        "safety_boundary": "May seed internal allowlisted tasks and recommend quality-gated sends. Must not spend, trade live, create wallets, mine, stake, submit applications, post publicly, or send outside approved outreach caps and gates.",
+        "safety_boundary": "May seed internal allowlisted tasks and recommend quality-gated outreach. Must not spend, place market orders, perform crypto custody/network activity, file external forms, post publicly, or go outside approved outreach caps and gates.",
     }
     write_json(STATE_ROOT / "latest-ai-director.json", report)
     write_markdown(report, STATE_ROOT / "latest-ai-director.md")

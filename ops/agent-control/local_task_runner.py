@@ -1596,7 +1596,7 @@ def business_readiness_sweep(_task: dict[str, Any]) -> dict[str, Any]:
             str(STATE_ROOT / "latest-system-resources.json"),
             str(STATE_ROOT / "latest-agent-interop.json"),
         ],
-        "guardrail": "Readiness sweep only. It reports what needs action but does not send, spend, trade, mine, stake, post, or commit.",
+        "guardrail": "Readiness sweep only. It reports what needs action but does not perform external outreach delivery, spending, market orders, crypto network participation, public posting, commits, or external commitments.",
     }
 
 
@@ -1723,7 +1723,7 @@ def run_pending(max_tasks: int) -> dict[str, Any]:
         "assignment_policy_path": str(ASSIGNMENT_POLICY_PATH),
         "assignment_policy_version": assignment_policy.get("version"),
         "hierarchy_levels": assignment_policy.get("hierarchy"),
-        "safety_boundary": "Allowlisted internal tasks only. No arbitrary shell, sends, spending, account changes, live trades, wallets, mining, staking, posting, or external commitments.",
+        "safety_boundary": "Allowlisted internal tasks only. No arbitrary shell, external outreach delivery, spending, account changes, market orders, crypto custody/network participation, public posting, or external commitments.",
     }
 
 
