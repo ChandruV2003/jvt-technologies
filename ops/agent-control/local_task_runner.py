@@ -1189,6 +1189,28 @@ def local_audio_bridge_next_step(_task: dict[str, Any]) -> dict[str, Any]:
             timeout=20,
         ),
     ]
+    regression_step = run_command(
+        "local_audio_bridge_media_stream_regression",
+        ["python3", "products/Private-AI-Lab/apps/jvt-inbound-voice-agent/tools/test_local_audio_bridge_media_stream.py"],
+        timeout=45,
+    )
+    post_regression_health_step = run_command(
+        "local_audio_bridge_health_after_regression",
+        [
+            "python3",
+            "-c",
+            (
+                "import json, urllib.request\n"
+                "url='http://127.0.0.1:8761/health'\n"
+                "try:\n"
+                "    data=json.loads(urllib.request.urlopen(url, timeout=5).read().decode('utf-8'))\n"
+                "except Exception as exc:\n"
+                "    data={'ok': False, 'ready': False, 'error': str(exc)}\n"
+                "print(json.dumps(data, sort_keys=True))\n"
+            ),
+        ],
+        timeout=20,
+    )
 
     bridge_health: dict[str, Any] = {}
     if health_step.get("stdout_tail"):
@@ -1197,6 +1219,13 @@ def local_audio_bridge_next_step(_task: dict[str, Any]) -> dict[str, Any]:
             bridge_health = json.loads(raw_health)
         except json.JSONDecodeError:
             bridge_health = {"ok": False, "ready": False, "parse_error": raw_health[-500:]}
+    post_regression_bridge_health: dict[str, Any] = {}
+    if post_regression_health_step.get("stdout_tail"):
+        raw_health = "\n".join(str(line) for line in post_regression_health_step.get("stdout_tail") or [])
+        try:
+            post_regression_bridge_health = json.loads(raw_health)
+        except json.JSONDecodeError:
+            post_regression_bridge_health = {"ok": False, "ready": False, "parse_error": raw_health[-500:]}
 
     readiness = load_json(STATE_ROOT / "latest-voice-readiness.json", {})
     gates = readiness.get("gates") if isinstance(readiness, dict) and isinstance(readiness.get("gates"), dict) else {}
@@ -1224,8 +1253,9 @@ def local_audio_bridge_next_step(_task: dict[str, Any]) -> dict[str, Any]:
     ]
     report = {
         "generated_at": utc_now(),
-        "ok": bool(readiness_step.get("ok")),
+        "ok": bool(readiness_step.get("ok")) and bool(regression_step.get("ok")),
         "bridge_health": bridge_health,
+        "post_regression_bridge_health": post_regression_bridge_health,
         "voice_readiness": {
             "demo_ready": readiness.get("demo_ready") if isinstance(readiness, dict) else None,
             "live_ready": readiness.get("live_ready") if isinstance(readiness, dict) else None,
@@ -1242,9 +1272,10 @@ def local_audio_bridge_next_step(_task: dict[str, Any]) -> dict[str, Any]:
                 "synthetic media-stream regression passes",
                 "provider routing stays dry-run until explicitly approved",
             ],
+            "synthetic_regression_ok": bool(regression_step.get("ok")),
         },
         "guardrail": "Internal bridge-readiness work only. No provider credentials, live routing, or outbound calls are enabled.",
-        "steps": [health_step, readiness_step, *tool_steps],
+        "steps": [health_step, readiness_step, *tool_steps, regression_step, post_regression_health_step],
     }
 
     state_json = STATE_ROOT / "latest-local-audio-bridge-next-step.json"
@@ -1281,7 +1312,7 @@ def local_audio_bridge_next_step(_task: dict[str, Any]) -> dict[str, Any]:
     strategy_md.write_text("\n".join(lines), encoding="utf-8")
     return {
         "ok": report["ok"],
-        "steps": [health_step, readiness_step, *tool_steps],
+        "steps": [health_step, readiness_step, *tool_steps, regression_step, post_regression_health_step],
         "artifacts": [str(state_json), str(state_md), str(strategy_md)],
         "bridge_ready": bool(gates.get("local_audio_bridge_ready")),
         "guardrail": report["guardrail"],
