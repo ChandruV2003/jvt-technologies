@@ -1,0 +1,93 @@
+{
+  "version": 1,
+  "generated_by": "codex",
+  "hierarchy": {
+    "epic": {
+      "owner": "epic-agent",
+      "model_tier": "codex-cli-capped",
+      "description": "Large repo-changing work with ROI case, acceptance criteria, and Codex CLI caps."
+    },
+    "feature": {
+      "owner": "ai-director",
+      "model_tier": "macbook-large-local-preferred",
+      "description": "Multi-file product or business capability planning; local large model when gated available, M4 fallback."
+    },
+    "story": {
+      "owner": "local-task-runner",
+      "model_tier": "m4-local",
+      "description": "Single capability improvement or recurring internal work item."
+    },
+    "task": {
+      "owner": "local-task-runner",
+      "model_tier": "deterministic-or-m4-local",
+      "description": "Small allowlisted internal action, status check, QA brief, or proof refresh."
+    }
+  },
+  "task_type_assignments": {
+    "local_audio_bridge_next_step": {
+      "level": "story",
+      "feature": "voice-intake",
+      "model_tier": "deterministic-plus-m4-local-review",
+      "self_review": "strict"
+    },
+    "vertical_lead_research_refresh": {
+      "level": "story",
+      "feature": "lead-research",
+      "model_tier": "deterministic-plus-m4-local",
+      "self_review": "strict"
+    },
+    "service_pilot_package_refresh": {
+      "level": "feature",
+      "feature": "service-lines",
+      "model_tier": "m4-local-with-macbook-large-available",
+      "self_review": "standard"
+    },
+    "business_readiness_sweep": {
+      "level": "task",
+      "feature": "ops-health",
+      "model_tier": "deterministic",
+      "self_review": "standard"
+    },
+    "model_router_status": {
+      "level": "task",
+      "feature": "model-runtime",
+      "model_tier": "deterministic",
+      "self_review": "standard"
+    },
+    "codex_escalation_status": {
+      "level": "task",
+      "feature": "codex-governance",
+      "model_tier": "deterministic",
+      "self_review": "strict"
+    },
+    "jvt_ops_db_sync": {
+      "level": "task",
+      "feature": "company-memory",
+      "model_tier": "deterministic",
+      "self_review": "strict"
+    },
+    "paper_trader_refresh": {
+      "level": "story",
+      "feature": "paper-trading",
+      "model_tier": "deterministic-plus-m4-local",
+      "self_review": "strict"
+    },
+    "ten_k_execution_digest": {
+      "level": "story",
+      "feature": "10k-goal",
+      "model_tier": "m4-local-with-macbook-large-available",
+      "self_review": "standard"
+    }
+  },
+  "default_assignment": {
+    "level": "task",
+    "feature": "general-ops",
+    "model_tier": "deterministic",
+    "self_review": "standard"
+  },
+  "codex_cli": {
+    "allowed_level": "epic",
+    "policy_file": "ops/agent-control/policies/epic-agent-policy.json",
+    "note": "Local runner must not invoke Codex CLI. It can only report escalation need into epic specs."
+  }
+}

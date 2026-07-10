@@ -24,6 +24,7 @@ STATE_ROOT = CONTROL_ROOT / "state"
 LOCK_PATH = STATE_ROOT / "local-task-runner.lock"
 AUTOTRADER_ROOT = Path("/Users/c.s.d.v.r.s./Developer/JVT-AutoTrader")
 CODEX_CLI = Path("/Applications/Codex.app/Contents/Resources/codex")
+ASSIGNMENT_POLICY_PATH = CONTROL_ROOT / "policies" / "agent-assignment-policy.json"
 
 TASK_DIRS = ("pending", "running", "completed", "failed", "held")
 
@@ -53,6 +54,20 @@ DISALLOWED_WORDS = {
     "rm -rf",
 }
 
+DEFAULT_ASSIGNMENT_POLICY = {
+    "default_assignment": {
+        "level": "task",
+        "feature": "general-ops",
+        "model_tier": "deterministic",
+        "self_review": "standard",
+    },
+    "task_type_assignments": {},
+    "codex_cli": {
+        "allowed_level": "epic",
+        "note": "Local runner must not invoke Codex CLI. It can only report escalation need into epic specs.",
+    },
+}
+
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
@@ -65,6 +80,21 @@ def load_json(path: Path, default: Any | None = None) -> Any:
         return json.loads(path.read_text(encoding="utf-8"))
     except Exception:
         return {} if default is None else default
+
+
+def load_assignment_policy() -> dict[str, Any]:
+    policy = load_json(ASSIGNMENT_POLICY_PATH, {})
+    if not isinstance(policy, dict):
+        return DEFAULT_ASSIGNMENT_POLICY
+    merged = json.loads(json.dumps(DEFAULT_ASSIGNMENT_POLICY))
+    for key, value in policy.items():
+        if key == "task_type_assignments" and isinstance(value, dict):
+            merged["task_type_assignments"].update(value)
+        elif key == "default_assignment" and isinstance(value, dict):
+            merged["default_assignment"].update(value)
+        else:
+            merged[key] = value
+    return merged
 
 
 def write_json(path: Path, payload: dict[str, Any]) -> None:
@@ -100,6 +130,96 @@ def hold_reason(task: dict[str, Any]) -> str | None:
         if contains_disallowed_phrase(text, word):
             return f"Task text contains approval-gated/disallowed phrase: {word}"
     return None
+
+
+def task_assignment(task: dict[str, Any], policy: dict[str, Any]) -> dict[str, Any]:
+    task_type = str(task.get("type") or "")
+    default = policy.get("default_assignment") if isinstance(policy.get("default_assignment"), dict) else {}
+    assignments = policy.get("task_type_assignments") if isinstance(policy.get("task_type_assignments"), dict) else {}
+    typed = assignments.get(task_type) if isinstance(assignments.get(task_type), dict) else {}
+    assignment = {**default, **typed}
+    level = str(task.get("level") or assignment.get("level") or "task")
+    feature = str(task.get("feature") or task.get("lane") or assignment.get("feature") or "general-ops")
+    model_tier = str(task.get("model_tier") or assignment.get("model_tier") or "deterministic")
+    self_review = str(task.get("self_review") or assignment.get("self_review") or "standard")
+    return {
+        "level": level,
+        "feature": feature,
+        "story_id": task.get("story_id") or task.get("id") or "",
+        "task_type": task_type,
+        "owner": "local-task-runner",
+        "model_tier": model_tier,
+        "self_review": self_review,
+        "codex_cli_allowed": level == "epic",
+        "codex_cli_policy": (policy.get("codex_cli") or {}).get("policy_file") if isinstance(policy.get("codex_cli"), dict) else "",
+    }
+
+
+def artifact_exists(raw_path: str) -> bool:
+    if not raw_path:
+        return True
+    path = Path(raw_path)
+    if not path.is_absolute():
+        path = REPO_ROOT / path
+    return path.exists()
+
+
+def self_review_task_result(task: dict[str, Any], result: dict[str, Any], assignment: dict[str, Any]) -> dict[str, Any]:
+    findings: list[dict[str, Any]] = []
+    task_type = str(task.get("type") or "")
+    if assignment.get("codex_cli_allowed"):
+        findings.append({
+            "severity": "fail",
+            "code": "codex_cli_wrong_lane",
+            "detail": "Local task runner cannot execute epic/Codex CLI work; create an epic-agent spec instead.",
+        })
+    if not result.get("ok"):
+        findings.append({
+            "severity": "fail",
+            "code": "handler_not_ok",
+            "detail": "Handler returned ok=false.",
+        })
+    steps = result.get("steps") if isinstance(result.get("steps"), list) else []
+    for step in steps:
+        if isinstance(step, dict) and step.get("ok") is False:
+            findings.append({
+                "severity": "fail",
+                "code": "step_failed",
+                "detail": f"{step.get('name') or 'step'} returned ok=false.",
+            })
+    artifacts = result.get("artifacts") if isinstance(result.get("artifacts"), list) else []
+    for artifact in artifacts:
+        if not artifact_exists(str(artifact)):
+            findings.append({
+                "severity": "warn",
+                "code": "artifact_missing",
+                "detail": str(artifact),
+            })
+    if not result.get("guardrail"):
+        findings.append({
+            "severity": "warn",
+            "code": "missing_guardrail",
+            "detail": "Handler did not return an explicit safety guardrail.",
+        })
+    if any(contains_disallowed_phrase(json.dumps(result, sort_keys=True).lower(), word) for word in sorted(DISALLOWED_WORDS)):
+        findings.append({
+            "severity": "fail",
+            "code": "result_contains_disallowed_phrase",
+            "detail": "Result text contains an approval-gated phrase.",
+        })
+    strict = str(assignment.get("self_review") or "") == "strict"
+    blocking_findings = [item for item in findings if item.get("severity") == "fail" or (strict and item.get("severity") == "warn" and item.get("code") == "artifact_missing")]
+    return {
+        "ok": not blocking_findings,
+        "reviewed_at": utc_now(),
+        "reviewer": "local-task-runner-self-review",
+        "task_type": task_type,
+        "assignment": assignment,
+        "finding_count": len(findings),
+        "blocking_finding_count": len(blocking_findings),
+        "findings": findings,
+        "policy": "deterministic result, step, artifact, and safety-boundary review. Codex CLI is reserved for epic-agent only.",
+    }
 
 
 def run_command(name: str, command: list[str], cwd: Path = REPO_ROOT, timeout: int = 120) -> dict[str, Any]:
@@ -1540,12 +1660,14 @@ def acquire_lock() -> int:
 
 def run_pending(max_tasks: int) -> dict[str, Any]:
     ensure_dirs()
+    assignment_policy = load_assignment_policy()
     pending = sorted((TASK_ROOT / "pending").glob("*.json"))[:max_tasks]
     processed: list[dict[str, Any]] = []
     for path in pending:
         task = load_json(path, {})
         task_type = str(task.get("type") or "")
-        base = {"task_file": str(path), "task_id": task.get("id") or path.stem, "type": task_type}
+        assignment = task_assignment(task, assignment_policy)
+        base = {"task_file": str(path), "task_id": task.get("id") or path.stem, "type": task_type, "assignment": assignment}
         reason = hold_reason(task)
         if reason:
             held_path = move_task(path, "held", {**base, "ok": False, "held": True, "reason": reason})
@@ -1562,9 +1684,18 @@ def run_pending(max_tasks: int) -> dict[str, Any]:
         shutil.move(str(path), str(running_path))
         try:
             result = handler(task)
-            target_dir = "completed" if result.get("ok") else "failed"
+            self_review = self_review_task_result(task, result, assignment)
+            result = {**result, "assignment": assignment, "self_review": self_review}
+            target_dir = "completed" if result.get("ok") and self_review.get("ok") else "failed"
             final_path = move_task(running_path, target_dir, {**base, **result})
-            processed.append({**base, "status": target_dir, "path": str(final_path), "ok": bool(result.get("ok"))})
+            processed.append({
+                **base,
+                "status": target_dir,
+                "path": str(final_path),
+                "ok": bool(result.get("ok")) and bool(self_review.get("ok")),
+                "self_review_ok": bool(self_review.get("ok")),
+                "self_review_findings": int(self_review.get("finding_count") or 0),
+            })
         except Exception as exc:
             final_path = move_task(running_path, "failed", {**base, "ok": False, "error": repr(exc)})
             processed.append({**base, "status": "failed", "path": str(final_path), "error": repr(exc)})
@@ -1575,6 +1706,9 @@ def run_pending(max_tasks: int) -> dict[str, Any]:
         "processed": processed,
         "pending_remaining": len(list((TASK_ROOT / "pending").glob("*.json"))),
         "supported_task_types": sorted(HANDLERS),
+        "assignment_policy_path": str(ASSIGNMENT_POLICY_PATH),
+        "assignment_policy_version": assignment_policy.get("version"),
+        "hierarchy_levels": assignment_policy.get("hierarchy"),
         "safety_boundary": "Allowlisted internal tasks only. No arbitrary shell, sends, spending, account changes, live trades, wallets, mining, staking, posting, or external commitments.",
     }
 
@@ -1593,9 +1727,17 @@ def write_markdown(report: dict[str, Any], path: Path) -> None:
         "",
     ]
     for item in report.get("processed", []):
-        lines.append(f"- `{item.get('status')}` {item.get('task_id')} ({item.get('type')})")
+        assignment = item.get("assignment") if isinstance(item.get("assignment"), dict) else {}
+        lines.append(
+            f"- `{item.get('status')}` {item.get('task_id')} ({item.get('type')}) "
+            f"level=`{assignment.get('level')}` model=`{assignment.get('model_tier')}` "
+            f"self-review=`{item.get('self_review_ok')}` findings=`{item.get('self_review_findings', 0)}`"
+        )
     if not report.get("processed"):
         lines.append("- No pending tasks were available.")
+    lines.extend(["", "## Assignment Policy", ""])
+    lines.append(f"- Policy: `{report.get('assignment_policy_path')}`")
+    lines.append(f"- Version: `{report.get('assignment_policy_version')}`")
     lines.extend(["", "## Supported Task Types", ""])
     for task_type in report.get("supported_task_types", []):
         lines.append(f"- `{task_type}`")
