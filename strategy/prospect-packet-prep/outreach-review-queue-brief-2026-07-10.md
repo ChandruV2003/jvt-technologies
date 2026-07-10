@@ -1,12 +1,12 @@
 # Outreach Review Queue Brief
 
-Generated: 2026-07-10T19:11:03+00:00
+Generated: 2026-07-10T22:43:26+00:00
 
 Status: internal QA only. This file does not approve packets or authorize external delivery.
 
-- Review packets: `62`
-- Initial packets: `57`
-- Follow-up packets: `5`
+- Review packets: `68`
+- Initial packets: `60`
+- Follow-up packets: `8`
 
 ## Review Rules
 
@@ -17,7 +17,47 @@ Status: internal QA only. This file does not approve packets or authorize extern
 
 ## First 30 Items To Review
 
-### 1. Adams Law
+### 1. Florida Elder Law & Legacy Planning
+
+- Kind: `follow-up`
+- File: `outreach/queue/review/2026-04-28-florida-elder-law-legacy-planning-follow-up-1.json`
+- Recipient: `info@flellp.com`
+- Subject: Follow-up on Workflow Cleanup for Elder Law
+- Industry: Law Firm
+- Offer: For elder law work, I would start with a small private search workflow around intake details, planning checklists, and cited answers from approved internal material.
+- Fit score: `90`
+- Contact page: https://flelderlawlegacy.com/
+- Current status: `review`
+
+QA decision needed:
+
+- recipient quality
+- company/domain match
+- service-line fit
+- copy tone
+- whether to approve, revise, or reject
+
+### 2. Ronald Fatoullah & Associates
+
+- Kind: `follow-up`
+- File: `outreach/queue/review/2026-04-28-ronald-fatoullah-associates-follow-up-1.json`
+- Recipient: `info@fatoullahlaw.com`
+- Subject: Quick follow-up on streamlining elder law workflows
+- Industry: Law Firm
+- Offer: For elder law work, I would start with a small private search workflow around intake details, planning checklists, and cited answers from approved internal material.
+- Fit score: `91`
+- Contact page: https://elderlaw-newyork.com/
+- Current status: `review`
+
+QA decision needed:
+
+- recipient quality
+- company/domain match
+- service-line fit
+- copy tone
+- whether to approve, revise, or reject
+
+### 3. Adams Law
 
 - Kind: `follow-up`
 - File: `outreach/queue/review/2026-04-29-adams-law-follow-up-1.json`
@@ -37,7 +77,7 @@ QA decision needed:
 - copy tone
 - whether to approve, revise, or reject
 
-### 2. Cornerstone CPA
+### 4. Cornerstone CPA
 
 - Kind: `follow-up`
 - File: `outreach/queue/review/2026-05-04-ready-extra-cornerstone-cpa-follow-up-1.json`
@@ -57,7 +97,7 @@ QA decision needed:
 - copy tone
 - whether to approve, revise, or reject
 
-### 3. Counselors Title
+### 5. Counselors Title
 
 - Kind: `follow-up`
 - File: `outreach/queue/review/2026-05-04-ready-extra-counselors-title-follow-up-1.json`
@@ -77,7 +117,7 @@ QA decision needed:
 - copy tone
 - whether to approve, revise, or reject
 
-### 4. Zeppos Law Group LLP -
+### 6. Zeppos Law Group LLP -
 
 - Kind: `follow-up`
 - File: `outreach/queue/review/2026-05-04-volume-wave-zeppos-law-group-llp-follow-up-1.json`
@@ -97,7 +137,27 @@ QA decision needed:
 - copy tone
 - whether to approve, revise, or reject
 
-### 5. Charlotte NC CPA
+### 7. CPA Consultants
+
+- Kind: `follow-up`
+- File: `outreach/queue/review/2026-05-07-cpa-consultants-follow-up-1.json`
+- Recipient: `info@cpa-consultants.com`
+- Subject: Quick demo of how we help tax teams manage SOPs and client docs
+- Industry: Accounting / Tax Firm
+- Offer: For tax & accounting work, I would start with a private SOP and client-reference assistant that answers from approved firm material and links back to the source.
+- Fit score: `95`
+- Contact page: https://cpa-consultants.com/contact-us
+- Current status: `review`
+
+QA decision needed:
+
+- recipient quality
+- company/domain match
+- service-line fit
+- copy tone
+- whether to approve, revise, or reject
+
+### 8. Charlotte NC CPA
 
 - Kind: `initial`
 - File: `outreach/queue/review/2026-05-08-charlotte-nc-cpa-initial-introduction.json`
@@ -117,7 +177,7 @@ QA decision needed:
 - copy tone
 - whether to approve, revise, or reject
 
-### 6. CPA Phoenix AZ
+### 9. CPA Phoenix AZ
 
 - Kind: `initial`
 - File: `outreach/queue/review/2026-05-08-cpa-phoenix-az-initial-introduction.json`
@@ -137,7 +197,7 @@ QA decision needed:
 - copy tone
 - whether to approve, revise, or reject
 
-### 7. Hanson Cpa
+### 10. Hanson Cpa
 
 - Kind: `initial`
 - File: `outreach/queue/review/2026-05-08-hanson-cpa-initial-introduction.json`
@@ -157,7 +217,7 @@ QA decision needed:
 - copy tone
 - whether to approve, revise, or reject
 
-### 8. Metro Accounting And Tax Services LLC - CPA Atlanta
+### 11. Metro Accounting And Tax Services LLC - CPA Atlanta
 
 - Kind: `follow-up`
 - File: `outreach/queue/review/2026-05-08-metro-accounting-and-tax-services-llc-cpa-atlanta-follow-up-1.json`
@@ -177,7 +237,7 @@ QA decision needed:
 - copy tone
 - whether to approve, revise, or reject
 
-### 9. CPA MBA
+### 12. CPA MBA
 
 - Kind: `initial`
 - File: `outreach/queue/review/2026-05-12-cpa-mba-initial-introduction.json`
@@ -197,7 +257,7 @@ QA decision needed:
 - copy tone
 - whether to approve, revise, or reject
 
-### 10. Ascent Cpa
+### 13. Ascent Cpa
 
 - Kind: `initial`
 - File: `outreach/queue/review/2026-05-13-ascent-cpa-initial-introduction.json`
@@ -217,7 +277,7 @@ QA decision needed:
 - copy tone
 - whether to approve, revise, or reject
 
-### 11. Small Businesses Tax Management & Bookkeeping Services
+### 14. Small Businesses Tax Management & Bookkeeping Services
 
 - Kind: `initial`
 - File: `outreach/queue/review/2026-05-13-small-businesses-tax-management-bookkeeping-services-initial-introduction.json`
@@ -237,7 +297,7 @@ QA decision needed:
 - copy tone
 - whether to approve, revise, or reject
 
-### 12. Deguzman Cpa
+### 15. Deguzman Cpa
 
 - Kind: `initial`
 - File: `outreach/queue/review/2026-05-15-deguzman-cpa-initial-introduction.json`
@@ -257,7 +317,7 @@ QA decision needed:
 - copy tone
 - whether to approve, revise, or reject
 
-### 13. Karenjskiff Cpa
+### 16. Karenjskiff Cpa
 
 - Kind: `initial`
 - File: `outreach/queue/review/2026-05-15-karenjskiff-cpa-initial-introduction.json`
@@ -277,7 +337,7 @@ QA decision needed:
 - copy tone
 - whether to approve, revise, or reject
 
-### 14. Perkis CPA PC CPA firm in Brooklyn, New York
+### 17. Perkis CPA PC CPA firm in Brooklyn, New York
 
 - Kind: `initial`
 - File: `outreach/queue/review/2026-05-15-perkis-cpa-pc-cpa-firm-in-brooklyn-new-york-initial-introduction.json`
@@ -297,7 +357,7 @@ QA decision needed:
 - copy tone
 - whether to approve, revise, or reject
 
-### 15. Rew Cpa
+### 18. Rew Cpa
 
 - Kind: `initial`
 - File: `outreach/queue/review/2026-05-15-rew-cpa-initial-introduction.json`
@@ -317,7 +377,7 @@ QA decision needed:
 - copy tone
 - whether to approve, revise, or reject
 
-### 16. Austin, Texas Bookkeeping, Payroll & Tax Services Firm
+### 19. Austin, Texas Bookkeeping, Payroll & Tax Services Firm
 
 - Kind: `initial`
 - File: `outreach/queue/review/2026-05-18-austin-texas-bookkeeping-payroll-tax-services-firm-initial-introduction.json`
@@ -337,7 +397,7 @@ QA decision needed:
 - copy tone
 - whether to approve, revise, or reject
 
-### 17. CPA Accountant
+### 20. CPA Accountant
 
 - Kind: `initial`
 - File: `outreach/queue/review/2026-05-18-cpa-accountant-initial-introduction.json`
@@ -357,7 +417,7 @@ QA decision needed:
 - copy tone
 - whether to approve, revise, or reject
 
-### 18. Ep Cpa
+### 21. Ep Cpa
 
 - Kind: `initial`
 - File: `outreach/queue/review/2026-05-18-ep-cpa-initial-introduction.json`
@@ -377,7 +437,7 @@ QA decision needed:
 - copy tone
 - whether to approve, revise, or reject
 
-### 19. Lb Cpa
+### 22. Lb Cpa
 
 - Kind: `initial`
 - File: `outreach/queue/review/2026-05-18-lb-cpa-initial-introduction.json`
@@ -397,7 +457,7 @@ QA decision needed:
 - copy tone
 - whether to approve, revise, or reject
 
-### 20. Top Mortgage Broker in New York, NY
+### 23. Top Mortgage Broker in New York, NY
 
 - Kind: `initial`
 - File: `outreach/queue/review/2026-05-18-top-mortgage-broker-in-new-york-ny-initial-introduction.json`
@@ -417,7 +477,7 @@ QA decision needed:
 - copy tone
 - whether to approve, revise, or reject
 
-### 21. ATA CPA Contact
+### 24. ATA CPA Contact
 
 - Kind: `initial`
 - File: `outreach/queue/review/2026-05-19-ata-cpa-contact-initial-introduction.json`
@@ -437,7 +497,7 @@ QA decision needed:
 - copy tone
 - whether to approve, revise, or reject
 
-### 22. Bock Cpa
+### 25. Bock Cpa
 
 - Kind: `initial`
 - File: `outreach/queue/review/2026-05-19-bock-cpa-initial-introduction.json`
@@ -457,7 +517,7 @@ QA decision needed:
 - copy tone
 - whether to approve, revise, or reject
 
-### 23. CPA Accounting
+### 26. CPA Accounting
 
 - Kind: `initial`
 - File: `outreach/queue/review/2026-05-19-cpa-accounting-initial-introduction.json`
@@ -477,7 +537,7 @@ QA decision needed:
 - copy tone
 - whether to approve, revise, or reject
 
-### 24. CPA El Paso TX
+### 27. CPA El Paso TX
 
 - Kind: `initial`
 - File: `outreach/queue/review/2026-05-19-cpa-el-paso-tx-initial-introduction.json`
@@ -497,7 +557,7 @@ QA decision needed:
 - copy tone
 - whether to approve, revise, or reject
 
-### 25. Eberry Cpa
+### 28. Eberry Cpa
 
 - Kind: `initial`
 - File: `outreach/queue/review/2026-05-19-eberry-cpa-initial-introduction.json`
@@ -517,7 +577,7 @@ QA decision needed:
 - copy tone
 - whether to approve, revise, or reject
 
-### 26. Leh Cpa
+### 29. Leh Cpa
 
 - Kind: `initial`
 - File: `outreach/queue/review/2026-05-19-leh-cpa-initial-introduction.json`
@@ -537,7 +597,7 @@ QA decision needed:
 - copy tone
 - whether to approve, revise, or reject
 
-### 27. Alfredjones Cpa
+### 30. Alfredjones Cpa
 
 - Kind: `initial`
 - File: `outreach/queue/review/2026-05-20-alfredjones-cpa-initial-introduction.json`
@@ -547,66 +607,6 @@ QA decision needed:
 - Offer: For tax & accounting work, I would start with a private SOP and client-reference assistant that answers from approved firm material and links back to the source.
 - Fit score: `95`
 - Contact page: https://alfredjonescpa.com/about.php
-- Current status: `review`
-
-QA decision needed:
-
-- recipient quality
-- company/domain match
-- service-line fit
-- copy tone
-- whether to approve, revise, or reject
-
-### 28. Markvitek Cpa
-
-- Kind: `initial`
-- File: `outreach/queue/review/2026-05-20-markvitek-cpa-initial-introduction.json`
-- Recipient: `mark@markvitekcpa.com`
-- Subject: A workflow cleanup idea for Markvitek Cpa
-- Industry: Accounting / Tax Firm
-- Offer: For tax & accounting work, I would start with a contract-and-entity document assistant that finds reusable language, flags the source, and leaves final judgment with the team.
-- Fit score: `95`
-- Contact page: https://markvitekcpa.com/contact
-- Current status: `review`
-
-QA decision needed:
-
-- recipient quality
-- company/domain match
-- service-line fit
-- copy tone
-- whether to approve, revise, or reject
-
-### 29. Online Bookkeeping & Payroll for Small Business
-
-- Kind: `initial`
-- File: `outreach/queue/review/2026-05-20-online-bookkeeping-payroll-for-small-business-initial-introduction.json`
-- Recipient: `sales@remotebooksonline.com`
-- Subject: A workflow cleanup idea for Online Bookkeeping & Payroll for Small Business
-- Industry: Accounting / Tax Firm
-- Offer: For tax & accounting work, I would start with a private SOP and client-reference assistant that answers from approved firm material and links back to the source.
-- Fit score: `95`
-- Contact page: https://www.remotebooksonline.com/about
-- Current status: `review`
-
-QA decision needed:
-
-- recipient quality
-- company/domain match
-- service-line fit
-- copy tone
-- whether to approve, revise, or reject
-
-### 30. Cranfill Sumner LLP
-
-- Kind: `initial`
-- File: `outreach/queue/review/2026-05-25-cranfill-sumner-llp-initial-introduction.json`
-- Recipient: `recruiting@cshlaw.com`
-- Subject: A workflow cleanup idea for Cranfill Sumner LLP
-- Industry: Law Firm
-- Offer: For business law work, I would start with a contract-and-entity document assistant that finds reusable language, flags the source, and leaves final judgment with the team.
-- Fit score: `95`
-- Contact page: https://www.cshlaw.com/about/careers/
 - Current status: `review`
 
 QA decision needed:

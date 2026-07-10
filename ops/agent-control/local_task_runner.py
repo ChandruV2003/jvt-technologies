@@ -1613,6 +1613,19 @@ def work_item_materializer(_task: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def mythos_task_generator(_task: dict[str, Any]) -> dict[str, Any]:
+    step = report_script("mythos_agent", "mythos_agent.py", timeout=120)
+    return {
+        "ok": bool(step["ok"]),
+        "steps": [step],
+        "artifacts": [
+            str(STATE_ROOT / "latest-mythos-agent.json"),
+            str(STATE_ROOT / "latest-mythos-agent.md"),
+        ],
+        "guardrail": "Generates internal allowlisted tasks from company state and design ethos only. No external outreach delivery, spending, market orders, crypto custody/network participation, public posting, provider enablement, or commitments.",
+    }
+
+
 HANDLERS = {
     "refresh_growth_state": refresh_growth_state,
     "codex_cli_version_snapshot": codex_cli_version_snapshot,
@@ -1631,6 +1644,7 @@ HANDLERS = {
     "system_resource_report": system_resource_report,
     "business_readiness_sweep": business_readiness_sweep,
     "work_item_materializer": work_item_materializer,
+    "mythos_task_generator": mythos_task_generator,
     "inbox_triage_brief": inbox_triage_brief,
     "outreach_review_queue_brief": outreach_review_queue_brief,
     "followup_review_brief": followup_review_brief,

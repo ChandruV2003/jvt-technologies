@@ -27,6 +27,7 @@ ORCHESTRATOR_SCRIPT = REPO_ROOT / "ops" / "agent-control" / "orchestrator.py"
 VENTURE_PIPELINE_SCRIPT = REPO_ROOT / "ops" / "agent-control" / "venture_pipeline.py"
 EOM_SCRIPT = REPO_ROOT / "ops" / "agent-control" / "eom_agent.py"
 LOCAL_TASK_RUNNER_SCRIPT = REPO_ROOT / "ops" / "agent-control" / "local_task_runner.py"
+MYTHOS_SCRIPT = REPO_ROOT / "ops" / "agent-control" / "mythos_agent.py"
 FOLLOWUP_SCRIPT = REPO_ROOT / "outreach" / "tools" / "generate_followups.py"
 DAILY_WAVE_SCRIPT = REPO_ROOT / "outreach" / "tools" / "generate_daily_wave.py"
 ORCHESTRATOR_STATE = STATE_ROOT / "latest-orchestrator.json"
@@ -262,6 +263,7 @@ def refresh_core_state() -> list[dict[str, Any]]:
     steps.append(run_step("executive_ops_manager", ["python3", str(EOM_SCRIPT)], timeout=45))
     steps.append(seed_daily_local_tasks())
     steps.append(seed_workfeed_local_tasks(load_json(ORCHESTRATOR_STATE)))
+    steps.append(run_step("mythos_agent", ["python3", str(MYTHOS_SCRIPT), "--max-new-tasks", "6", "--max-pending", "12"], timeout=180))
     steps.append(run_step("local_task_runner", ["python3", str(LOCAL_TASK_RUNNER_SCRIPT), "--max-tasks", "6"], timeout=300))
     return steps
 
@@ -416,7 +418,7 @@ def main() -> None:
             "latest_followup_report": latest_followup_report(),
             "orchestrator_status": orchestrator.get("status") if isinstance(orchestrator, dict) else "missing",
             "top_work_items": top_work,
-            "safety_boundary": "No sends, auto-approvals, spend, provider commitments, live trades, wallets, mining, staking, or custody actions.",
+            "safety_boundary": "No external outreach delivery, auto-approvals, spending, provider commitments, market orders, crypto custody/network activity, or external commitments.",
         }
         json_path = STATE_ROOT / "latest-growth-ops-checkin.json"
         markdown_path = STATE_ROOT / "latest-growth-ops-checkin.md"

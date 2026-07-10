@@ -54,6 +54,12 @@
       "model_tier": "deterministic",
       "self_review": "strict"
     },
+    "mythos_task_generator": {
+      "level": "feature",
+      "feature": "company-autonomy",
+      "model_tier": "m4-local-with-macbook-large-available",
+      "self_review": "strict"
+    },
     "model_router_status": {
       "level": "task",
       "feature": "model-runtime",
