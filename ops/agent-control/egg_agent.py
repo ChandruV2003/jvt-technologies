@@ -23,6 +23,7 @@ LEAD_RESEARCH_STATUS = REPO_ROOT / "lead-pipeline" / "state" / "auto-research-st
 WATCHDOG_STATE = REPO_ROOT / "ops" / "watchdog" / "state" / "latest-watchdog.json"
 CODEX_ESCALATION_STATE = STATE_ROOT / "latest-codex-escalation.json"
 LEAD_QUALITY_AUDIT_STATE = STATE_ROOT / "latest-lead-quality-audit.json"
+CUSTOM_PILOT_PIPELINE_STATE = STATE_ROOT / "latest-custom-pilot-pipeline.json"
 VOICE_QUALITY_ROOT = REPO_ROOT / "products" / "Private-AI-Lab" / "apps" / "jvt-inbound-voice-agent" / "voice-quality"
 
 REPORT_JSON = STATE_ROOT / "latest-egg-agent.json"
@@ -42,6 +43,7 @@ SAFE_TASK_TYPES = {
     "jvt_ops_db_sync",
     "opportunity_hit_sync",
     "opportunity_manager_refresh",
+    "custom_pilot_pipeline",
     "vertical_lead_research_refresh",
     "service_pilot_package_refresh",
     "voice_quality_sample_inventory",
@@ -85,6 +87,7 @@ MODEL_ACCEPTED_TASK_TYPES = {
     "voice_readiness_check",
     "local_audio_bridge_next_step",
     "codex_escalation_request",
+    "custom_pilot_pipeline",
 }
 
 APPROVAL_GATED_PATTERNS = {
@@ -290,6 +293,7 @@ def build_snapshot() -> dict[str, Any]:
     lead_quality = load_json(LEAD_QUALITY_AUDIT_STATE, {})
     ops_db = load_json(STATE_ROOT / "latest-jvt-ops-db.json", {})
     opportunity = load_json(STATE_ROOT / "latest-opportunity-manager.json", {})
+    custom_pilot = load_json(CUSTOM_PILOT_PIPELINE_STATE, {})
     voice = load_json(STATE_ROOT / "latest-voice-readiness.json", {})
     paper = load_json(STATE_ROOT / "latest-paper-trader-health.json", {})
     source = load_json(STATE_ROOT / "latest-source-hygiene.json", {})
@@ -369,8 +373,17 @@ def build_snapshot() -> dict[str, Any]:
             "generated_at": opportunity.get("generated_at"),
             "age_seconds": parse_iso_age_seconds(opportunity.get("generated_at")),
             "active_count": opportunity.get("active_count"),
+            "warm_count": opportunity.get("warm_count"),
             "response_needed_count": opportunity.get("response_needed_count"),
             "top_next_actions": opportunity.get("top_next_actions"),
+        },
+        "custom_pilot_pipeline": {
+            "generated_at": custom_pilot.get("generated_at"),
+            "age_seconds": parse_iso_age_seconds(custom_pilot.get("generated_at")),
+            "warm_count": custom_pilot.get("warm_count"),
+            "packet_count": custom_pilot.get("packet_count"),
+            "service_counts": custom_pilot.get("service_counts"),
+            "next_actions": custom_pilot.get("next_actions"),
         },
         "voice": {
             "generated_at": voice.get("generated_at"),
@@ -442,6 +455,7 @@ def deterministic_candidates(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
     quotas = (snapshot["orchestrator"].get("quotas") or {}) if isinstance(snapshot["orchestrator"].get("quotas"), dict) else {}
     lead = snapshot["lead_research"]
     voice = snapshot["voice"]
+    custom_pilot = snapshot["custom_pilot_pipeline"]
     materializer = snapshot["materializer"]
     artifacts = snapshot["artifact_ages"]
     lead_quality = snapshot.get("lead_quality") if isinstance(snapshot.get("lead_quality"), dict) else {}
@@ -458,6 +472,10 @@ def deterministic_candidates(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
         items.append(candidate("codex_escalation_status", "Refresh Codex CLI escalation readiness, caps, auth, and context-pack policy.", cadence="hourly", priority=1, feature="codex-governance", reason="codex escalation stale or unhealthy"))
     if snapshot["ops_db"].get("ok") is not True or (snapshot["ops_db"].get("age_seconds") or 999999) > 3600:
         items.append(candidate("jvt_ops_db_sync", "Sync durable JVT ops database state.", cadence="hourly", priority=2, feature="company-memory", reason="ops database stale or unhealthy"))
+    if (snapshot["opportunity_manager"].get("warm_count") or 0) > 0 and (custom_pilot.get("age_seconds") or 999999) > 1800:
+        items.append(candidate("custom_pilot_pipeline", "Refresh custom pilot packets for warm/direct opportunities.", cadence="hourly", priority=1, feature="custom-pilots", reason="warm opportunity needs custom pilot pipeline"))
+    elif (custom_pilot.get("age_seconds") or 999999) > 3600:
+        items.append(candidate("custom_pilot_pipeline", "Refresh custom pilot pipeline even when no active response is pending.", cadence="hourly", priority=3, feature="custom-pilots", reason="custom pilot pipeline stale"))
     if int(approved_quality.get("hold") or 0) > 0:
         items.append(candidate("lead_quality_audit", "Refresh lead quality audit because approved packets are failing recipient evidence.", cadence="hourly", priority=1, feature="outreach-quality", reason="approved recipient evidence failure"))
     elif (lead_quality.get("age_seconds") or 999999) > 3600:
@@ -492,6 +510,7 @@ def deterministic_candidates(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
         or tasks.get("failed", 0) >= 5
         or int(snapshot["watchdog"].get("finding_count") or 0) > 0
         or bool(snapshot["opportunity_manager"].get("response_needed_count"))
+        or bool(snapshot["opportunity_manager"].get("warm_count"))
     )
     if has_codex_budget and high_value_codex_need:
         items.append(candidate(
@@ -529,6 +548,7 @@ def deterministic_candidates(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
         items.append(candidate("insurance_coi_proof_asset", "Create today's synthetic insurance COI triage proof asset.", cadence="daily", priority=4, feature="proof-assets", reason="missing today's insurance proof"))
     items.extend([
         candidate("service_pilot_package_refresh", "Refresh active service pilot packages across voice intake, workflow automation, and proof assets.", cadence="six-hour", priority=4, feature="service-lines", reason="service-led growth cadence", dedupe_key="service-pilots"),
+        candidate("custom_pilot_pipeline", "Refresh warm/direct custom-pilot conversion packets.", cadence="six-hour", priority=3, feature="custom-pilots", reason="warm/custom conversion cadence"),
         candidate("offer_segment_summary", "Refresh offer segment review for the next manually reviewed packet batch.", cadence="daily", priority=4, feature="service-lines", reason="segment focus"),
         candidate("dental_voice_intake_pilot_brief", "Refresh dental voice intake pilot brief for the known inbound/pilot path.", cadence="daily", priority=4, feature="voice-intake", reason="dental voice lane"),
         candidate("it_ballot_workflow_pilot_brief", "Refresh BITS-style ballot workflow pilot brief with approval boundaries.", cadence="daily", priority=4, feature="workflow-automation", reason="ballot workflow lane"),
@@ -633,9 +653,9 @@ def build_task(candidate_item: dict[str, Any], task_id: str) -> dict[str, Any]:
         "requires_approval": False,
         "seeded_by": "egg_agent",
         "feature": candidate_item.get("feature") or "company-autonomy",
-        "level": "story" if candidate_item["type"] in {"vertical_lead_research_refresh", "service_pilot_package_refresh", "local_audio_bridge_next_step"} else "task",
+        "level": "story" if candidate_item["type"] in {"vertical_lead_research_refresh", "service_pilot_package_refresh", "custom_pilot_pipeline", "local_audio_bridge_next_step"} else "task",
         "model_tier": "m4-local-with-macbook-large-available" if "model-suggested" in str(candidate_item.get("reason") or "") else "deterministic",
-        "self_review": "strict" if candidate_item["type"] in {"vertical_lead_research_refresh", "local_audio_bridge_next_step", "priority_packet_review_queue", "lead_quality_audit"} else "standard",
+        "self_review": "strict" if candidate_item["type"] in {"vertical_lead_research_refresh", "custom_pilot_pipeline", "local_audio_bridge_next_step", "priority_packet_review_queue", "lead_quality_audit"} else "standard",
         "source_reason": candidate_item.get("reason") or "",
         "source_agent": "egg",
         "safety_boundary": SAFETY_BOUNDARY,

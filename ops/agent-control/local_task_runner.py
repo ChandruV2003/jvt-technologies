@@ -1548,6 +1548,7 @@ def opportunity_hit_sync(_task: dict[str, Any]) -> dict[str, Any]:
         run_command("operator_notifier_state", ["python3", "ops/agent-control/operator_notifier.py"], timeout=90),
         run_command("jvt_ops_db_sync", ["python3", "ops/agent-control/jvt_ops_db.py", "sync"], timeout=120),
         report_script("opportunity_manager", "opportunity_manager.py"),
+        report_script("custom_pilot_pipeline", "custom_pilot_pipeline.py"),
         run_command("agent_interop_check", ["python3", "ops/agent-control/agent_interop_check.py"], timeout=90),
     ]
     return {
@@ -1559,6 +1560,8 @@ def opportunity_hit_sync(_task: dict[str, Any]) -> dict[str, Any]:
             str(STATE_ROOT / "latest-jvt-ops-db.json"),
             str(STATE_ROOT / "latest-opportunity-manager.json"),
             str(STATE_ROOT / "latest-opportunity-manager.md"),
+            str(STATE_ROOT / "latest-custom-pilot-pipeline.json"),
+            str(STATE_ROOT / "latest-custom-pilot-pipeline.md"),
             str(STATE_ROOT / "latest-agent-interop.md"),
         ],
         "guardrail": "Internal hit tracking and operator alert state only. No outbound prospect action is initiated here.",
@@ -1599,6 +1602,20 @@ def opportunity_manager_refresh(_task: dict[str, Any]) -> dict[str, Any]:
             str(STATE_ROOT / "latest-opportunity-manager.md"),
         ],
         "guardrail": "Opportunity state reporting only. No external replies or follow-ups are sent.",
+    }
+
+
+def custom_pilot_pipeline(_task: dict[str, Any]) -> dict[str, Any]:
+    step = report_script("custom_pilot_pipeline", "custom_pilot_pipeline.py")
+    return {
+        "ok": bool(step["ok"]),
+        "steps": [step],
+        "artifacts": [
+            str(STATE_ROOT / "latest-custom-pilot-pipeline.json"),
+            str(STATE_ROOT / "latest-custom-pilot-pipeline.md"),
+            str(REPO_ROOT / "client-work" / "prospect-pilot-packets"),
+        ],
+        "guardrail": "Internal custom-pilot planning and draft response packets only. No external replies, provider changes, credential requests, live data processing, or commitments.",
     }
 
 
@@ -1643,6 +1660,7 @@ def system_resource_report(_task: dict[str, Any]) -> dict[str, Any]:
 def business_readiness_sweep(_task: dict[str, Any]) -> dict[str, Any]:
     steps = [
         report_script("opportunity_manager", "opportunity_manager.py"),
+        report_script("custom_pilot_pipeline", "custom_pilot_pipeline.py"),
         report_script("voice_readiness_check", "voice_readiness_check.py"),
         report_script("paper_trader_health", "paper_trader_health.py"),
         run_command("lead_quality_audit", ["python3", "outreach/tools/lead_quality_audit.py"], timeout=90),
@@ -1655,6 +1673,7 @@ def business_readiness_sweep(_task: dict[str, Any]) -> dict[str, Any]:
         "steps": steps,
         "artifacts": [
             str(STATE_ROOT / "latest-opportunity-manager.json"),
+            str(STATE_ROOT / "latest-custom-pilot-pipeline.json"),
             str(STATE_ROOT / "latest-voice-readiness.json"),
             str(STATE_ROOT / "latest-paper-trader-health.json"),
             str(STATE_ROOT / "latest-lead-quality-audit.json"),
@@ -1719,6 +1738,7 @@ HANDLERS = {
     "jvt_ops_db_sync": jvt_ops_db_sync,
     "opportunity_hit_sync": opportunity_hit_sync,
     "opportunity_manager_refresh": opportunity_manager_refresh,
+    "custom_pilot_pipeline": custom_pilot_pipeline,
     "vertical_lead_research_refresh": vertical_lead_research_refresh,
     "service_pilot_package_refresh": service_pilot_package_refresh,
     "voice_quality_sample_inventory": voice_quality_sample_inventory,

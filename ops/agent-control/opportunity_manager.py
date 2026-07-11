@@ -23,11 +23,16 @@ ACTIVE_STAGES = {
     "active",
 }
 
+WARM_STAGES = ACTIVE_STAGES | {
+    "reply-sent-awaiting-next",
+}
+
 STAGE_ORDER = {
     "reply-needs-response": 0,
     "inbound-hit-needs-review": 1,
     "proposal-needed": 2,
     "pilot-discovery-needed": 3,
+    "reply-sent-awaiting-next": 4,
     "active": 4,
 }
 
@@ -80,6 +85,8 @@ def next_action(item: dict[str, Any]) -> str:
         return "Prepare a one-page pilot proposal with scope, price hypothesis, boundaries, and next meeting ask."
     if stage == "pilot-discovery-needed":
         return "Schedule or draft a discovery packet; collect current process, data sensitivity, approval points, and success metric."
+    if stage == "reply-sent-awaiting-next":
+        return "Keep this as a warm protected opportunity; prepare a custom pilot packet and do not send generic no-reply follow-ups."
     if stage == "active":
         return "Keep delivery state current and create the next internal task before responding externally."
     return "Review stage and decide whether this should be active, closed, or converted into a pilot task."
@@ -137,6 +144,7 @@ def fetch_items() -> list[dict[str, Any]]:
             WHEN 'inbound-hit-needs-review' THEN 1
             WHEN 'proposal-needed' THEN 2
             WHEN 'pilot-discovery-needed' THEN 3
+            WHEN 'reply-sent-awaiting-next' THEN 4
             WHEN 'active' THEN 4
             ELSE 9
           END,
@@ -152,6 +160,7 @@ def fetch_items() -> list[dict[str, Any]]:
         item["source_snippet"] = payload.get("snippet") or payload.get("body_preview") or ""
         item["source_from"] = payload.get("from") or payload.get("sender") or ""
         item["active"] = item.get("stage") in ACTIVE_STAGES
+        item["warm"] = item.get("stage") in WARM_STAGES
         item["contact_domain"] = contact_domain(str(item.get("contact_email") or ""))
         item["next_action"] = next_action(item)
         item["priority"] = priority(item)
@@ -163,18 +172,20 @@ def fetch_items() -> list[dict[str, Any]]:
 def build_report() -> dict[str, Any]:
     items = fetch_items()
     active = [item for item in items if item.get("active")]
+    warm = [item for item in items if item.get("warm")]
     response_needed = [
         item
         for item in active
         if item.get("stage") in {"reply-needs-response", "inbound-hit-needs-review", "proposal-needed", "pilot-discovery-needed"}
     ]
-    protected_domains = sorted({item["contact_domain"] for item in active if item.get("contact_domain")})
+    protected_domains = sorted({item["contact_domain"] for item in warm if item.get("contact_domain")})
     return {
         "generated_at": utc_now(),
         "ok": True,
         "db_path": str(OPS_DB),
         "opportunity_count": len(items),
         "active_count": len(active),
+        "warm_count": len(warm),
         "response_needed_count": len(response_needed),
         "protected_contact_domains": protected_domains,
         "items": items[:25],
@@ -199,6 +210,7 @@ def write_markdown(report: dict[str, Any]) -> None:
         f"- Generated: `{report['generated_at']}`",
         f"- Opportunities: `{report['opportunity_count']}`",
         f"- Active: `{report['active_count']}`",
+        f"- Warm/protected: `{report.get('warm_count', 0)}`",
         f"- Need response/review: `{report['response_needed_count']}`",
         f"- Guardrail: {report['guardrail']}",
         "",
@@ -226,6 +238,21 @@ def write_markdown(report: dict[str, Any]) -> None:
             f"- Contact: `{item.get('contact_email') or 'unknown'}`",
             f"- Source: `{item.get('source') or 'unknown'}`",
             f"- Notes: {item.get('notes') or item.get('source_snippet') or 'No notes.'}",
+            f"- Next: {item.get('next_action')}",
+            "",
+        ])
+    lines.extend(["", "## Warm Protected Opportunities", ""])
+    warm_items = [item for item in report.get("items", []) if item.get("warm") and not item.get("active")]
+    if not warm_items:
+        lines.append("- None.")
+    for item in warm_items:
+        lines.extend([
+            f"### {item.get('account_name') or 'Unknown account'}",
+            "",
+            f"- Stage: `{item.get('stage')}`",
+            f"- Service: `{item.get('service_name') or item.get('service_slug')}`",
+            f"- Contact: `{item.get('contact_email') or 'unknown'}`",
+            f"- Source: `{item.get('source') or 'unknown'}`",
             f"- Next: {item.get('next_action')}",
             "",
         ])

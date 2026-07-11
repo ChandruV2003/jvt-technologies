@@ -42,6 +42,12 @@
       "model_tier": "m4-local-with-macbook-large-available",
       "self_review": "standard"
     },
+    "custom_pilot_pipeline": {
+      "level": "story",
+      "feature": "custom-pilots",
+      "model_tier": "deterministic-plus-m4-local-review",
+      "self_review": "strict"
+    },
     "business_readiness_sweep": {
       "level": "task",
       "feature": "ops-health",

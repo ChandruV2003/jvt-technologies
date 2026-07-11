@@ -45,6 +45,7 @@ TRADER_ROOT = Path("/Users/c.s.d.v.r.s./Developer/JVT-AutoTrader")
 CRYPTO_LAB_ROOT = Path("/Users/c.s.d.v.r.s./Developer/JVT-Crypto-Intelligence-Lab")
 CRYPTO_LAB_REPORT = CRYPTO_LAB_ROOT / "reports" / "latest-feasibility.json"
 VENTURE_PIPELINE_STATE = CONTROL_ROOT / "state" / "latest-venture-pipeline.json"
+CUSTOM_PILOT_PIPELINE_STATE = CONTROL_ROOT / "state" / "latest-custom-pilot-pipeline.json"
 
 QUEUE_LABELS = ("draft", "review", "approved", "sent", "replied")
 DECISION_LABELS = ("pending", "approved", "rejected", "executed")
@@ -424,6 +425,21 @@ def venture_pipeline_summary() -> dict[str, Any]:
     }
 
 
+def custom_pilot_pipeline_summary() -> dict[str, Any]:
+    report = load_json(CUSTOM_PILOT_PIPELINE_STATE, {})
+    if not isinstance(report, dict):
+        report = {}
+    return {
+        "report_exists": bool(report),
+        "state_age_seconds": age_seconds_from_iso(report.get("generated_at")) if report else None,
+        "warm_count": int(report.get("warm_count") or 0),
+        "packet_count": int(report.get("packet_count") or 0),
+        "service_counts": report.get("service_counts") if isinstance(report.get("service_counts"), dict) else {},
+        "next_actions": report.get("next_actions") if isinstance(report.get("next_actions"), list) else [],
+        "guardrail": "Internal custom-pilot planning only. No external replies, credentials, live data, provider changes, or commitments.",
+    }
+
+
 def lane(slug: str, title: str, status: str, summary: str, metrics: dict[str, Any], next_step: str) -> dict[str, Any]:
     return {
         "slug": slug,
@@ -470,6 +486,7 @@ def build_lanes(
     trader: dict[str, Any],
     crypto: dict[str, Any],
     venture: dict[str, Any],
+    custom_pilot: dict[str, Any],
     policy: dict[str, Any],
     quotas: dict[str, Any],
 ) -> list[dict[str, Any]]:
@@ -546,6 +563,18 @@ def build_lanes(
             "Turn active wedge next-actions into proof assets and targeted outreach variants.",
         ),
         lane(
+            "custom-pilots",
+            "Warm custom pilots",
+            "attention" if custom_pilot.get("warm_count", 0) and not custom_pilot.get("packet_count", 0) else "active" if custom_pilot.get("warm_count", 0) else "needs-input",
+            f"{custom_pilot.get('warm_count', 0)} warm/custom opportunity path(s), {custom_pilot.get('packet_count', 0)} pilot packet(s).",
+            {
+                "warm_count": custom_pilot.get("warm_count", 0),
+                "packet_count": custom_pilot.get("packet_count", 0),
+                "service_counts": custom_pilot.get("service_counts") or {},
+            },
+            "Convert warm/direct interest into one narrow paid pilot packet and draft reply before spending effort on generic outreach.",
+        ),
+        lane(
             "venture-growth",
             "Venture growth pipeline",
             "active" if venture.get("report_exists") and venture.get("work_item_count", 0) else "attention",
@@ -597,6 +626,7 @@ def build_work_items(
     trader: dict[str, Any],
     crypto: dict[str, Any],
     venture: dict[str, Any],
+    custom_pilot: dict[str, Any],
 ) -> list[dict[str, Any]]:
     items: list[dict[str, Any]] = []
     watchdog_findings = watchdog.get("findings") or []
@@ -715,6 +745,18 @@ def build_work_items(
             f"Advance {action.get('wedge_name') or 'service wedge'}",
             str(action.get("action") or "No action text recorded."),
             "Turn this into a proof asset, prospect list, template update, or control-panel task.",
+            "stage-only",
+        ))
+
+    if custom_pilot.get("warm_count", 0):
+        next_actions = custom_pilot.get("next_actions") if isinstance(custom_pilot.get("next_actions"), list) else []
+        top = next_actions[0] if next_actions else {}
+        items.append(work_item(
+            1 if not custom_pilot.get("packet_count", 0) else 3,
+            "custom-pilots",
+            "Advance warm custom-pilot path",
+            f"{custom_pilot.get('warm_count', 0)} warm/custom opportunity path(s) are tracked; {custom_pilot.get('packet_count', 0)} custom packet(s) are ready.",
+            str(top.get("next_action") or "Refresh custom-pilot packets and prepare one narrow paid-pilot reply draft."),
             "stage-only",
         ))
 
@@ -887,9 +929,10 @@ def build_report() -> dict[str, Any]:
     trader = trader_summary()
     crypto = crypto_lab_summary()
     venture = venture_pipeline_summary()
+    custom_pilot = custom_pilot_pipeline_summary()
     quotas = build_quotas(policy, queues, inbox, sent, followups, watchdog, )
-    lanes = build_lanes(queues, inbox, leads, followups, copywriter, board, voice, watchdog, interop, trader, crypto, venture, policy, quotas)
-    work_items = build_work_items(queues, inbox, followups, copywriter, board, voice, watchdog, interop, policy, trader, crypto, venture)
+    lanes = build_lanes(queues, inbox, leads, followups, copywriter, board, voice, watchdog, interop, trader, crypto, venture, custom_pilot, policy, quotas)
+    work_items = build_work_items(queues, inbox, followups, copywriter, board, voice, watchdog, interop, policy, trader, crypto, venture, custom_pilot)
     blockers = [
         item for item in work_items
         if int(item.get("priority") or 99) <= 1 or item.get("blocked_by")
@@ -930,6 +973,7 @@ def build_report() -> dict[str, Any]:
             },
             "revenue": revenue,
             "venture_pipeline": venture,
+            "custom_pilot_pipeline": custom_pilot,
             "voice": voice,
             "watchdog": {
                 "state_age_seconds": age_seconds_from_iso(watchdog.get("generated_at")) if isinstance(watchdog, dict) else None,

@@ -12,7 +12,8 @@
     "ops/agent-control/state/latest-egg-agent.md",
     "ops/agent-control/tasks/pending",
     "ops/agent-control/state/codex-escalation-requests",
-    "ops/agent-control/state/latest-lead-quality-audit.json"
+    "ops/agent-control/state/latest-lead-quality-audit.json",
+    "ops/agent-control/state/latest-custom-pilot-pipeline.json"
   ],
   "data_sources": [
     "ops/agent-control/state",
