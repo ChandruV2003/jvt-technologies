@@ -1,6 +1,6 @@
 # Venture Scout Index
 
-Generated: 2026-07-11T03:51:09+00:00
+Generated: 2026-07-11T06:00:24+00:00
 
 - [Venture Scout: Insurance COI And Service-Request Triage](2026-06-11-insurance-coi-service-request-triage.md)
 - [Venture Scout: YouTube And Instagram Content Automation](2026-06-11-youtube-instagram-content-automation.md)

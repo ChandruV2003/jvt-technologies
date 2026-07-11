@@ -1,6 +1,6 @@
 # Offer Segment Review
 
-Generated: 2026-07-11T03:51:09+00:00
+Generated: 2026-07-11T06:00:24+00:00
 
 Status: internal segmentation only. This is not a send list.
 

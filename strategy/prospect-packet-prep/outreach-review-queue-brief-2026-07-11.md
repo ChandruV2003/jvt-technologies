@@ -1,11 +1,11 @@
 # Outreach Review Queue Brief
 
-Generated: 2026-07-11T03:51:09+00:00
+Generated: 2026-07-11T06:05:23+00:00
 
 Status: internal QA only. This file does not approve packets or authorize external delivery.
 
-- Review packets: `68`
-- Initial packets: `60`
+- Review packets: `70`
+- Initial packets: `62`
 - Follow-up packets: `8`
 
 ## Review Rules
