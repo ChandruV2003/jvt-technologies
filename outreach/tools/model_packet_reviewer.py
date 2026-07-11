@@ -120,6 +120,47 @@ def mlx_generate(prompt: str) -> dict[str, Any]:
     }
 
 
+def router_generate(prompt: str) -> dict[str, Any]:
+    if not model_configured():
+        return {"available": False, "reason": "JVT_PACKET_REVIEW_MODEL_ENABLED disabled"}
+    host = (
+        os.environ.get("JVT_PACKET_REVIEW_ROUTER_HOST")
+        or os.environ.get("JVT_MODEL_ROUTER_HOST")
+        or "http://127.0.0.1:8760"
+    ).rstrip("/")
+    timeout_seconds = float(os.environ.get("JVT_PACKET_REVIEW_TIMEOUT_SECONDS") or "120")
+    num_predict = int(os.environ.get("JVT_PACKET_REVIEW_NUM_PREDICT") or "110")
+    request = urllib.request.Request(
+        f"{host}/v1/chat/completions",
+        data=json.dumps(
+            {
+                "jvt_task_type": "recipient_quality",
+                "messages": [{"role": "user", "content": prompt}],
+                "stream": False,
+                "temperature": 0.0,
+                "max_tokens": num_predict,
+            }
+        ).encode("utf-8"),
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
+            data = json.loads(response.read().decode("utf-8"))
+    except (OSError, urllib.error.URLError, json.JSONDecodeError) as exc:
+        return {"available": False, "backend": "model-router", "reason": str(exc)}
+    choices = data.get("choices") or []
+    message = ((choices[0] or {}).get("message") or {}) if choices else {}
+    route = data.get("jvt_router") if isinstance(data.get("jvt_router"), dict) else {}
+    return {
+        "available": True,
+        "backend": route.get("backend") or "model-router",
+        "model": route.get("model"),
+        "router": route,
+        "response": str(message.get("content") or "").strip(),
+    }
+
+
 def ollama_generate(prompt: str) -> dict[str, Any]:
     if not model_configured():
         return {"available": False, "reason": "JVT_PACKET_REVIEW_MODEL_ENABLED disabled"}
@@ -159,8 +200,22 @@ def ollama_generate(prompt: str) -> dict[str, Any]:
 
 
 def model_generate(prompt: str) -> dict[str, Any]:
-    if os.environ.get("JVT_PACKET_REVIEW_BACKEND", "mlx").strip().lower() == "ollama":
+    backend = os.environ.get("JVT_PACKET_REVIEW_BACKEND", "router").strip().lower()
+    if backend == "ollama":
         return ollama_generate(prompt)
+    if backend == "router":
+        result = router_generate(prompt)
+        if result.get("available"):
+            return result
+        fallback = mlx_generate(prompt)
+        if fallback.get("available"):
+            fallback["fallback_from"] = result
+            return fallback
+        ollama = ollama_generate(prompt)
+        if ollama.get("available"):
+            ollama["fallback_from"] = result
+            return ollama
+        return result
     result = mlx_generate(prompt)
     if result.get("available"):
         return result
@@ -193,8 +248,8 @@ def review_packet(payload: dict[str, Any], reasons: list[str], packet_type: str)
             "The deterministic hard safety gates already passed before this prompt. You are reviewing only soft hold reasons.",
             "Approve borderline outreach packets when the structured fields show a real target customer and the hold reason is only a soft naming/formatting concern.",
             "Hold if the business still does not look like a real target customer, the recipient looks unrelated, the copy is spammy, or facts are uncertain.",
-            "Target customers: law firms, accounting/tax firms, title/mortgage services, property management, construction/contracting, and adjacent document-heavy service businesses.",
-            "Treat the industry field as useful evidence, not as a guarantee. A company name containing Law, Legal, CPA, Tax, Accounting, Title, Mortgage, Property, Construction, or Contracting is useful supporting evidence.",
+            "Target customers: dental/healthcare admin teams, IT/ballot/election-service operators, home-service companies, law firms, accounting/tax firms, title/mortgage services, property management, construction/contracting, insurance/service-request teams, and adjacent document-heavy or intake-heavy service businesses.",
+            "Treat the industry field as useful evidence, not as a guarantee. A company name containing Dental, Dentistry, Clinic, Law, Legal, CPA, Tax, Accounting, Title, Mortgage, Property, Construction, Contracting, Plumbing, HVAC, Electrical, Insurance, Ballot, Election, AV, or IT is useful supporting evidence.",
             "Soft reasons you should normally approve: awkward but plausible company name, trailing punctuation, overly cautious generic-name pattern, likely unnormalized CPA capitalization, or long but real company name.",
             "If the only concerns are soft naming reasons and the company_name or industry clearly indicates a target customer, return approve=true with confidence 80-90.",
             "Return only JSON with keys: approve boolean, confidence integer 0-100, reason short string.",

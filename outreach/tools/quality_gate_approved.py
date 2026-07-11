@@ -36,6 +36,7 @@ EXACT_BAD_NAMES = {
     "tax advisory services",
     "property management",
     "academy of general dentistry",
+    "dentist in fort myers, fl",
 }
 
 GENERIC_PATTERNS = [
@@ -49,6 +50,9 @@ GENERIC_PATTERNS = [
     re.compile(r"\baccounting payroll tax\b", re.I),
     re.compile(r"\bcpa accounting payroll tax\b", re.I),
     re.compile(r"\bmortgage broker in\b", re.I),
+    re.compile(r"\b(?:dentist|doctor|chiropractor|plumber|plumbing|hvac|electrician|mortgage broker|lawyer|attorney|clinic|accountant|cpa)\s+in\b", re.I),
+    re.compile(r"\b(?:top|best|top-rated|near me)\b", re.I),
+    re.compile(r"\bservices?\s+in\s+[a-z ,]+$", re.I),
     re.compile(r"\b[a-z]+,?\s+[a-z]+ bookkeeping\b", re.I),
     re.compile(r"\bcontact\b", re.I),
     re.compile(r"\s[-|–—]\s*$", re.I),

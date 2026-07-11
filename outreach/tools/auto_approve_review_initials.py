@@ -38,8 +38,11 @@ BLOCKED_LOCAL_PARTS = {
 }
 GENERIC_NAME_PATTERNS = [
     re.compile(r"^top\s+", re.I),
+    re.compile(r"\b(?:top|best|top-rated|near me)\b", re.I),
     re.compile(r"\b(home|contact|about|splash)\s+page\b", re.I),
     re.compile(r"\bcpa\s+firm\s+in\b", re.I),
+    re.compile(r"\b(?:dentist|doctor|chiropractor|plumber|plumbing|hvac|electrician|mortgage broker|lawyer|attorney|clinic|accountant|cpa)\s+in\b", re.I),
+    re.compile(r"\bservices?\s+in\s+[a-z ,]+$", re.I),
     re.compile(r"\b(accounting|cpa|law)\s+firm\s+for\b", re.I),
     re.compile(r"\bwebsites?\b", re.I),
     re.compile(r"\boutsourc", re.I),

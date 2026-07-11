@@ -4,8 +4,10 @@
   "default_backend": "m4-mlx",
   "task_routes": {
     "triage": "m4-mlx",
-    "lead_scoring": "m4-mlx",
-    "outreach_copy": "m4-mlx",
+    "lead_scoring": "macbook-large-local",
+    "outreach_copy": "macbook-large-local",
+    "packet_review": "macbook-large-local",
+    "recipient_quality": "macbook-large-local",
     "status_summary": "m4-mlx",
     "strategy": "macbook-large-local",
     "deep_research": "macbook-large-local",

@@ -243,10 +243,15 @@ def proxy_chat(config: dict[str, Any], payload: dict[str, Any]) -> tuple[int, di
             "status": code,
             "detail": body,
         }
+    route_meta = {
+        "backend": backend_name,
+        "model": backend.get("model") or "",
+        "selected_at": utc_now(),
+    }
     if isinstance(body, dict):
-        body.setdefault("jvt_router", {"backend": backend_name, "selected_at": utc_now()})
+        body.setdefault("jvt_router", route_meta)
         return int(code or 200), body
-    return int(code or 200), {"response": body, "jvt_router": {"backend": backend_name, "selected_at": utc_now()}}
+    return int(code or 200), {"response": body, "jvt_router": route_meta}
 
 
 class Handler(BaseHTTPRequestHandler):
