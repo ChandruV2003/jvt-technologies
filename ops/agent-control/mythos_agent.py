@@ -168,6 +168,30 @@ def parse_iso_age_seconds(value: Any) -> int | None:
     return max(0, int((datetime.now(timezone.utc) - parsed.astimezone(timezone.utc)).total_seconds()))
 
 
+def as_count(value: Any) -> int:
+    if value is None:
+        return 0
+    if isinstance(value, bool):
+        return int(value)
+    if isinstance(value, (int, float)):
+        return int(value)
+    if isinstance(value, (list, tuple, set, dict)):
+        return len(value)
+    if isinstance(value, str):
+        text = value.strip()
+        if not text:
+            return 0
+        try:
+            return int(float(text))
+        except ValueError:
+            try:
+                parsed = json.loads(text)
+            except json.JSONDecodeError:
+                return 0
+            return as_count(parsed)
+    return 0
+
+
 def task_counts() -> dict[str, int]:
     return {name: count_json(TASK_ROOT / name) for name in TASK_DIRS}
 
@@ -420,7 +444,7 @@ def deterministic_candidates(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
         items.append(candidate("priority_packet_review_queue", "Refresh priority packet review queue so QA focuses on the most likely revenue paths.", cadence="six-hour", priority=2, feature="outreach-quality", reason="large review backlog"))
     if snapshot.get("followup_review_count", 0) > 0 or int(quotas.get("eligible_followups") or 0) > 0:
         items.append(candidate("followup_review_brief", "Create strict no-reply follow-up review brief.", cadence="six-hour", priority=2, feature="followups", reason="follow-up work exists"))
-    if int(lead.get("new_leads_added") or 0) <= 1 or int(lead.get("drafts_created") or 0) <= 1:
+    if as_count(lead.get("new_leads_added")) <= 1 or as_count(lead.get("drafts_created")) <= 1:
         items.append(candidate(
             "vertical_lead_research_refresh",
             "Run a higher-intent lead research pass for active service lanes.",

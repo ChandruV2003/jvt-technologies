@@ -1,6 +1,6 @@
 # JVT $10k Execution Digest
 
-Generated: 2026-07-10T23:40:37+00:00
+Generated: 2026-07-11T02:15:20+00:00
 
 Target: `$10,000 gross cash collected by 2027-03-31`
 
@@ -21,8 +21,8 @@ The fastest path remains service-led: sell narrow paid pilots using proof assets
 - Venture pipeline status: `ready`
 - Ranked opportunities: `11`
 - Top opportunity: `JVT productized services`
-- EOM generated: `2026-07-10T23:40:35+00:00`
-- Local runner pending remaining: `5`
+- EOM generated: `2026-07-11T02:15:05+00:00`
+- Local runner pending remaining: `3`
 
 ## Approval-Gated Actions
 
