@@ -9,6 +9,7 @@ import urllib.parse
 from datetime import datetime
 from pathlib import Path
 
+from recipient_quality import evidence_gate, stamp_evidence
 
 ROOT = Path("/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies")
 QUEUE_ROOT = ROOT / "outreach" / "queue"
@@ -37,6 +38,7 @@ EXACT_BAD_NAMES = {
     "property management",
     "academy of general dentistry",
     "dentist in fort myers, fl",
+    "mycalculators.us – free finance, health & academic calculators",
 }
 
 GENERIC_PATTERNS = [
@@ -53,6 +55,7 @@ GENERIC_PATTERNS = [
     re.compile(r"\b(?:dentist|doctor|chiropractor|plumber|plumbing|hvac|electrician|mortgage broker|lawyer|attorney|clinic|accountant|cpa)\s+in\b", re.I),
     re.compile(r"\b(?:top|best|top-rated|near me)\b", re.I),
     re.compile(r"\bservices?\s+in\s+[a-z ,]+$", re.I),
+    re.compile(r"\b(calculators?|free\s+(?:finance|health|academic)|online\s+tools?)\b", re.I),
     re.compile(r"\b[a-z]+,?\s+[a-z]+ bookkeeping\b", re.I),
     re.compile(r"\bcontact\b", re.I),
     re.compile(r"\s[-|–—]\s*$", re.I),
@@ -306,6 +309,13 @@ def classify(path: Path) -> dict[str, object]:
         score -= 80
     if "Logistics / Transportation" in practice and "Law Firm" not in industry:
         score -= 10
+    evidence_reasons, evidence = evidence_gate(data)
+    if evidence_reasons:
+        reasons.extend(evidence_reasons)
+        score -= 90
+    else:
+        stamp_evidence(data, evidence)
+        path.write_text(json.dumps(data, indent=2) + "\n")
 
     decision = "sendable" if score >= 70 and not any(reason.startswith(("invalid", "missing")) for reason in reasons) else "hold"
     return {
@@ -318,6 +328,7 @@ def classify(path: Path) -> dict[str, object]:
         "industry": industry,
         "practice_area": practice,
         "contact_page": contact_page,
+        "recipient_evidence": evidence,
         "generated_at": data.get("generated_at"),
     }
 

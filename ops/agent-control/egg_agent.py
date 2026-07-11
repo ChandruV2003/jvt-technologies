@@ -21,6 +21,8 @@ QUEUE_ROOT = REPO_ROOT / "outreach" / "queue"
 INBOX_ROOT = REPO_ROOT / "outreach" / "inbox"
 LEAD_RESEARCH_STATUS = REPO_ROOT / "lead-pipeline" / "state" / "auto-research-status.json"
 WATCHDOG_STATE = REPO_ROOT / "ops" / "watchdog" / "state" / "latest-watchdog.json"
+CODEX_ESCALATION_STATE = STATE_ROOT / "latest-codex-escalation.json"
+LEAD_QUALITY_AUDIT_STATE = STATE_ROOT / "latest-lead-quality-audit.json"
 VOICE_QUALITY_ROOT = REPO_ROOT / "products" / "Private-AI-Lab" / "apps" / "jvt-inbound-voice-agent" / "voice-quality"
 
 REPORT_JSON = STATE_ROOT / "latest-egg-agent.json"
@@ -36,6 +38,7 @@ SAFE_TASK_TYPES = {
     "business_readiness_sweep",
     "model_router_status",
     "codex_escalation_status",
+    "codex_escalation_request",
     "jvt_ops_db_sync",
     "opportunity_hit_sync",
     "opportunity_manager_refresh",
@@ -45,6 +48,7 @@ SAFE_TASK_TYPES = {
     "voice_readiness_check",
     "local_audio_bridge_next_step",
     "paper_trader_health",
+    "lead_quality_audit",
     "source_hygiene_report",
     "system_resource_report",
     "inbox_triage_brief",
@@ -77,8 +81,10 @@ MODEL_ACCEPTED_TASK_TYPES = {
     "source_hygiene_report",
     "system_resource_report",
     "paper_trader_health",
+    "lead_quality_audit",
     "voice_readiness_check",
     "local_audio_bridge_next_step",
+    "codex_escalation_request",
 }
 
 APPROVAL_GATED_PATTERNS = {
@@ -280,6 +286,8 @@ def build_snapshot() -> dict[str, Any]:
     runner = load_json(STATE_ROOT / "latest-local-task-runner.json", {})
     watchdog = load_json(WATCHDOG_STATE, {})
     model_router = load_json(STATE_ROOT / "latest-model-router.json", {})
+    codex_escalation = load_json(CODEX_ESCALATION_STATE, {})
+    lead_quality = load_json(LEAD_QUALITY_AUDIT_STATE, {})
     ops_db = load_json(STATE_ROOT / "latest-jvt-ops-db.json", {})
     opportunity = load_json(STATE_ROOT / "latest-opportunity-manager.json", {})
     voice = load_json(STATE_ROOT / "latest-voice-readiness.json", {})
@@ -336,6 +344,19 @@ def build_snapshot() -> dict[str, Any]:
             "age_seconds": parse_iso_age_seconds(model_router.get("generated_at")),
             "ok": model_router.get("ok"),
             "available_backends": model_router.get("available_backends"),
+        },
+        "codex_escalation": {
+            "generated_at": codex_escalation.get("generated_at"),
+            "age_seconds": parse_iso_age_seconds(codex_escalation.get("generated_at")),
+            "ok": codex_escalation.get("ok"),
+            "enabled": codex_escalation.get("enabled"),
+            "usage": codex_escalation.get("usage"),
+            "policy": codex_escalation.get("policy"),
+        },
+        "lead_quality": {
+            "generated_at": lead_quality.get("generated_at"),
+            "age_seconds": parse_iso_age_seconds(lead_quality.get("generated_at")),
+            "sections": lead_quality.get("sections"),
         },
         "ops_db": {
             "generated_at": ops_db.get("generated_at"),
@@ -423,6 +444,9 @@ def deterministic_candidates(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
     voice = snapshot["voice"]
     materializer = snapshot["materializer"]
     artifacts = snapshot["artifact_ages"]
+    lead_quality = snapshot.get("lead_quality") if isinstance(snapshot.get("lead_quality"), dict) else {}
+    lead_quality_sections = lead_quality.get("sections") if isinstance(lead_quality.get("sections"), dict) else {}
+    approved_quality = lead_quality_sections.get("approved") if isinstance(lead_quality_sections.get("approved"), dict) else {}
 
     if tasks.get("pending", 0) == 0 and (snapshot["orchestrator"].get("work_item_count") or 0) > 0:
         items.append(candidate("work_item_materializer", "Convert current orchestrator work items into executable internal tasks.", cadence="hourly", priority=1, feature="company-autonomy", reason="orchestrator has work items and pending queue is empty", dedupe_key="work-items"))
@@ -430,8 +454,14 @@ def deterministic_candidates(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
         items.append(candidate("business_readiness_sweep", "Refresh company readiness after watchdog findings.", cadence="hourly", priority=1, feature="ops-health", reason="watchdog finding"))
     if snapshot["model_router"].get("ok") is not True:
         items.append(candidate("model_router_status", "Refresh model router readiness because model routing is not healthy.", cadence="hourly", priority=1, feature="model-runtime", reason="model router not ok"))
+    if snapshot["codex_escalation"].get("ok") is not True or (snapshot["codex_escalation"].get("age_seconds") or 999999) > 3600:
+        items.append(candidate("codex_escalation_status", "Refresh Codex CLI escalation readiness, caps, auth, and context-pack policy.", cadence="hourly", priority=1, feature="codex-governance", reason="codex escalation stale or unhealthy"))
     if snapshot["ops_db"].get("ok") is not True or (snapshot["ops_db"].get("age_seconds") or 999999) > 3600:
         items.append(candidate("jvt_ops_db_sync", "Sync durable JVT ops database state.", cadence="hourly", priority=2, feature="company-memory", reason="ops database stale or unhealthy"))
+    if int(approved_quality.get("hold") or 0) > 0:
+        items.append(candidate("lead_quality_audit", "Refresh lead quality audit because approved packets are failing recipient evidence.", cadence="hourly", priority=1, feature="outreach-quality", reason="approved recipient evidence failure"))
+    elif (lead_quality.get("age_seconds") or 999999) > 3600:
+        items.append(candidate("lead_quality_audit", "Refresh read-only lead and recipient quality audit.", cadence="hourly", priority=2, feature="outreach-quality", reason="lead quality audit stale"))
     if (materializer.get("unmatched_count") or 0) > 0:
         items.append(candidate("service_pilot_package_refresh", "Refresh pilot packages because some orchestrator work items were not mapped cleanly.", cadence="six-hour", priority=2, feature="company-autonomy", reason="unmatched materializer work items", dedupe_key="unmatched-materializer"))
     if (snapshot["orchestrator"].get("age_seconds") or 999999) > 2700:
@@ -454,6 +484,38 @@ def deterministic_candidates(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
             reason="lead research is weak or starved",
             payload={"lanes": ["dental_voice", "it_ballot", "local_receptionist", "insurance", "property", "construction"], "queries_per_run": 8, "results_per_query": 10, "max_new_leads": 8, "draft_limit": 4},
         ))
+    usage = snapshot["codex_escalation"].get("usage") if isinstance(snapshot["codex_escalation"].get("usage"), dict) else {}
+    remaining = usage.get("remaining") if isinstance(usage.get("remaining"), dict) else {}
+    has_codex_budget = snapshot["codex_escalation"].get("ok") is True and int(remaining.get("total_execute") or 0) > 0
+    high_value_codex_need = (
+        queues.get("review", 0) >= 60
+        or tasks.get("failed", 0) >= 5
+        or int(snapshot["watchdog"].get("finding_count") or 0) > 0
+        or bool(snapshot["opportunity_manager"].get("response_needed_count"))
+    )
+    if has_codex_budget and high_value_codex_need:
+        items.append(candidate(
+            "codex_escalation_request",
+            "Route one high-context JVT systems question to Codex CLI for a stronger read on the next bottleneck to fix.",
+            cadence="hourly",
+            priority=2,
+            feature="codex-governance",
+            reason="high-value system bottleneck with Codex budget available",
+            dedupe_key="hourly-high-context-codex-system-review",
+            payload={
+                "execute_codex": True,
+                "model": "gpt-5.5",
+                "reasoning_effort": "medium",
+                "sandbox": "read-only",
+                "codex_prompt": (
+                    "Review the current JVT Technologies system state and identify the single highest-leverage internal improvement "
+                    "that would increase qualified outreach quality, pipeline autonomy, or speed toward the March 2027 $10k cash-flow goal. "
+                    "Use the packed context, inspect repository/state files as needed, and return a precise implementation recommendation. "
+                    "Do not perform or recommend external sends, spending, financial actions, live trading, public posting, applications, "
+                    "or third-party commitments."
+                ),
+            },
+        ))
     if voice.get("demo_ready") and not voice.get("live_ready"):
         items.append(candidate("local_audio_bridge_next_step", "Advance local audio bridge readiness while live routing stays disabled.", cadence="hourly", priority=2, feature="voice-intake", reason="voice demo ready but live bridge not ready"))
     sample_state = voice.get("sample_state") if isinstance(voice.get("sample_state"), dict) else {}
@@ -473,6 +535,7 @@ def deterministic_candidates(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
         candidate("ten_k_execution_digest", "Refresh the $10k execution digest and next-action focus.", cadence="daily", priority=5, feature="10k-goal", reason="cash-flow target cadence"),
         candidate("venture_scout_index", "Refresh venture scout index for practical revenue options.", cadence="daily", priority=5, feature="venture-research", reason="venture scout cadence"),
         candidate("paper_trader_health", "Refresh paper-only trader health and keep it research-only.", cadence="six-hour", priority=5, feature="paper-trading", reason="paper research visibility"),
+        candidate("lead_quality_audit", "Refresh lead quality audit so targeting drift remains visible.", cadence="six-hour", priority=5, feature="outreach-quality", reason="quality visibility"),
         candidate("source_hygiene_report", "Refresh source hygiene so generated changes remain visible.", cadence="six-hour", priority=5, feature="repo-hygiene", reason="source visibility"),
         candidate("system_resource_report", "Refresh M4 resource and TCP readiness report.", cadence="hourly", priority=5, feature="ops-health", reason="system visibility"),
     ])
@@ -572,7 +635,7 @@ def build_task(candidate_item: dict[str, Any], task_id: str) -> dict[str, Any]:
         "feature": candidate_item.get("feature") or "company-autonomy",
         "level": "story" if candidate_item["type"] in {"vertical_lead_research_refresh", "service_pilot_package_refresh", "local_audio_bridge_next_step"} else "task",
         "model_tier": "m4-local-with-macbook-large-available" if "model-suggested" in str(candidate_item.get("reason") or "") else "deterministic",
-        "self_review": "strict" if candidate_item["type"] in {"vertical_lead_research_refresh", "local_audio_bridge_next_step", "priority_packet_review_queue"} else "standard",
+        "self_review": "strict" if candidate_item["type"] in {"vertical_lead_research_refresh", "local_audio_bridge_next_step", "priority_packet_review_queue", "lead_quality_audit"} else "standard",
         "source_reason": candidate_item.get("reason") or "",
         "source_agent": "egg",
         "safety_boundary": SAFETY_BOUNDARY,

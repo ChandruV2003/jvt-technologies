@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Any
 
 from send_cap_policy import resolve_send_caps
+from recipient_quality import evidence_gate
 
 ROOT = Path(__file__).resolve().parents[2]
 OUTREACH_ROOT = ROOT / "outreach"
@@ -267,6 +268,8 @@ def conservative_hold_reasons(payload: dict[str, Any]) -> list[str]:
         reasons.append("marketing headline instead of company name")
     if len(name.split()) > 8:
         reasons.append("company name too long to trust without enrichment")
+    evidence_reasons, _evidence = evidence_gate(payload)
+    reasons.extend(evidence_reasons)
     return reasons
 
 

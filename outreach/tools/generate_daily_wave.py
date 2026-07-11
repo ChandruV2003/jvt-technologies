@@ -7,8 +7,12 @@ import json
 import re
 import sqlite3
 import subprocess
+import sys
 from datetime import date, datetime
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from recipient_quality import evidence_gate, lead_payload
 
 
 ROOT = Path("/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies")
@@ -157,7 +161,14 @@ def lead_rejection_reasons(row: sqlite3.Row, skip_ids: set[int], min_fit_score: 
         reasons.append("fictional/test lead")
     if not allow_enterprise and any(term in company_lower for term in BIG_ENTERPRISE_TERMS):
         reasons.append("too enterprise/big-firm for early outreach")
+    evidence_reasons, _ = evidence_gate(lead_payload(row))
+    reasons.extend(f"recipient_quality:{reason}" for reason in evidence_reasons)
     return reasons
+
+
+def recipient_evidence_for_row(row: sqlite3.Row) -> dict[str, object]:
+    _, evidence = evidence_gate(lead_payload(row))
+    return evidence
 
 
 def select_leads(
@@ -282,6 +293,7 @@ def write_schedule_files(
             "min_fit_score": min_fit_score,
             "requires_valid_email": True,
             "requires_practice_area": True,
+            "requires_recipient_evidence_pass": True,
             "excludes_already_queued_or_sent": True,
             "excludes_fictional_test_leads": True,
             "excludes_big_enterprise_targets": True,
@@ -301,6 +313,7 @@ def write_schedule_files(
                 "fit_score": row["fit_score"],
                 "practice_area": row["practice_area"],
                 "city_state": row["city_state"],
+                "recipient_evidence": recipient_evidence_for_row(row),
             }
             for row in rows
         ],
@@ -321,6 +334,7 @@ def write_schedule_files(
         f"- Minimum fit score: {min_fit_score}",
         "- Requires valid non-placeholder email",
         "- Requires practice-area metadata for personalization",
+        "- Requires shared recipient-evidence pass before packet generation",
         "- Excludes already queued or previously sent leads",
         "- Excludes fictional/test leads",
         "- Excludes broad enterprise targets for early outreach",

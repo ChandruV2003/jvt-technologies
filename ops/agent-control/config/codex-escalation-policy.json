@@ -5,9 +5,22 @@
   "default_reasoning_effort": "medium",
   "default_sandbox": "read-only",
   "daily_caps": {
-    "total_execute": 8,
-    "gpt-5.5": 5,
-    "high_or_xhigh": 2
+    "total_execute": 20,
+    "gpt-5.5": 20,
+    "high_or_xhigh": 4
+  },
+  "context_pack": {
+    "enabled": true,
+    "min_packed_prompt_chars": 1800,
+    "max_state_chars": 18000,
+    "required_sections": [
+      "Objective",
+      "Current State",
+      "Relevant Artifacts",
+      "Safety Boundaries",
+      "Acceptance Criteria",
+      "Original Ask"
+    ]
   },
   "allowed_sandboxes": [
     "read-only",
@@ -33,5 +46,5 @@
     "stripe",
     "wire transfer"
   ],
-  "notes": "Wrapper only. It does not execute Codex unless --execute is passed and all caps/policy checks pass."
+  "notes": "Wrapper only. It does not execute Codex unless --execute is passed and all caps/policy/context checks pass. Every prompt is auto-packed with JVT state, artifacts, safety boundaries, and acceptance criteria."
 }

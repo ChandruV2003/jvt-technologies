@@ -19,6 +19,9 @@ from typing import Iterable
 from urllib.parse import parse_qs, quote_plus, unquote, urljoin, urlparse
 from urllib.request import Request, urlopen
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "outreach" / "tools"))
+from recipient_quality import evidence_gate, lead_payload
+
 
 USER_AGENT = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
@@ -1624,6 +1627,7 @@ def write_status(
     drafted: list[str],
     model_screen_runs: list[dict],
     drop_reasons: dict[str, int] | None = None,
+    recipient_gate_samples: dict[str, list[dict[str, object]]] | None = None,
 ) -> None:
     status_path.parent.mkdir(parents=True, exist_ok=True)
     generated_at = datetime.now().isoformat(timespec="seconds")
@@ -1651,6 +1655,7 @@ def write_status(
         ],
         "drafts_created": drafted,
         "drop_reasons": dict(sorted((drop_reasons or {}).items())),
+        "recipient_gate_samples": recipient_gate_samples or {"passed": [], "held": []},
     }
     write_json(status_path.with_suffix(".json"), status_json)
     lines = [
@@ -1690,6 +1695,17 @@ def write_status(
     if drop_reasons:
         lines.extend(f"- {reason}: {count}" for reason, count in sorted(drop_reasons.items(), key=lambda item: (-item[1], item[0])))
     else:
+        lines.append("- none")
+    samples = recipient_gate_samples or {"passed": [], "held": []}
+    lines.extend(["", "recipient_gate_pass_samples:"])
+    for item in samples.get("passed", [])[:10]:
+        lines.append(f"- {item.get('company_name')} - {item.get('recipient_email')} - {item.get('recipient_kind')}")
+    if not samples.get("passed"):
+        lines.append("- none")
+    lines.extend(["", "recipient_gate_hold_samples:"])
+    for item in samples.get("held", [])[:10]:
+        lines.append(f"- {item.get('company_name')} - {item.get('recipient_email')} - {', '.join(item.get('reasons') or [])}")
+    if not samples.get("held"):
         lines.append("- none")
     status_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
@@ -1739,6 +1755,7 @@ def main() -> None:
 
     candidates: list[dict[str, str]] = []
     drop_reasons: Counter[str] = Counter()
+    recipient_gate_samples: dict[str, list[dict[str, object]]] = {"passed": [], "held": []}
     for picked_query in queries:
         lane = picked_query["lane"]
         query = picked_query["query"]
@@ -1823,6 +1840,23 @@ def main() -> None:
                 "follow_up_status": "none",
                 "last_touched_date": "",
             }
+            evidence_reasons, evidence = evidence_gate(lead_payload(row))
+            sample = {
+                "company_name": company_name,
+                "recipient_email": public_email,
+                "source_url": contact_page or homepage,
+                "recipient_kind": evidence.get("recipient_kind"),
+                "reasons": evidence_reasons,
+            }
+            if evidence_reasons:
+                for reason in evidence_reasons:
+                    drop_reasons[f"recipient_quality:{reason}"] += 1
+                if len(recipient_gate_samples["held"]) < 20:
+                    recipient_gate_samples["held"].append(sample)
+                seen_domains.add(host)
+                continue
+            if len(recipient_gate_samples["passed"]) < 20:
+                recipient_gate_samples["passed"].append(sample)
             candidates.append(row)
             existing_hosts.add(host)
             existing_names.add(company_key)
@@ -1868,6 +1902,7 @@ def main() -> None:
         drafted=drafted,
         model_screen_runs=model_screen_runs,
         drop_reasons=drop_reasons,
+        recipient_gate_samples=recipient_gate_samples,
     )
     print(f"queries={len(queries)} candidates={len(candidates)} added={len(added)} total_leads={total_leads}")
     if csv_path:

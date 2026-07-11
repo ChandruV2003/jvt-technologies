@@ -1111,6 +1111,58 @@ def codex_escalation_status(_task: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def codex_escalation_request(task: dict[str, Any]) -> dict[str, Any]:
+    task_id = str(task.get("id") or f"codex-{today_slug()}")
+    timeout_seconds = int(task.get("timeout_seconds") or 1200)
+    prompt_root = STATE_ROOT / "codex-escalation-requests"
+    prompt_root.mkdir(parents=True, exist_ok=True)
+    prompt_path = prompt_root / f"{task_id}.md"
+    raw_prompt = str(task.get("codex_prompt") or task.get("goal") or "").strip()
+    prompt_path.write_text("\n".join([
+        "# Egg Codex Escalation Ask",
+        "",
+        f"- Task ID: `{task_id}`",
+        f"- Feature: `{task.get('feature') or ''}`",
+        f"- Source reason: `{task.get('source_reason') or ''}`",
+        f"- Goal: {task.get('goal') or ''}",
+        "",
+        "## Ask",
+        raw_prompt,
+        "",
+    ]), encoding="utf-8")
+    command = [
+        "python3",
+        "ops/agent-control/codex_escalation_runner.py",
+        "run",
+        "--task-id",
+        task_id,
+        "--prompt-file",
+        str(prompt_path),
+        "--model",
+        str(task.get("model") or "gpt-5.5"),
+        "--reasoning-effort",
+        str(task.get("reasoning_effort") or "medium"),
+        "--sandbox",
+        str(task.get("sandbox") or "read-only"),
+        "--timeout-seconds",
+        str(timeout_seconds),
+    ]
+    if task.get("execute_codex") is not False:
+        command.append("--execute")
+    step = run_command("codex_escalation_request", command, timeout=timeout_seconds + 30)
+    return {
+        "ok": bool(step["ok"]),
+        "steps": [step],
+        "artifacts": [
+            str(prompt_path),
+            str(STATE_ROOT / "latest-codex-escalation.json"),
+            str(CONTROL_ROOT / "state" / "codex-escalations" / task_id / "prompt.md"),
+            str(CONTROL_ROOT / "state" / "codex-escalations" / task_id / "result.json"),
+        ],
+        "guardrail": "Routes one packed internal ask through the guarded Codex escalation runner. Runner enforces auth, context-pack, disallowed phrases, sandbox, and 20/day execution caps.",
+    }
+
+
 def jvt_ops_db_sync(_task: dict[str, Any]) -> dict[str, Any]:
     step = run_command("jvt_ops_db_sync", ["python3", "ops/agent-control/jvt_ops_db.py", "sync"], timeout=120)
     return {
@@ -1563,6 +1615,18 @@ def source_hygiene_report(_task: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def lead_quality_audit(_task: dict[str, Any]) -> dict[str, Any]:
+    step = run_command("lead_quality_audit", ["python3", "outreach/tools/lead_quality_audit.py"], timeout=90)
+    return {
+        "ok": bool(step["ok"]),
+        "steps": [step],
+        "artifacts": [
+            str(STATE_ROOT / "latest-lead-quality-audit.json"),
+        ],
+        "guardrail": "Read-only lead and recipient quality audit. No packet approval, send, contact enrichment purchase, deletion, or external action.",
+    }
+
+
 def system_resource_report(_task: dict[str, Any]) -> dict[str, Any]:
     step = report_script("system_resource_report", "system_resource_report.py")
     return {
@@ -1581,6 +1645,7 @@ def business_readiness_sweep(_task: dict[str, Any]) -> dict[str, Any]:
         report_script("opportunity_manager", "opportunity_manager.py"),
         report_script("voice_readiness_check", "voice_readiness_check.py"),
         report_script("paper_trader_health", "paper_trader_health.py"),
+        run_command("lead_quality_audit", ["python3", "outreach/tools/lead_quality_audit.py"], timeout=90),
         report_script("source_hygiene_report", "source_hygiene_report.py"),
         report_script("system_resource_report", "system_resource_report.py"),
         run_command("agent_interop_check", ["python3", "ops/agent-control/agent_interop_check.py"], timeout=90),
@@ -1592,6 +1657,7 @@ def business_readiness_sweep(_task: dict[str, Any]) -> dict[str, Any]:
             str(STATE_ROOT / "latest-opportunity-manager.json"),
             str(STATE_ROOT / "latest-voice-readiness.json"),
             str(STATE_ROOT / "latest-paper-trader-health.json"),
+            str(STATE_ROOT / "latest-lead-quality-audit.json"),
             str(STATE_ROOT / "latest-source-hygiene.json"),
             str(STATE_ROOT / "latest-system-resources.json"),
             str(STATE_ROOT / "latest-agent-interop.json"),
@@ -1649,6 +1715,7 @@ HANDLERS = {
     "codex_cli_version_snapshot": codex_cli_version_snapshot,
     "model_router_status": model_router_status,
     "codex_escalation_status": codex_escalation_status,
+    "codex_escalation_request": codex_escalation_request,
     "jvt_ops_db_sync": jvt_ops_db_sync,
     "opportunity_hit_sync": opportunity_hit_sync,
     "opportunity_manager_refresh": opportunity_manager_refresh,
@@ -1658,6 +1725,7 @@ HANDLERS = {
     "voice_readiness_check": voice_readiness_check,
     "local_audio_bridge_next_step": local_audio_bridge_next_step,
     "paper_trader_health": paper_trader_health,
+    "lead_quality_audit": lead_quality_audit,
     "source_hygiene_report": source_hygiene_report,
     "system_resource_report": system_resource_report,
     "business_readiness_sweep": business_readiness_sweep,

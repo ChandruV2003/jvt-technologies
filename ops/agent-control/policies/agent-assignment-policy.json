@@ -78,9 +78,21 @@
       "model_tier": "deterministic",
       "self_review": "strict"
     },
+    "codex_escalation_request": {
+      "level": "story",
+      "feature": "codex-governance",
+      "model_tier": "codex-cli-capped-via-guarded-runner",
+      "self_review": "strict"
+    },
     "jvt_ops_db_sync": {
       "level": "task",
       "feature": "company-memory",
+      "model_tier": "deterministic",
+      "self_review": "strict"
+    },
+    "lead_quality_audit": {
+      "level": "task",
+      "feature": "outreach-quality",
       "model_tier": "deterministic",
       "self_review": "strict"
     },
@@ -104,8 +116,8 @@
     "self_review": "standard"
   },
   "codex_cli": {
-    "allowed_level": "epic",
+    "allowed_level": "epic-or-guarded-codex-escalation-request",
     "policy_file": "ops/agent-control/policies/epic-agent-policy.json",
-    "note": "Local runner must not invoke Codex CLI. It can only report escalation need into epic specs."
+    "note": "Local runner must not invoke Codex CLI directly. It may only call ops/agent-control/codex_escalation_runner.py for codex_escalation_request tasks; that runner enforces caps, context packing, disallowed phrases, and sandbox."
   }
 }

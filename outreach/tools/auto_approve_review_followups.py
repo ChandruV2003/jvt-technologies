@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from model_packet_reviewer import review_packet
+from recipient_quality import evidence_gate, stamp_evidence
 
 
 ROOT = Path("/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies")
@@ -117,6 +118,11 @@ def rejection_reasons(payload: dict[str, Any]) -> list[str]:
         parsed = urllib.parse.urlparse(contact_page if "://" in contact_page else f"https://{contact_page}")
         if RECRUITING_PATH_RE.search(parsed.path or ""):
             reasons.append("careers/recruiting contact page")
+    evidence_reasons, evidence = evidence_gate(payload)
+    if evidence_reasons:
+        reasons.extend(evidence_reasons)
+    else:
+        stamp_evidence(payload, evidence)
 
     return reasons
 
