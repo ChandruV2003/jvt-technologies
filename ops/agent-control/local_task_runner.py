@@ -1613,16 +1613,34 @@ def work_item_materializer(_task: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def mythos_task_generator(_task: dict[str, Any]) -> dict[str, Any]:
-    step = report_script("mythos_agent", "mythos_agent.py", timeout=120)
+def egg_task_generator(_task: dict[str, Any]) -> dict[str, Any]:
+    step = report_script("egg_agent", "egg_agent.py", timeout=120)
     return {
         "ok": bool(step["ok"]),
         "steps": [step],
         "artifacts": [
-            str(STATE_ROOT / "latest-mythos-agent.json"),
-            str(STATE_ROOT / "latest-mythos-agent.md"),
+            str(STATE_ROOT / "latest-egg-agent.json"),
+            str(STATE_ROOT / "latest-egg-agent.md"),
         ],
         "guardrail": "Generates internal allowlisted tasks from company state and design ethos only. No external outreach delivery, spending, market orders, crypto custody/network participation, public posting, provider enablement, or commitments.",
+    }
+
+
+def agent_repair_escalation(task: dict[str, Any]) -> dict[str, Any]:
+    agent = str(task.get("agent") or "egg")
+    step = run_command(
+        "agent_repair_escalator",
+        ["python3", "ops/agent-control/agent_repair_escalator.py", "--agent", agent, "--force-epic"],
+        timeout=120,
+    )
+    return {
+        "ok": bool(step["ok"]),
+        "steps": [step],
+        "artifacts": [
+            str(STATE_ROOT / "latest-agent-repair.json"),
+            str(STATE_ROOT / "latest-agent-repair.md"),
+        ],
+        "guardrail": "Internal repair triage only. External operations and account/provider actions remain out of scope.",
     }
 
 
@@ -1644,7 +1662,8 @@ HANDLERS = {
     "system_resource_report": system_resource_report,
     "business_readiness_sweep": business_readiness_sweep,
     "work_item_materializer": work_item_materializer,
-    "mythos_task_generator": mythos_task_generator,
+    "egg_task_generator": egg_task_generator,
+    "agent_repair_escalation": agent_repair_escalation,
     "inbox_triage_brief": inbox_triage_brief,
     "outreach_review_queue_brief": outreach_review_queue_brief,
     "followup_review_brief": followup_review_brief,

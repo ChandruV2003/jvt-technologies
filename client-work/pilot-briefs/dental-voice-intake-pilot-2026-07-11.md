@@ -1,6 +1,6 @@
 # Pilot Brief: Dental Office AI Voice Intake
 
-Generated: 2026-07-11T03:00:02+00:00
+Generated: 2026-07-11T03:51:09+00:00
 
 Status: internal planning brief. Do not contact the prospect, enable live calls, connect paid phone-provider usage, process real patient data, or make service commitments from this file.
 

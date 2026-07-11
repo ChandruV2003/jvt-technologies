@@ -54,10 +54,16 @@
       "model_tier": "deterministic",
       "self_review": "strict"
     },
-    "mythos_task_generator": {
+    "egg_task_generator": {
       "level": "feature",
       "feature": "company-autonomy",
       "model_tier": "m4-local-with-macbook-large-available",
+      "self_review": "strict"
+    },
+    "agent_repair_escalation": {
+      "level": "feature",
+      "feature": "ops-health",
+      "model_tier": "m4-local-with-macbook-large-available-plus-codex-capped",
       "self_review": "strict"
     },
     "model_router_status": {

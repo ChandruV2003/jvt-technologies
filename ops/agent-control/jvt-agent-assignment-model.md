@@ -152,25 +152,27 @@ Current outbound caps:
   green.
 - Per-run auto-send cap: `5`.
 
-## Mythos Executive Generator
+## Egg Executive Generator
 
-`mythos_agent.py` is the goal-aware executive work generator. It reads the
+`egg_agent.py` is the goal-aware executive work generator. It reads the
 current company state, JVT design ethos, queue counts, watchdog health, voice
 readiness, lead research, opportunity state, model-router state, proof assets,
 and stale-state signals, then creates only allowlisted internal tasks under
 `ops/agent-control/tasks/pending`.
 
-Mythos is not an external-action agent. It does not send, approve, spend, trade,
+Egg is not an external-action agent. It does not send, approve, spend, trade,
 publish, enable providers, create wallets, submit applications, or make
 commitments. It creates executable internal work for the local task runner or
 leaves larger unclear work for the capped epic path.
 
 Execution paths:
 
-- `com.jvt.mythos-agent` runs Mythos every 15 minutes.
-- `growth_ops_checkin.py` also runs Mythos before invoking the local runner.
-- `ai_director.py` can seed `mythos_task_generator` when Mythos has not produced
+- `com.jvt.egg-agent` runs Egg every 15 minutes.
+- `growth_ops_checkin.py` also runs Egg before invoking the local runner.
+- `ai_director.py` can seed `egg_task_generator` when Egg has not produced
   state yet.
+- `agent_repair_escalator.py` captures agent failures, asks the model router for
+  a repair plan, and queues a capped repair epic when failures repeat.
 
 This gives JVT a loop that continuously asks: what is stale, what is blocked,
 what can advance safely, and what next internal task gets the company closer to

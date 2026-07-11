@@ -24,7 +24,8 @@ VOICE_READINESS_STATE = STATE_ROOT / "latest-voice-readiness.json"
 PAPER_TRADER_HEALTH_STATE = STATE_ROOT / "latest-paper-trader-health.json"
 SOURCE_HYGIENE_STATE = STATE_ROOT / "latest-source-hygiene.json"
 SYSTEM_RESOURCES_STATE = STATE_ROOT / "latest-system-resources.json"
-MYTHOS_STATE = STATE_ROOT / "latest-mythos-agent.json"
+EGG_STATE = STATE_ROOT / "latest-egg-agent.json"
+AGENT_REPAIR_STATE = STATE_ROOT / "latest-agent-repair.json"
 LEAD_RESEARCH_STATUS = ROOT / "lead-pipeline" / "state" / "auto-research-status.json"
 
 
@@ -208,7 +209,8 @@ def build_snapshot() -> dict[str, Any]:
     paper_trader_health = load_json(PAPER_TRADER_HEALTH_STATE, {})
     source_hygiene = load_json(SOURCE_HYGIENE_STATE, {})
     system_resources = load_json(SYSTEM_RESOURCES_STATE, {})
-    mythos = load_json(MYTHOS_STATE, {})
+    egg = load_json(EGG_STATE, {})
+    agent_repair = load_json(AGENT_REPAIR_STATE, {})
     lead_research = load_json(LEAD_RESEARCH_STATUS, {})
     queues = {name: safe_count(ROOT / "outreach" / "queue" / name) for name in ("draft", "review", "approved", "sent", "replied")}
     return {
@@ -317,11 +319,18 @@ def build_snapshot() -> dict[str, Any]:
             "findings": system_resources.get("findings"),
             "tcp": system_resources.get("tcp"),
         },
-        "mythos": {
-            "generated_at": mythos.get("generated_at"),
-            "created_count": mythos.get("created_count"),
-            "skipped_count": mythos.get("skipped_count"),
-            "mode": mythos.get("mode"),
+        "egg": {
+            "generated_at": egg.get("generated_at"),
+            "created_count": egg.get("created_count"),
+            "skipped_count": egg.get("skipped_count"),
+            "mode": egg.get("mode"),
+        },
+        "agent_repair": {
+            "generated_at": agent_repair.get("generated_at"),
+            "agent": agent_repair.get("agent"),
+            "returncode": agent_repair.get("returncode"),
+            "recent_failure_count": agent_repair.get("recent_failure_count"),
+            "codex_epic": agent_repair.get("codex_epic"),
         },
     }
 
@@ -417,11 +426,18 @@ def deterministic_directives(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
             "action": "Materialize current orchestrator work items into allowlisted internal tasks or capped epic specs so detected gaps become executable work.",
             "autonomous": True,
         })
-    if not ((snapshot.get("mythos") or {}).get("generated_at")):
+    if (snapshot.get("agent_repair") or {}).get("returncode") not in {None, 0, "0"}:
+        directives.append({
+            "priority": 2,
+            "lane": "agent-repair",
+            "action": "Run internal repair escalation for the failing background agent so the issue becomes a queued repair packet.",
+            "autonomous": True,
+        })
+    if not ((snapshot.get("egg") or {}).get("generated_at")):
         directives.append({
             "priority": 3,
-            "lane": "mythos",
-            "action": "Run Mythos so company-state gaps generate new allowlisted internal work instead of waiting for manual prompts.",
+            "lane": "egg",
+            "action": "Run Egg so company-state gaps generate new allowlisted internal work instead of waiting for manual prompts.",
             "autonomous": True,
         })
     directives.append({
@@ -478,15 +494,28 @@ def seed_director_tasks(directives: list[dict[str, Any]], *, write: bool) -> lis
                 "approval_boundary": "Create internal tasks/specs only. No external outreach delivery, spending, market orders, crypto custody/network participation, public release, or external commitments.",
             })
             candidates.append(task)
-    if any(item.get("lane") == "mythos" for item in directives):
+    if any(item.get("lane") == "agent-repair" for item in directives):
         task = make_task(
-            f"{hour_bucket}-ai-director-mythos-task-generator",
-            "mythos_task_generator",
-            "AI Director requested Mythos to generate new allowlisted internal work from company state and design ethos.",
+            f"{hour_bucket}-ai-director-agent-repair-escalation",
+            "agent_repair_escalation",
+            "AI Director requested internal repair escalation for a failing background agent.",
         )
         if task:
             task.update({
-                "lane": "mythos",
+                "lane": "agent-repair",
+                "agent": str(((snapshot.get("agent_repair") or {}).get("agent")) or "egg"),
+                "approval_boundary": "Internal repair triage only. No external operations or account/provider actions.",
+            })
+            candidates.append(task)
+    if any(item.get("lane") == "egg" for item in directives):
+        task = make_task(
+            f"{hour_bucket}-ai-director-egg-task-generator",
+            "egg_task_generator",
+            "AI Director requested Egg to generate new allowlisted internal work from company state and design ethos.",
+        )
+        if task:
+            task.update({
+                "lane": "egg",
                 "approval_boundary": "Create internal tasks/specs only. No external outreach delivery, spending, market orders, crypto custody/network participation, public release, or external commitments.",
             })
             candidates.append(task)

@@ -1,6 +1,6 @@
 # Local Audio Bridge Next Step
 
-- Generated: `2026-07-11T03:36:22+00:00`
+- Generated: `2026-07-11T03:51:10+00:00`
 - Bridge health: `pipeline-draft`
 - Bridge ready: `False`
 - Voice live-ready: `False`

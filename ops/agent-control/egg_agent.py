@@ -23,8 +23,8 @@ LEAD_RESEARCH_STATUS = REPO_ROOT / "lead-pipeline" / "state" / "auto-research-st
 WATCHDOG_STATE = REPO_ROOT / "ops" / "watchdog" / "state" / "latest-watchdog.json"
 VOICE_QUALITY_ROOT = REPO_ROOT / "products" / "Private-AI-Lab" / "apps" / "jvt-inbound-voice-agent" / "voice-quality"
 
-REPORT_JSON = STATE_ROOT / "latest-mythos-agent.json"
-REPORT_MD = STATE_ROOT / "latest-mythos-agent.md"
+REPORT_JSON = STATE_ROOT / "latest-egg-agent.json"
+REPORT_MD = STATE_ROOT / "latest-egg-agent.md"
 
 TASK_DIRS = ("pending", "running", "completed", "failed", "held")
 QUEUE_LABELS = ("draft", "review", "approved", "sent", "replied")
@@ -242,7 +242,7 @@ def make_task_id(candidate: dict[str, Any]) -> str:
     task_type = str(candidate["type"])
     cadence = str(candidate.get("cadence") or "daily")
     source_key = str(candidate.get("dedupe_key") or candidate.get("goal") or task_type)
-    return f"{cadence_bucket(cadence)}-mythos-{slugify(task_type)}-{short_hash(source_key)}"
+    return f"{cadence_bucket(cadence)}-egg-{slugify(task_type)}-{short_hash(source_key)}"
 
 
 def count_review_followups() -> int:
@@ -481,7 +481,7 @@ def deterministic_candidates(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
 
 def model_generate(snapshot: dict[str, Any]) -> dict[str, Any]:
     prompt = (
-        "You are Mythos, the JVT Technologies executive work generator. "
+        "You are Egg, the JVT Technologies executive work generator. "
         "Return JSON only: an array of up to 3 internal tasks. Each item must have task_type, goal, feature, cadence, and reason. "
         f"Allowed task_type values: {sorted(MODEL_ACCEPTED_TASK_TYPES)}. "
         "Do not propose external outreach delivery, approvals, spending, market orders, crypto custody/network activity, public posting, paid provider enablement, destructive file actions, or external commitments. "
@@ -564,17 +564,17 @@ def build_task(candidate_item: dict[str, Any], task_id: str) -> dict[str, Any]:
     task = {
         "id": task_id,
         "type": candidate_item["type"],
-        "priority": "mythos",
+        "priority": "egg",
         "created_at": utc_now(),
         "goal": candidate_item["goal"],
         "requires_approval": False,
-        "seeded_by": "mythos_agent",
+        "seeded_by": "egg_agent",
         "feature": candidate_item.get("feature") or "company-autonomy",
         "level": "story" if candidate_item["type"] in {"vertical_lead_research_refresh", "service_pilot_package_refresh", "local_audio_bridge_next_step"} else "task",
         "model_tier": "m4-local-with-macbook-large-available" if "model-suggested" in str(candidate_item.get("reason") or "") else "deterministic",
         "self_review": "strict" if candidate_item["type"] in {"vertical_lead_research_refresh", "local_audio_bridge_next_step", "priority_packet_review_queue"} else "standard",
         "source_reason": candidate_item.get("reason") or "",
-        "source_agent": "mythos",
+        "source_agent": "egg",
         "safety_boundary": SAFETY_BOUNDARY,
     }
     task.update(candidate_item.get("payload") or {})
@@ -622,7 +622,7 @@ def create_tasks(candidates: list[dict[str, Any]], *, max_new_tasks: int, max_pe
 
 def write_markdown(report: dict[str, Any]) -> None:
     lines = [
-        "# JVT Mythos Agent",
+        "# JVT Egg Agent",
         "",
         f"- Generated: `{report.get('generated_at')}`",
         f"- Mode: `{report.get('mode')}`",
@@ -656,7 +656,7 @@ def write_markdown(report: dict[str, Any]) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Mythos: JVT goal-aware autonomous internal task generator.")
+    parser = argparse.ArgumentParser(description="Egg: JVT goal-aware autonomous internal task generator.")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--max-new-tasks", type=int, default=6)
     parser.add_argument("--max-pending", type=int, default=12)

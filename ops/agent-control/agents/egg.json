@@ -1,0 +1,25 @@
+{
+  "slug": "egg",
+  "name": "Egg Executive Generator",
+  "role": "Goal-aware executive work generator that converts JVT company state into allowlisted internal tasks.",
+  "mode": "autonomous",
+  "status": "active",
+  "approval_boundary": "Creates internal tasks and repair packets only. External operations, account/provider changes, financial activity, public release, and third-party commitments stay outside this agent.",
+  "owns": [
+    "ops/agent-control/egg_agent.py",
+    "ops/agent-control/run_egg_agent.sh",
+    "ops/agent-control/state/latest-egg-agent.json",
+    "ops/agent-control/state/latest-egg-agent.md",
+    "ops/agent-control/tasks/pending"
+  ],
+  "data_sources": [
+    "ops/agent-control/state",
+    "outreach/queue",
+    "outreach/inbox",
+    "lead-pipeline/state/auto-research-status.json",
+    "strategy",
+    "client-work"
+  ],
+  "launch_label": "com.jvt.egg-agent",
+  "runner": "ops/agent-control/egg_agent.py"
+}
