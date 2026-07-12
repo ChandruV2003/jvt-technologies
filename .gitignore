@@ -20,6 +20,23 @@ lead-pipeline/state/
 demo-packaging/captures/*
 !demo-packaging/captures/README.md
 
+# Agent-generated operating artifacts. These stay local on the M4 and are
+# summarized through ops/agent-control/state instead of being committed every run.
+client-work/followup-samples/
+client-work/pilot-briefs/dental-voice-intake-pilot-*.md
+client-work/pilot-briefs/it-ballot-services-agentic-workflow-pilot-*.md
+client-work/prospect-pilot-packets/*-custom-pilot.md
+client-work/synthetic-examples/insurance-coi-triage-proof-*.md
+strategy/content-ops/content-idea-backlog.md
+strategy/content-ops/meeting-to-action-content-packet-*.md
+strategy/prospect-lists/offer-segment-review-*.md
+strategy/prospect-packet-prep/followup-review-brief-*.md
+strategy/prospect-packet-prep/outreach-review-queue-brief-*.md
+strategy/prospect-packet-prep/priority-review-queue-*.md
+strategy/venture-outputs/*-10k-execution-digest.md
+strategy/venture-scout/INDEX.md
+strategy/voice/local-audio-bridge-next-step-*.md
+
 outreach/inbox/new/*
 !outreach/inbox/new/.gitkeep
 outreach/inbox/reviewed/*

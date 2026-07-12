@@ -46,6 +46,7 @@ CRYPTO_LAB_ROOT = Path("/Users/c.s.d.v.r.s./Developer/JVT-Crypto-Intelligence-La
 CRYPTO_LAB_REPORT = CRYPTO_LAB_ROOT / "reports" / "latest-feasibility.json"
 VENTURE_PIPELINE_STATE = CONTROL_ROOT / "state" / "latest-venture-pipeline.json"
 CUSTOM_PILOT_PIPELINE_STATE = CONTROL_ROOT / "state" / "latest-custom-pilot-pipeline.json"
+WARM_FOLLOWUP_SAMPLE_STATE = CONTROL_ROOT / "state" / "latest-warm-followup-samples.json"
 
 QUEUE_LABELS = ("draft", "review", "approved", "sent", "replied")
 DECISION_LABELS = ("pending", "approved", "rejected", "executed")
@@ -440,6 +441,21 @@ def custom_pilot_pipeline_summary() -> dict[str, Any]:
     }
 
 
+def warm_followup_sample_summary() -> dict[str, Any]:
+    report = load_json(WARM_FOLLOWUP_SAMPLE_STATE, {})
+    if not isinstance(report, dict):
+        report = {}
+    return {
+        "report_exists": bool(report),
+        "state_age_seconds": age_seconds_from_iso(report.get("generated_at")) if report else None,
+        "sent_company_count": int(report.get("sent_company_count") or 0),
+        "sample_count": int(report.get("sample_count") or 0),
+        "lane_counts": report.get("lane_counts") if isinstance(report.get("lane_counts"), dict) else {},
+        "sample_markdown_path": report.get("sample_markdown_path") or "",
+        "guardrail": "Review-only follow-up sample prep. No approval, queue movement, external send, provider action, or commitment.",
+    }
+
+
 def lane(slug: str, title: str, status: str, summary: str, metrics: dict[str, Any], next_step: str) -> dict[str, Any]:
     return {
         "slug": slug,
@@ -487,6 +503,7 @@ def build_lanes(
     crypto: dict[str, Any],
     venture: dict[str, Any],
     custom_pilot: dict[str, Any],
+    warm_followups: dict[str, Any],
     policy: dict[str, Any],
     quotas: dict[str, Any],
 ) -> list[dict[str, Any]]:
@@ -534,9 +551,9 @@ def build_lanes(
             "followups",
             "No-reply follow-ups",
             "attention" if followups.get("eligible_count", 0) or staged_followups.get("review", 0) else "clear",
-            f"{followups.get('eligible_count', 0)} eligible older no-reply prospect(s).",
-            {"eligible": followups.get("eligible_count", 0), **staged_followups},
-            "Stage follow-ups separately from first-touch sends.",
+            f"{followups.get('eligible_count', 0)} eligible older no-reply prospect(s); {warm_followups.get('sample_count', 0)} warm sample(s) prepared.",
+            {"eligible": followups.get("eligible_count", 0), "warm_samples": warm_followups.get("sample_count", 0), **staged_followups},
+            "Stage follow-ups separately from first-touch sends, using warm samples as review-only copy input.",
         ),
         lane(
             "agentic-copywriter",
@@ -627,6 +644,7 @@ def build_work_items(
     crypto: dict[str, Any],
     venture: dict[str, Any],
     custom_pilot: dict[str, Any],
+    warm_followups: dict[str, Any],
 ) -> list[dict[str, Any]]:
     items: list[dict[str, Any]] = []
     watchdog_findings = watchdog.get("findings") or []
@@ -705,6 +723,15 @@ def build_work_items(
             "Stage no-reply follow-ups",
             f"{followups.get('eligible_count', 0)} older no-reply prospect(s) are eligible for follow-up.",
             "Generate a separate follow-up wave capped by the outbound policy.",
+            "stage-only",
+        ))
+    if queues.get("sent", 0) and (not warm_followups.get("report_exists") or int(warm_followups.get("state_age_seconds") or 999999) > 6 * 3600):
+        items.append(work_item(
+            2,
+            "followups",
+            "Refresh warm follow-up samples",
+            f"{queues.get('sent', 0)} sent packet(s) exist; warm sample prep is missing or stale.",
+            "Run warm follow-up sample prep so each reached prospect has a review-only next-touch sample.",
             "stage-only",
         ))
 
@@ -930,9 +957,10 @@ def build_report() -> dict[str, Any]:
     crypto = crypto_lab_summary()
     venture = venture_pipeline_summary()
     custom_pilot = custom_pilot_pipeline_summary()
+    warm_followups = warm_followup_sample_summary()
     quotas = build_quotas(policy, queues, inbox, sent, followups, watchdog, )
-    lanes = build_lanes(queues, inbox, leads, followups, copywriter, board, voice, watchdog, interop, trader, crypto, venture, custom_pilot, policy, quotas)
-    work_items = build_work_items(queues, inbox, followups, copywriter, board, voice, watchdog, interop, policy, trader, crypto, venture, custom_pilot)
+    lanes = build_lanes(queues, inbox, leads, followups, copywriter, board, voice, watchdog, interop, trader, crypto, venture, custom_pilot, warm_followups, policy, quotas)
+    work_items = build_work_items(queues, inbox, followups, copywriter, board, voice, watchdog, interop, policy, trader, crypto, venture, custom_pilot, warm_followups)
     blockers = [
         item for item in work_items
         if int(item.get("priority") or 99) <= 1 or item.get("blocked_by")
@@ -974,6 +1002,7 @@ def build_report() -> dict[str, Any]:
             "revenue": revenue,
             "venture_pipeline": venture,
             "custom_pilot_pipeline": custom_pilot,
+            "warm_followup_samples": warm_followups,
             "voice": voice,
             "watchdog": {
                 "state_age_seconds": age_seconds_from_iso(watchdog.get("generated_at")) if isinstance(watchdog, dict) else None,

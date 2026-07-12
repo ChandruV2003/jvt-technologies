@@ -933,6 +933,20 @@ def followup_review_brief(_task: dict[str, Any]) -> dict[str, Any]:
     return {"ok": True, "artifacts": [str(path)], "followup_count": len(followups)}
 
 
+def warm_followup_sample_prep(_task: dict[str, Any]) -> dict[str, Any]:
+    step = report_script("warm_followup_sample_prep", "warm_followup_sample_prep.py", timeout=120)
+    return {
+        "ok": bool(step["ok"]),
+        "steps": [step],
+        "artifacts": [
+            str(STATE_ROOT / "latest-warm-followup-samples.json"),
+            str(STATE_ROOT / "latest-warm-followup-samples.md"),
+            str(REPO_ROOT / "client-work" / "followup-samples"),
+        ],
+        "guardrail": "Review-only warm follow-up sample preparation. No queue movement, approval, external sending, provider action, or commitment.",
+    }
+
+
 def offer_segment_summary(_task: dict[str, Any]) -> dict[str, Any]:
     sources = [
         REPO_ROOT / "strategy" / "prospect-lists" / "ai-receptionist-intake-targets.csv",
@@ -1755,6 +1769,7 @@ HANDLERS = {
     "inbox_triage_brief": inbox_triage_brief,
     "outreach_review_queue_brief": outreach_review_queue_brief,
     "followup_review_brief": followup_review_brief,
+    "warm_followup_sample_prep": warm_followup_sample_prep,
     "content_backlog_from_assets": content_backlog_from_assets,
     "insurance_coi_proof_asset": insurance_coi_proof_asset,
     "it_ballot_workflow_pilot_brief": it_ballot_workflow_pilot_brief,

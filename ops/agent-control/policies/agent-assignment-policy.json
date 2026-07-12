@@ -113,6 +113,12 @@
       "feature": "10k-goal",
       "model_tier": "m4-local-with-macbook-large-available",
       "self_review": "standard"
+    },
+    "warm_followup_sample_prep": {
+      "level": "story",
+      "feature": "followups",
+      "model_tier": "deterministic-plus-m4-local-review",
+      "self_review": "strict"
     }
   },
   "default_assignment": {

@@ -24,6 +24,7 @@ WATCHDOG_STATE = REPO_ROOT / "ops" / "watchdog" / "state" / "latest-watchdog.jso
 CODEX_ESCALATION_STATE = STATE_ROOT / "latest-codex-escalation.json"
 LEAD_QUALITY_AUDIT_STATE = STATE_ROOT / "latest-lead-quality-audit.json"
 CUSTOM_PILOT_PIPELINE_STATE = STATE_ROOT / "latest-custom-pilot-pipeline.json"
+WARM_FOLLOWUP_SAMPLE_STATE = STATE_ROOT / "latest-warm-followup-samples.json"
 VOICE_QUALITY_ROOT = REPO_ROOT / "products" / "Private-AI-Lab" / "apps" / "jvt-inbound-voice-agent" / "voice-quality"
 
 REPORT_JSON = STATE_ROOT / "latest-egg-agent.json"
@@ -56,6 +57,7 @@ SAFE_TASK_TYPES = {
     "inbox_triage_brief",
     "outreach_review_queue_brief",
     "followup_review_brief",
+    "warm_followup_sample_prep",
     "content_backlog_from_assets",
     "insurance_coi_proof_asset",
     "it_ballot_workflow_pilot_brief",
@@ -88,6 +90,7 @@ MODEL_ACCEPTED_TASK_TYPES = {
     "local_audio_bridge_next_step",
     "codex_escalation_request",
     "custom_pilot_pipeline",
+    "warm_followup_sample_prep",
 }
 
 APPROVAL_GATED_PATTERNS = {
@@ -294,6 +297,7 @@ def build_snapshot() -> dict[str, Any]:
     ops_db = load_json(STATE_ROOT / "latest-jvt-ops-db.json", {})
     opportunity = load_json(STATE_ROOT / "latest-opportunity-manager.json", {})
     custom_pilot = load_json(CUSTOM_PILOT_PIPELINE_STATE, {})
+    warm_followups = load_json(WARM_FOLLOWUP_SAMPLE_STATE, {})
     voice = load_json(STATE_ROOT / "latest-voice-readiness.json", {})
     paper = load_json(STATE_ROOT / "latest-paper-trader-health.json", {})
     source = load_json(STATE_ROOT / "latest-source-hygiene.json", {})
@@ -385,6 +389,13 @@ def build_snapshot() -> dict[str, Any]:
             "service_counts": custom_pilot.get("service_counts"),
             "next_actions": custom_pilot.get("next_actions"),
         },
+        "warm_followup_samples": {
+            "generated_at": warm_followups.get("generated_at"),
+            "age_seconds": parse_iso_age_seconds(warm_followups.get("generated_at")),
+            "sent_company_count": warm_followups.get("sent_company_count"),
+            "sample_count": warm_followups.get("sample_count"),
+            "lane_counts": warm_followups.get("lane_counts"),
+        },
         "voice": {
             "generated_at": voice.get("generated_at"),
             "age_seconds": parse_iso_age_seconds(voice.get("generated_at")),
@@ -456,6 +467,7 @@ def deterministic_candidates(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
     lead = snapshot["lead_research"]
     voice = snapshot["voice"]
     custom_pilot = snapshot["custom_pilot_pipeline"]
+    warm_followups = snapshot["warm_followup_samples"]
     materializer = snapshot["materializer"]
     artifacts = snapshot["artifact_ages"]
     lead_quality = snapshot.get("lead_quality") if isinstance(snapshot.get("lead_quality"), dict) else {}
@@ -492,6 +504,16 @@ def deterministic_candidates(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
         items.append(candidate("priority_packet_review_queue", "Refresh priority packet review queue so QA focuses on the most likely revenue paths.", cadence="six-hour", priority=2, feature="outreach-quality", reason="large review backlog"))
     if snapshot.get("followup_review_count", 0) > 0 or int(quotas.get("eligible_followups") or 0) > 0:
         items.append(candidate("followup_review_brief", "Create strict no-reply follow-up review brief.", cadence="six-hour", priority=2, feature="followups", reason="follow-up work exists"))
+    if queues.get("sent", 0) > 0 and (warm_followups.get("age_seconds") is None or int(warm_followups.get("age_seconds") or 999999) > 6 * 3600):
+        items.append(candidate(
+            "warm_followup_sample_prep",
+            "Refresh review-only warm follow-up samples for every reached prospect/company.",
+            cadence="six-hour",
+            priority=2,
+            feature="followups",
+            reason="sent history exists and warm follow-up sample prep is stale",
+            dedupe_key="warm-followup-samples",
+        ))
     if as_count(lead.get("new_leads_added")) <= 1 or as_count(lead.get("drafts_created")) <= 1:
         items.append(candidate(
             "vertical_lead_research_refresh",
@@ -549,6 +571,7 @@ def deterministic_candidates(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
     items.extend([
         candidate("service_pilot_package_refresh", "Refresh active service pilot packages across voice intake, workflow automation, and proof assets.", cadence="six-hour", priority=4, feature="service-lines", reason="service-led growth cadence", dedupe_key="service-pilots"),
         candidate("custom_pilot_pipeline", "Refresh warm/direct custom-pilot conversion packets.", cadence="six-hour", priority=3, feature="custom-pilots", reason="warm/custom conversion cadence"),
+        candidate("warm_followup_sample_prep", "Refresh all-reached-prospect warm follow-up samples.", cadence="six-hour", priority=3, feature="followups", reason="warm sample cadence"),
         candidate("offer_segment_summary", "Refresh offer segment review for the next manually reviewed packet batch.", cadence="daily", priority=4, feature="service-lines", reason="segment focus"),
         candidate("dental_voice_intake_pilot_brief", "Refresh dental voice intake pilot brief for the known inbound/pilot path.", cadence="daily", priority=4, feature="voice-intake", reason="dental voice lane"),
         candidate("it_ballot_workflow_pilot_brief", "Refresh BITS-style ballot workflow pilot brief with approval boundaries.", cadence="daily", priority=4, feature="workflow-automation", reason="ballot workflow lane"),
@@ -653,9 +676,9 @@ def build_task(candidate_item: dict[str, Any], task_id: str) -> dict[str, Any]:
         "requires_approval": False,
         "seeded_by": "egg_agent",
         "feature": candidate_item.get("feature") or "company-autonomy",
-        "level": "story" if candidate_item["type"] in {"vertical_lead_research_refresh", "service_pilot_package_refresh", "custom_pilot_pipeline", "local_audio_bridge_next_step"} else "task",
+        "level": "story" if candidate_item["type"] in {"vertical_lead_research_refresh", "service_pilot_package_refresh", "custom_pilot_pipeline", "warm_followup_sample_prep", "local_audio_bridge_next_step"} else "task",
         "model_tier": "m4-local-with-macbook-large-available" if "model-suggested" in str(candidate_item.get("reason") or "") else "deterministic",
-        "self_review": "strict" if candidate_item["type"] in {"vertical_lead_research_refresh", "custom_pilot_pipeline", "local_audio_bridge_next_step", "priority_packet_review_queue", "lead_quality_audit"} else "standard",
+        "self_review": "strict" if candidate_item["type"] in {"vertical_lead_research_refresh", "custom_pilot_pipeline", "warm_followup_sample_prep", "local_audio_bridge_next_step", "priority_packet_review_queue", "lead_quality_audit"} else "standard",
         "source_reason": candidate_item.get("reason") or "",
         "source_agent": "egg",
         "safety_boundary": SAFETY_BOUNDARY,
