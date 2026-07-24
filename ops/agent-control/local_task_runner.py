@@ -817,6 +817,23 @@ def inbox_triage_brief(_task: dict[str, Any]) -> dict[str, Any]:
     return {"ok": True, "artifacts": [str(path)], "item_count": len(items)}
 
 
+def inbox_triage_finalize(_task: dict[str, Any]) -> dict[str, Any]:
+    step = run_command(
+        "inbox_triage_finalize",
+        ["python3", "outreach/mailbox-agent/inbox_triage_finalize.py", "--limit", "50"],
+        timeout=120,
+    )
+    return {
+        "ok": bool(step["ok"]),
+        "steps": [step],
+        "artifacts": [
+            str(STATE_ROOT / "latest-inbox-triage-finalizer.json"),
+            str(STATE_ROOT / "latest-inbox-triage-finalizer.md"),
+        ],
+        "guardrail": "Internal inbox state triage only. No replies, outbound sends, provider calls, spending, financial actions, public posts, or external commitments.",
+    }
+
+
 def outreach_review_queue_brief(_task: dict[str, Any]) -> dict[str, Any]:
     review_root = REPO_ROOT / "outreach" / "queue" / "review"
     packet_paths = sorted(review_root.glob("*.json")) if review_root.exists() else []
@@ -1782,6 +1799,7 @@ HANDLERS = {
     "work_item_materializer": work_item_materializer,
     "egg_task_generator": egg_task_generator,
     "agent_repair_escalation": agent_repair_escalation,
+    "inbox_triage_finalize": inbox_triage_finalize,
     "inbox_triage_brief": inbox_triage_brief,
     "outreach_review_queue_brief": outreach_review_queue_brief,
     "followup_review_brief": followup_review_brief,
