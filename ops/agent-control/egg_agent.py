@@ -52,6 +52,7 @@ SAFE_TASK_TYPES = {
     "local_audio_bridge_next_step",
     "paper_trader_health",
     "lead_quality_audit",
+    "quality_hold_repair_queue",
     "source_hygiene_report",
     "system_resource_report",
     "inbox_triage_brief",
@@ -86,6 +87,7 @@ MODEL_ACCEPTED_TASK_TYPES = {
     "system_resource_report",
     "paper_trader_health",
     "lead_quality_audit",
+    "quality_hold_repair_queue",
     "voice_readiness_check",
     "local_audio_bridge_next_step",
     "codex_escalation_request",
@@ -500,6 +502,16 @@ def deterministic_candidates(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
         items.append(candidate("inbox_triage_brief", "Create review brief for new inbound mailbox items.", cadence="hourly", priority=1, feature="inbox", reason="new inbound items"))
     if queues.get("review", 0) > 0:
         items.append(candidate("outreach_review_queue_brief", "Create strict QA brief for current review queue packets.", cadence="six-hour", priority=2, feature="outreach-quality", reason="review queue has packets"))
+    if queues.get("review", 0) > 0 and queues.get("approved", 0) == 0:
+        items.append(candidate(
+            "quality_hold_repair_queue",
+            "Diagnose review packets that pass shared quality audit but fail strict auto-approval so the approval bottleneck can be repaired safely.",
+            cadence="hourly",
+            priority=1,
+            feature="outreach-quality",
+            reason="review backlog exists while approved queue is empty",
+            dedupe_key="quality-hold-repair-queue",
+        ))
     if queues.get("review", 0) >= 40:
         items.append(candidate("priority_packet_review_queue", "Refresh priority packet review queue so QA focuses on the most likely revenue paths.", cadence="six-hour", priority=2, feature="outreach-quality", reason="large review backlog"))
     if snapshot.get("followup_review_count", 0) > 0 or int(quotas.get("eligible_followups") or 0) > 0:
@@ -678,7 +690,7 @@ def build_task(candidate_item: dict[str, Any], task_id: str) -> dict[str, Any]:
         "feature": candidate_item.get("feature") or "company-autonomy",
         "level": "story" if candidate_item["type"] in {"vertical_lead_research_refresh", "service_pilot_package_refresh", "custom_pilot_pipeline", "warm_followup_sample_prep", "local_audio_bridge_next_step"} else "task",
         "model_tier": "m4-local-with-macbook-large-available" if "model-suggested" in str(candidate_item.get("reason") or "") else "deterministic",
-        "self_review": "strict" if candidate_item["type"] in {"vertical_lead_research_refresh", "custom_pilot_pipeline", "warm_followup_sample_prep", "local_audio_bridge_next_step", "priority_packet_review_queue", "lead_quality_audit"} else "standard",
+        "self_review": "strict" if candidate_item["type"] in {"vertical_lead_research_refresh", "custom_pilot_pipeline", "warm_followup_sample_prep", "local_audio_bridge_next_step", "priority_packet_review_queue", "lead_quality_audit", "quality_hold_repair_queue"} else "standard",
         "source_reason": candidate_item.get("reason") or "",
         "source_agent": "egg",
         "safety_boundary": SAFETY_BOUNDARY,

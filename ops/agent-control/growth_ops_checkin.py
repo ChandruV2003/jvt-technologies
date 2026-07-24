@@ -264,7 +264,11 @@ def refresh_core_state() -> list[dict[str, Any]]:
     steps.append(seed_daily_local_tasks())
     steps.append(seed_workfeed_local_tasks(load_json(ORCHESTRATOR_STATE)))
     steps.append(run_step("egg_agent", ["python3", str(EGG_SCRIPT), "--max-new-tasks", "6", "--max-pending", "12"], timeout=180))
-    steps.append(run_step("local_task_runner", ["python3", str(LOCAL_TASK_RUNNER_SCRIPT), "--max-tasks", "6"], timeout=300))
+    steps.append(run_step(
+        "local_task_runner",
+        ["python3", str(LOCAL_TASK_RUNNER_SCRIPT), "--max-tasks", "6", "--stale-running-seconds", "1800"],
+        timeout=1500,
+    ))
     return steps
 
 
@@ -383,11 +387,25 @@ def acquire_lock() -> int:
     try:
         return os.open(str(LOCK_PATH), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
     except FileExistsError:
+        pid_text = ""
+        try:
+            pid_text = LOCK_PATH.read_text(encoding="utf-8").strip()
+            pid = int(pid_text)
+        except Exception:
+            pid = 0
+        if pid > 0:
+            try:
+                os.kill(pid, 0)
+            except ProcessLookupError:
+                LOCK_PATH.unlink(missing_ok=True)
+                return os.open(str(LOCK_PATH), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            except PermissionError:
+                pass
         age = time.time() - LOCK_PATH.stat().st_mtime if LOCK_PATH.exists() else 0
         if age > 3600:
             LOCK_PATH.unlink(missing_ok=True)
             return os.open(str(LOCK_PATH), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
-        raise SystemExit("Growth Ops check-in is already running.")
+        raise SystemExit(f"Growth Ops check-in is already running. lock_pid={pid_text or 'unknown'}")
 
 
 def main() -> None:
@@ -404,7 +422,11 @@ def main() -> None:
         if actions and not args.dry_run:
             steps.append(run_step("orchestrator_after_safe_actions", ["python3", str(ORCHESTRATOR_SCRIPT)], timeout=45))
             steps.append(run_step("executive_ops_manager_after_safe_actions", ["python3", str(EOM_SCRIPT)], timeout=45))
-            steps.append(run_step("local_task_runner_after_safe_actions", ["python3", str(LOCAL_TASK_RUNNER_SCRIPT), "--max-tasks", "2"], timeout=300))
+            steps.append(run_step(
+                "local_task_runner_after_safe_actions",
+                ["python3", str(LOCAL_TASK_RUNNER_SCRIPT), "--max-tasks", "2", "--stale-running-seconds", "1800"],
+                timeout=900,
+            ))
             orchestrator = load_json(ORCHESTRATOR_STATE)
 
         top_work = (orchestrator.get("work_items") or [])[:8] if isinstance(orchestrator, dict) else []

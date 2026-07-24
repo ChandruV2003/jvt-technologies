@@ -27,6 +27,7 @@ CODEX_CLI = Path("/Applications/Codex.app/Contents/Resources/codex")
 ASSIGNMENT_POLICY_PATH = CONTROL_ROOT / "policies" / "agent-assignment-policy.json"
 
 TASK_DIRS = ("pending", "running", "completed", "failed", "held")
+DEFAULT_STALE_RUNNING_SECONDS = int(os.environ.get("JVT_STALE_RUNNING_SECONDS", "7200"))
 
 DISALLOWED_WORDS = {
     "send email",
@@ -1658,6 +1659,20 @@ def lead_quality_audit(_task: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def quality_hold_repair_queue(_task: dict[str, Any]) -> dict[str, Any]:
+    step = run_command("quality_hold_repair_queue", ["python3", "outreach/tools/quality_hold_repair_queue.py"], timeout=90)
+    return {
+        "ok": bool(step["ok"]),
+        "steps": [step],
+        "artifacts": [
+            str(STATE_ROOT / "latest-quality-hold-repair-queue.json"),
+            str(STATE_ROOT / "latest-quality-hold-repair-queue.md"),
+            str(REPO_ROOT / "strategy" / "prospect-packet-prep" / f"quality-hold-repair-queue-{today_slug()}.md"),
+        ],
+        "guardrail": "Read-only quality-hold diagnosis only. No packet movement, approvals, external sends, provider calls, spending, or commitments.",
+    }
+
+
 def system_resource_report(_task: dict[str, Any]) -> dict[str, Any]:
     step = report_script("system_resource_report", "system_resource_report.py")
     return {
@@ -1760,6 +1775,7 @@ HANDLERS = {
     "local_audio_bridge_next_step": local_audio_bridge_next_step,
     "paper_trader_health": paper_trader_health,
     "lead_quality_audit": lead_quality_audit,
+    "quality_hold_repair_queue": quality_hold_repair_queue,
     "source_hygiene_report": source_hygiene_report,
     "system_resource_report": system_resource_report,
     "business_readiness_sweep": business_readiness_sweep,
@@ -1796,21 +1812,66 @@ def move_task(path: Path, target_dir: str, result: dict[str, Any]) -> Path:
     return target
 
 
+def recover_stale_running(stale_seconds: int) -> list[dict[str, Any]]:
+    ensure_dirs()
+    recovered: list[dict[str, Any]] = []
+    if stale_seconds <= 0:
+        return recovered
+    cutoff = time.time() - stale_seconds
+    for path in sorted((TASK_ROOT / "running").glob("*.json")):
+        try:
+            stat = path.stat()
+        except FileNotFoundError:
+            continue
+        if stat.st_mtime >= cutoff:
+            continue
+        task = load_json(path, {})
+        reason = f"Running task exceeded stale timeout ({stale_seconds}s); moved to held for audit instead of blocking the active loop."
+        result = {
+            "task_file": str(path),
+            "task_id": task.get("id") or path.stem,
+            "type": task.get("type") or "",
+            "ok": False,
+            "held": True,
+            "stale_running_recovered": True,
+            "reason": reason,
+            "stale_age_seconds": int(time.time() - stat.st_mtime),
+        }
+        final_path = move_task(path, "held", result)
+        recovered.append({**result, "path": str(final_path)})
+    return recovered
+
+
 def acquire_lock() -> int:
     ensure_dirs()
     try:
         return os.open(str(LOCK_PATH), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
     except FileExistsError:
+        pid_text = ""
+        try:
+            pid_text = LOCK_PATH.read_text(encoding="utf-8").strip()
+            pid = int(pid_text)
+        except Exception:
+            pid = 0
+        if pid > 0:
+            try:
+                os.kill(pid, 0)
+            except ProcessLookupError:
+                LOCK_PATH.unlink(missing_ok=True)
+                return os.open(str(LOCK_PATH), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            except PermissionError:
+                pass
         age = time.time() - LOCK_PATH.stat().st_mtime if LOCK_PATH.exists() else 0
         if age > 1800:
             LOCK_PATH.unlink(missing_ok=True)
             return os.open(str(LOCK_PATH), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
-        raise SystemExit("Local task runner is already running.")
+        raise SystemExit(f"Local task runner is already running. lock_pid={pid_text or 'unknown'}")
 
 
-def run_pending(max_tasks: int) -> dict[str, Any]:
+def run_pending(max_tasks: int, stale_running_seconds: int) -> dict[str, Any]:
     ensure_dirs()
     assignment_policy = load_assignment_policy()
+    stale_recovered = recover_stale_running(stale_running_seconds)
     pending = sorted((TASK_ROOT / "pending").glob("*.json"))[:max_tasks]
     processed: list[dict[str, Any]] = []
     for path in pending:
@@ -1854,6 +1915,9 @@ def run_pending(max_tasks: int) -> dict[str, Any]:
         "ok": all(item.get("status") == "completed" for item in processed) if processed else True,
         "processed_count": len(processed),
         "processed": processed,
+        "stale_recovered_count": len(stale_recovered),
+        "stale_recovered": stale_recovered[:80],
+        "stale_running_seconds": stale_running_seconds,
         "pending_remaining": len(list((TASK_ROOT / "pending").glob("*.json"))),
         "supported_task_types": sorted(HANDLERS),
         "assignment_policy_path": str(ASSIGNMENT_POLICY_PATH),
@@ -1870,6 +1934,7 @@ def write_markdown(report: dict[str, Any], path: Path) -> None:
         f"- Generated: `{report.get('generated_at')}`",
         f"- Overall: `{'ok' if report.get('ok') else 'attention'}`",
         f"- Processed: `{report.get('processed_count')}`",
+        f"- Stale running recovered: `{report.get('stale_recovered_count', 0)}`",
         f"- Pending remaining: `{report.get('pending_remaining')}`",
         f"- Safety: {report.get('safety_boundary')}",
         "",
@@ -1885,6 +1950,12 @@ def write_markdown(report: dict[str, Any], path: Path) -> None:
         )
     if not report.get("processed"):
         lines.append("- No pending tasks were available.")
+    lines.extend(["", "## Stale Running Recovery", ""])
+    if report.get("stale_recovered"):
+        for item in report.get("stale_recovered", []):
+            lines.append(f"- `held` {item.get('task_id')} ({item.get('type')}) age=`{item.get('stale_age_seconds')}`s")
+    else:
+        lines.append("- No stale running tasks were recovered.")
     lines.extend(["", "## Assignment Policy", ""])
     lines.append(f"- Policy: `{report.get('assignment_policy_path')}`")
     lines.append(f"- Version: `{report.get('assignment_policy_version')}`")
@@ -1898,12 +1969,13 @@ def write_markdown(report: dict[str, Any], path: Path) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run allowlisted local JVT tasks.")
     parser.add_argument("--max-tasks", type=int, default=3)
+    parser.add_argument("--stale-running-seconds", type=int, default=DEFAULT_STALE_RUNNING_SECONDS)
     args = parser.parse_args()
 
     lock_fd = acquire_lock()
     try:
         os.write(lock_fd, str(os.getpid()).encode("utf-8"))
-        report = run_pending(max(1, args.max_tasks))
+        report = run_pending(max(1, args.max_tasks), max(0, args.stale_running_seconds))
         json_path = STATE_ROOT / "latest-local-task-runner.json"
         markdown_path = STATE_ROOT / "latest-local-task-runner.md"
         write_json(json_path, report)

@@ -23,6 +23,8 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 CONTROL_ROOT = REPO_ROOT / "ops" / "agent-control"
 CONFIG_PATH = CONTROL_ROOT / "config" / "codex-escalation-policy.json"
 STATE_PATH = CONTROL_ROOT / "state" / "latest-codex-escalation.json"
+LATEST_RESULT_PATH = CONTROL_ROOT / "state" / "latest-codex-escalation-result.json"
+LATEST_RESULT_MD = CONTROL_ROOT / "state" / "latest-codex-escalation-result.md"
 USAGE_LOG = CONTROL_ROOT / "logs" / "codex-escalation-usage.jsonl"
 RUN_ROOT = CONTROL_ROOT / "state" / "codex-escalations"
 
@@ -89,6 +91,13 @@ def write_json(path: Path, payload: Any) -> None:
     path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
 
+def compact_text(value: str, *, max_chars: int = 6000) -> str:
+    value = re.sub(r"\n{3,}", "\n\n", value.strip())
+    if len(value) > max_chars:
+        return value[:max_chars].rstrip() + "\n...truncated..."
+    return value
+
+
 def count_json(path: Path, recursive: bool = False) -> int:
     if not path.exists():
         return 0
@@ -123,6 +132,11 @@ def latest_files(root: Path, pattern: str = "*.md", limit: int = 8) -> list[str]
         return []
     files = sorted((item for item in root.rglob(pattern) if item.is_file()), key=lambda item: item.stat().st_mtime, reverse=True)
     return [str(item.relative_to(REPO_ROOT)) for item in files[:limit]]
+
+
+def latest_result_summary() -> dict[str, Any] | None:
+    payload = load_json(LATEST_RESULT_PATH, None)
+    return payload if isinstance(payload, dict) else None
 
 
 def queue_counts() -> dict[str, int]:
@@ -329,10 +343,111 @@ def status_payload(policy: dict[str, Any]) -> dict[str, Any]:
             "context_pack": policy.get("context_pack"),
         },
         "usage": usage_summary(policy),
+        "latest_result": latest_result_summary(),
         "safety_boundary": "No execution unless --execute is supplied and policy/caps pass. External actions remain approval-gated.",
     }
     write_json(STATE_PATH, payload)
     return payload
+
+
+def extract_agent_messages(events_path: Path) -> list[str]:
+    if not events_path.exists():
+        return []
+    messages: list[str] = []
+    for line in events_path.read_text(encoding="utf-8", errors="replace").splitlines():
+        try:
+            event = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        item = event.get("item") if isinstance(event, dict) else None
+        if not isinstance(item, dict):
+            continue
+        if item.get("type") != "agent_message":
+            continue
+        text = str(item.get("text") or "").strip()
+        if text:
+            messages.append(text)
+    return messages
+
+
+def extract_action_items(text: str) -> list[str]:
+    items: list[str] = []
+    in_actionish_section = False
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        lowered = line.lower().strip("# :")
+        if any(token in lowered for token in ("recommendation", "next action", "next step", "implementation surface", "fix")):
+            in_actionish_section = True
+            continue
+        if re.match(r"^[-*]\s+", line) or re.match(r"^\d+[.)]\s+", line):
+            cleaned = re.sub(r"^[-*]\s+|^\d+[.)]\s+", "", line).strip()
+            if in_actionish_section or any(verb in cleaned.lower() for verb in ("build", "fix", "add", "change", "run", "create", "tighten", "move", "review")):
+                items.append(cleaned[:500])
+        elif in_actionish_section and len(line) >= 12:
+            cleaned = re.sub(r"[*_`]", "", line).strip()
+            if cleaned and cleaned.lower() not in {"recommendation", "next action", "next step"}:
+                items.append(cleaned[:500])
+        if len(items) >= 12:
+            break
+    return items
+
+
+def summarize_codex_events(events_path: Path, result: dict[str, Any]) -> dict[str, Any]:
+    messages = extract_agent_messages(events_path)
+    final_message = compact_text(messages[-1] if messages else "", max_chars=8000)
+    action_items = extract_action_items(final_message)
+    summary = {
+        "generated_at": utc_now(),
+        "task_id": result.get("task_id"),
+        "ok": bool(result.get("ok")),
+        "model": result.get("model"),
+        "reasoning_effort": result.get("reasoning_effort"),
+        "sandbox": result.get("sandbox"),
+        "events_path": str(events_path),
+        "events_bytes": result.get("events_bytes"),
+        "duration_ms": result.get("duration_ms"),
+        "agent_message_count": len(messages),
+        "final_message": final_message,
+        "action_items": action_items,
+        "safety_boundary": "Summary only. No external action, send, spend, trade, publish, wallet, mining, staking, or commitment.",
+    }
+    return summary
+
+
+def write_codex_summary(summary: dict[str, Any], run_dir: Path) -> None:
+    summary_path = run_dir / "summary.json"
+    summary_md = run_dir / "summary.md"
+    write_json(summary_path, summary)
+    write_json(LATEST_RESULT_PATH, summary)
+    lines = [
+        "# Latest Codex Escalation Result",
+        "",
+        f"- Generated: `{summary.get('generated_at')}`",
+        f"- Task: `{summary.get('task_id')}`",
+        f"- OK: `{summary.get('ok')}`",
+        f"- Model: `{summary.get('model')}`",
+        f"- Messages extracted: `{summary.get('agent_message_count')}`",
+        f"- Safety: {summary.get('safety_boundary')}",
+        "",
+        "## Action Items",
+        "",
+    ]
+    action_items = summary.get("action_items") if isinstance(summary.get("action_items"), list) else []
+    if action_items:
+        lines.extend(f"- {item}" for item in action_items)
+    else:
+        lines.append("- No explicit action items were extracted from the final Codex message.")
+    lines.extend([
+        "",
+        "## Final Message",
+        "",
+        str(summary.get("final_message") or "_No final agent message extracted._"),
+        "",
+    ])
+    summary_md.write_text("\n".join(lines), encoding="utf-8")
+    LATEST_RESULT_MD.write_text("\n".join(lines), encoding="utf-8")
 
 
 def append_usage(row: dict[str, Any]) -> None:
@@ -451,6 +566,14 @@ def run_codex(args: argparse.Namespace, policy: dict[str, Any]) -> dict[str, Any
         "events_bytes": events_bytes,
         "billable": billable,
         "stderr_tail": result.stderr.strip().splitlines()[-20:],
+    })
+    summary = summarize_codex_events(output_path, base_result)
+    write_codex_summary(summary, run_dir)
+    base_result.update({
+        "summary_path": str(run_dir / "summary.json"),
+        "summary_md_path": str(run_dir / "summary.md"),
+        "summary_action_items": summary.get("action_items", []),
+        "summary_final_message": summary.get("final_message", "")[:1200],
     })
     write_json(run_dir / "result.json", base_result)
     append_usage({
