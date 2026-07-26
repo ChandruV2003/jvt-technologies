@@ -22,7 +22,10 @@ INBOX_ROOT = REPO_ROOT / "outreach" / "inbox"
 LEAD_RESEARCH_STATUS = REPO_ROOT / "lead-pipeline" / "state" / "auto-research-status.json"
 WATCHDOG_STATE = REPO_ROOT / "ops" / "watchdog" / "state" / "latest-watchdog.json"
 CODEX_ESCALATION_STATE = STATE_ROOT / "latest-codex-escalation.json"
+CODEX_RESULT_STATE = STATE_ROOT / "latest-codex-escalation-result.json"
+CODEX_RECOMMENDATION_MATERIALIZER_STATE = STATE_ROOT / "latest-codex-recommendation-materializer.json"
 LEAD_QUALITY_AUDIT_STATE = STATE_ROOT / "latest-lead-quality-audit.json"
+QUALITY_HOLD_REPAIR_STATE = STATE_ROOT / "latest-quality-hold-repair-queue.json"
 CUSTOM_PILOT_PIPELINE_STATE = STATE_ROOT / "latest-custom-pilot-pipeline.json"
 WARM_FOLLOWUP_SAMPLE_STATE = STATE_ROOT / "latest-warm-followup-samples.json"
 VOICE_QUALITY_ROOT = REPO_ROOT / "products" / "Private-AI-Lab" / "apps" / "jvt-inbound-voice-agent" / "voice-quality"
@@ -41,6 +44,7 @@ SAFE_TASK_TYPES = {
     "model_router_status",
     "codex_escalation_status",
     "codex_escalation_request",
+    "codex_recommendation_materializer",
     "jvt_ops_db_sync",
     "opportunity_hit_sync",
     "opportunity_manager_refresh",
@@ -53,6 +57,7 @@ SAFE_TASK_TYPES = {
     "paper_trader_health",
     "lead_quality_audit",
     "quality_hold_repair_queue",
+    "resolve_review_quality_holds",
     "source_hygiene_report",
     "system_resource_report",
     "inbox_triage_finalize",
@@ -297,7 +302,10 @@ def build_snapshot() -> dict[str, Any]:
     watchdog = load_json(WATCHDOG_STATE, {})
     model_router = load_json(STATE_ROOT / "latest-model-router.json", {})
     codex_escalation = load_json(CODEX_ESCALATION_STATE, {})
+    codex_result = load_json(CODEX_RESULT_STATE, {})
+    codex_recommendation_materializer = load_json(CODEX_RECOMMENDATION_MATERIALIZER_STATE, {})
     lead_quality = load_json(LEAD_QUALITY_AUDIT_STATE, {})
+    quality_hold_repair = load_json(QUALITY_HOLD_REPAIR_STATE, {})
     ops_db = load_json(STATE_ROOT / "latest-jvt-ops-db.json", {})
     opportunity = load_json(STATE_ROOT / "latest-opportunity-manager.json", {})
     custom_pilot = load_json(CUSTOM_PILOT_PIPELINE_STATE, {})
@@ -365,10 +373,32 @@ def build_snapshot() -> dict[str, Any]:
             "usage": codex_escalation.get("usage"),
             "policy": codex_escalation.get("policy"),
         },
+        "codex_recommendation": {
+            "generated_at": codex_result.get("generated_at"),
+            "task_id": codex_result.get("task_id"),
+            "ok": codex_result.get("ok"),
+            "materializer_generated_at": codex_recommendation_materializer.get("generated_at"),
+            "materializer_source_generated_at": (
+                codex_recommendation_materializer.get("source") or {}
+            ).get("generated_at")
+            if isinstance(codex_recommendation_materializer.get("source"), dict)
+            else None,
+            "materializer_status": codex_recommendation_materializer.get("status"),
+            "materialized": codex_recommendation_materializer.get("materialized"),
+            "epic_id": codex_recommendation_materializer.get("epic_id"),
+            "missing_paths": codex_recommendation_materializer.get("missing_paths"),
+        },
         "lead_quality": {
             "generated_at": lead_quality.get("generated_at"),
             "age_seconds": parse_iso_age_seconds(lead_quality.get("generated_at")),
             "sections": lead_quality.get("sections"),
+        },
+        "quality_hold_repair": {
+            "generated_at": quality_hold_repair.get("generated_at"),
+            "age_seconds": parse_iso_age_seconds(quality_hold_repair.get("generated_at")),
+            "approval_candidate_count": quality_hold_repair.get("approval_candidate_count"),
+            "repair_candidate_count": quality_hold_repair.get("repair_candidate_count"),
+            "hard_hold_count": quality_hold_repair.get("hard_hold_count"),
         },
         "ops_db": {
             "generated_at": ops_db.get("generated_at"),
@@ -473,10 +503,33 @@ def deterministic_candidates(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
     custom_pilot = snapshot["custom_pilot_pipeline"]
     warm_followups = snapshot["warm_followup_samples"]
     materializer = snapshot["materializer"]
+    codex_recommendation = (
+        snapshot.get("codex_recommendation")
+        if isinstance(snapshot.get("codex_recommendation"), dict)
+        else {}
+    )
     artifacts = snapshot["artifact_ages"]
     lead_quality = snapshot.get("lead_quality") if isinstance(snapshot.get("lead_quality"), dict) else {}
+    quality_hold_repair = (
+        snapshot.get("quality_hold_repair")
+        if isinstance(snapshot.get("quality_hold_repair"), dict)
+        else {}
+    )
     lead_quality_sections = lead_quality.get("sections") if isinstance(lead_quality.get("sections"), dict) else {}
     approved_quality = lead_quality_sections.get("approved") if isinstance(lead_quality_sections.get("approved"), dict) else {}
+    recommendation_generated_at = codex_recommendation.get("generated_at")
+    recommendation_handled = bool(
+        recommendation_generated_at
+        and recommendation_generated_at == codex_recommendation.get("materializer_source_generated_at")
+    )
+    recommendation_status = str(codex_recommendation.get("materializer_status") or "")
+    recommendation_needs_materialization = bool(
+        codex_recommendation.get("ok") is True and recommendation_generated_at and not recommendation_handled
+    )
+    recommendation_unresolved = recommendation_handled and (
+        recommendation_status.startswith("tracked_")
+        or recommendation_status in {"queued", "would_queue"}
+    )
 
     if tasks.get("pending", 0) == 0 and (snapshot["orchestrator"].get("work_item_count") or 0) > 0:
         items.append(candidate("work_item_materializer", "Convert current orchestrator work items into executable internal tasks.", cadence="hourly", priority=1, feature="company-autonomy", reason="orchestrator has work items and pending queue is empty", dedupe_key="work-items"))
@@ -486,6 +539,16 @@ def deterministic_candidates(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
         items.append(candidate("model_router_status", "Refresh model router readiness because model routing is not healthy.", cadence="hourly", priority=1, feature="model-runtime", reason="model router not ok"))
     if snapshot["codex_escalation"].get("ok") is not True or (snapshot["codex_escalation"].get("age_seconds") or 999999) > 3600:
         items.append(candidate("codex_escalation_status", "Refresh Codex CLI escalation readiness, caps, auth, and context-pack policy.", cadence="hourly", priority=1, feature="codex-governance", reason="codex escalation stale or unhealthy"))
+    if recommendation_needs_materialization:
+        items.append(candidate(
+            "codex_recommendation_materializer",
+            "Turn the latest actionable Codex repository recommendation into one deduplicated capped implementation epic.",
+            cadence="hourly",
+            priority=1,
+            feature="codex-governance",
+            reason="new Codex recommendation has not been materialized or marked implemented",
+            dedupe_key=f"codex-recommendation:{recommendation_generated_at}",
+        ))
     if snapshot["ops_db"].get("ok") is not True or (snapshot["ops_db"].get("age_seconds") or 999999) > 3600:
         items.append(candidate("jvt_ops_db_sync", "Sync durable JVT ops database state.", cadence="hourly", priority=2, feature="company-memory", reason="ops database stale or unhealthy"))
     if (snapshot["opportunity_manager"].get("warm_count") or 0) > 0 and (custom_pilot.get("age_seconds") or 999999) > 1800:
@@ -514,6 +577,18 @@ def deterministic_candidates(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
     if queues.get("review", 0) > 0:
         items.append(candidate("outreach_review_queue_brief", "Create strict QA brief for current review queue packets.", cadence="six-hour", priority=2, feature="outreach-quality", reason="review queue has packets"))
     if queues.get("review", 0) > 0 and queues.get("approved", 0) == 0:
+        if int(quality_hold_repair.get("approval_candidate_count") or 0) > 0 or int(
+            quality_hold_repair.get("repair_candidate_count") or 0
+        ) > 0:
+            items.append(candidate(
+                "resolve_review_quality_holds",
+                "Preserve and clear only stale review quality holds that now pass the canonical classifier.",
+                cadence="hourly",
+                priority=1,
+                feature="outreach-quality",
+                reason="review backlog contains stale or repairable historical quality holds",
+                dedupe_key="resolve-review-quality-holds",
+            ))
         items.append(candidate(
             "quality_hold_repair_queue",
             "Diagnose review packets that pass shared quality audit but fail strict auto-approval so the approval bottleneck can be repaired safely.",
@@ -557,7 +632,7 @@ def deterministic_candidates(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
         or bool(snapshot["opportunity_manager"].get("response_needed_count"))
         or bool(snapshot["opportunity_manager"].get("warm_count"))
     )
-    if has_codex_budget and high_value_codex_need:
+    if has_codex_budget and high_value_codex_need and not recommendation_needs_materialization and not recommendation_unresolved:
         items.append(candidate(
             "codex_escalation_request",
             "Route one high-context JVT systems question to Codex CLI for a stronger read on the next bottleneck to fix.",

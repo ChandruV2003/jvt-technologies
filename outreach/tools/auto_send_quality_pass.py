@@ -5,7 +5,6 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import re
 import sqlite3
 import subprocess
 import sys
@@ -19,7 +18,7 @@ from pathlib import Path
 from typing import Any
 
 from send_cap_policy import resolve_send_caps
-from recipient_quality import evidence_gate
+from packet_quality import classify_packet
 
 ROOT = Path(__file__).resolve().parents[2]
 OUTREACH_ROOT = ROOT / "outreach"
@@ -36,21 +35,6 @@ REPORT_DIR = OUTREACH_ROOT / "schedules" / "auto-send"
 QUALITY_GATE = OUTREACH_ROOT / "tools" / "quality_gate_approved.py"
 SEND_APPROVED = OUTREACH_ROOT / "tools" / "send_approved.py"
 MOVE_PACKET = OUTREACH_ROOT / "tools" / "move_packet.py"
-
-BAD_GENERIC_NAMES = {
-    "tax advisory services",
-    "wealth management",
-    "accounting services",
-    "bookkeeping services",
-    "contact us",
-    "home page",
-}
-BLOCKED_LOCAL_PARTS = {
-    "career", "careers", "employment", "hr", "jobs", "recruiting", "resumes",
-    "noreply", "no-reply", "donotreply", "do-not-reply", "seo", "marketing", "webmaster",
-}
-EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
-
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
@@ -252,25 +236,8 @@ def approved_kind_counts() -> dict[str, int]:
 
 
 def conservative_hold_reasons(payload: dict[str, Any]) -> list[str]:
-    reasons: list[str] = []
-    name = str(payload.get("company_name") or "").strip()
-    lower_name = name.lower()
-    email = str(payload.get("recipient_email") or payload.get("public_email") or "").strip().lower()
-    if not EMAIL_RE.match(email):
-        reasons.append("invalid recipient email")
-    elif email.split("@", 1)[0] in BLOCKED_LOCAL_PARTS:
-        reasons.append("blocked recipient local part")
-    if not name:
-        reasons.append("missing company name")
-    if lower_name in BAD_GENERIC_NAMES:
-        reasons.append("generic company name")
-    if ":" in name or "!" in name:
-        reasons.append("marketing headline instead of company name")
-    if len(name.split()) > 8:
-        reasons.append("company name too long to trust without enrichment")
-    evidence_reasons, _evidence = evidence_gate(payload)
-    reasons.extend(evidence_reasons)
-    return reasons
+    quality = classify_packet(payload, source_queue="approved", strict_historical_hold=True)
+    return list(quality["human_reasons"])
 
 
 def active_hit_followup_hold_reason(payload: dict[str, Any], hits: dict[str, Any]) -> str:

@@ -5,72 +5,19 @@ from __future__ import annotations
 import argparse
 import json
 import re
-import urllib.parse
 from datetime import datetime, timezone
 from pathlib import Path
+
+from packet_quality import (
+    classify_packet,
+    clear_safe_historical_hold,
+    stamp_packet_quality,
+)
 
 
 ROOT = Path("/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies")
 QUEUE_ROOT = ROOT / "outreach" / "queue"
 SCHEDULE_ROOT = ROOT / "outreach" / "schedules"
-
-GENERIC_NAME_MARKERS = {
-    "tax preparation",
-    "accounting and advisory firm",
-    "a premier small business focused cpa firm",
-    "parents estate planning law firm",
-    "home page",
-    "contact us",
-    "cpa websites",
-    "certified public accounting firm",
-}
-
-GENERIC_NAME_PATTERNS = [
-    re.compile(r"^[A-Z][A-Za-z .'-]+,\s*[A-Z]{2}\s+Accounting Firm$"),
-    re.compile(r"^[A-Z][A-Za-z .'-]+\s+Estate Planning Law Firm$"),
-    re.compile(r"^about\s+", re.IGNORECASE),
-    re.compile(r"^cpa\s+in\s+[A-Za-z .,'-]+$", re.IGNORECASE),
-    re.compile(r"^[A-Za-z .,'-]+\s+cpa\s+firm$", re.IGNORECASE),
-    re.compile(r"^trusted\s+accounting\s+firm\s+for\s+business\b", re.IGNORECASE),
-    re.compile(r"^accounting\s*&\s*consulting\s+firm\s+in\s+[A-Za-z ,.]+$", re.IGNORECASE),
-    re.compile(r"^bookkeeping\s+services\s+in\s+[A-Za-z ,]+", re.IGNORECASE),
-    re.compile(r"\b(home|about|contact)\s+[-|]\s+", re.IGNORECASE),
-]
-
-POLLUTED_LOCATION_PATTERNS = [
-    re.compile(r"\bour expertise\b", re.IGNORECASE),
-    re.compile(r"\bprovides small business\b", re.IGNORECASE),
-    re.compile(r"\bfrom our offices\b", re.IGNORECASE),
-    re.compile(r"\bwe have professional\b", re.IGNORECASE),
-    re.compile(r"\bhas served the\b", re.IGNORECASE),
-    re.compile(r"\bgreater [A-Z][A-Za-z .'-]+,\s*[A-Z]{2}\b"),
-]
-
-PLACEHOLDER_PATTERNS = [
-    re.compile(r"\{\{.+?\}\}"),
-    re.compile(r"\[[A-Z0-9_ -]{3,}\]"),
-    re.compile(r"\b(TODO|TBD|INSERT|FILL IN)\b", re.IGNORECASE),
-]
-TARGET_INDUSTRIES = {
-    "Accounting / Tax Firm",
-    "Construction / Contracting",
-    "Dental / Healthcare Admin",
-    "Home Services",
-    "IT / Ballot Services",
-    "Law Firm",
-    "Mortgage / Title Services",
-    "Property Management",
-}
-SOFTWARE_PLATFORM_PATTERNS = [
-    re.compile(r"\bsoftware platform\b", re.IGNORECASE),
-    re.compile(r"\bpractice management software\b", re.IGNORECASE),
-    re.compile(r"\bbusiness management software\b", re.IGNORECASE),
-    re.compile(r"\bworkflow software\b", re.IGNORECASE),
-    re.compile(r"\bsaas\b", re.IGNORECASE),
-    re.compile(r"\bplatform for\b", re.IGNORECASE),
-    re.compile(r"\bjetpack workflow\b", re.IGNORECASE),
-]
-
 
 def packet_state(stem: str) -> str:
     for label in ("draft", "review", "approved", "sent", "replied"):
@@ -95,77 +42,20 @@ def load_packet(label: str, stem: str) -> tuple[dict[str, object], str, str]:
     return metadata, text_body, html_body
 
 
-def root_domain(value: str) -> str:
-    clean = value.lower().removeprefix("www.").split(":", 1)[0]
-    parts = [part for part in clean.split(".") if part]
-    if len(parts) < 2:
-        return clean
-    return ".".join(parts[-2:])
-
-
-def email_matches_website(recipient_email: str, website: str) -> bool:
-    if "@" not in recipient_email or not website:
-        return True
-    parsed = urllib.parse.urlparse(website if "://" in website else f"https://{website}")
-    host = parsed.netloc or parsed.path.split("/", 1)[0]
-    if not host:
-        return True
-    email_domain = recipient_email.rsplit("@", 1)[1]
-    return root_domain(email_domain) == root_domain(host)
-
-
 def validate_packet(stem: str, label: str) -> list[str]:
-    issues: list[str] = []
     try:
-        metadata, text_body, html_body = load_packet(label, stem)
+        metadata, _text_body, _html_body = load_packet(label, stem)
     except (FileNotFoundError, json.JSONDecodeError) as exc:
         return [f"packet_load_failed:{exc}"]
-
-    company_name = str(metadata.get("company_name") or "").strip()
-    recipient_email = str(metadata.get("recipient_email") or "").strip()
-    subject = str(metadata.get("subject") or "").strip()
-    website = str(metadata.get("contact_page") or metadata.get("website") or "").strip()
-    city_state = str(metadata.get("city_state") or "").strip()
-    industry = str(metadata.get("industry") or "").strip()
-    practice_area = str(metadata.get("practice_area") or "").strip()
-    notes = str(metadata.get("notes") or "").strip()
-    quality_hold_reason = str(metadata.get("quality_hold_reason") or "").strip()
-
-    if not company_name:
-        issues.append("missing_company_name")
-    if quality_hold_reason:
-        issues.append("existing_quality_hold")
-    if company_name.lower() in GENERIC_NAME_MARKERS:
-        issues.append("generic_company_name")
-    if any(pattern.search(company_name) for pattern in GENERIC_NAME_PATTERNS):
-        issues.append("generic_company_name")
-    if industry and industry not in TARGET_INDUSTRIES:
-        issues.append("off_target_industry")
-    target_context = "\n".join([company_name, industry, practice_area, website, notes])
-    if any(pattern.search(target_context) for pattern in SOFTWARE_PLATFORM_PATTERNS):
-        issues.append("software_platform_target")
-    if any(pattern.search(city_state) for pattern in POLLUTED_LOCATION_PATTERNS):
-        issues.append("polluted_location_text")
-    if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", recipient_email):
-        issues.append("invalid_recipient_email")
-    elif not email_matches_website(recipient_email, website):
-        issues.append("email_domain_mismatch")
-    if not subject:
-        issues.append("missing_subject")
-    if len(subject) > 110:
-        issues.append("subject_too_long")
-    if len(text_body.strip()) < 350:
-        issues.append("short_text_body")
-    if not html_body.strip():
-        issues.append("missing_html_body")
-
-    combined = "\n".join([subject, text_body, html_body])
-    if any(pattern.search(combined) for pattern in PLACEHOLDER_PATTERNS):
-        issues.append("unresolved_placeholder")
-    if "unsubscribe" in combined.lower():
-        issues.append("bulk_unsubscribe_language")
-
-    return issues
+    metadata.setdefault("review_path", str(QUEUE_ROOT / label / f"{stem}.md"))
+    metadata.setdefault("text_path", str(QUEUE_ROOT / label / f"{stem}.txt"))
+    metadata.setdefault("html_path", str(QUEUE_ROOT / label / f"{stem}.html"))
+    quality = classify_packet(
+        metadata,
+        source_queue=label,
+        strict_historical_hold=label == "approved",
+    )
+    return list(quality["reason_codes"])
 
 
 def move_packet(stem: str, source: str, target: str, dry_run: bool) -> None:
@@ -180,6 +70,11 @@ def move_packet(stem: str, source: str, target: str, dry_run: bool) -> None:
     for path in paths:
         if path.suffix == ".json":
             data = json.loads(path.read_text(encoding="utf-8"))
+            if target == "approved":
+                quality = classify_packet(data, source_queue=source, strict_historical_hold=False)
+                clear_safe_historical_hold(data, quality, source="auto_review_wave")
+                quality = classify_packet(data, source_queue=source, strict_historical_hold=False)
+                stamp_packet_quality(data, quality)
             data["status"] = target
             for key, suffix in {
                 "review_path": ".md",

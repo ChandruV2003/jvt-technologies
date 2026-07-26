@@ -1195,6 +1195,26 @@ def codex_escalation_request(task: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def codex_recommendation_materializer(_task: dict[str, Any]) -> dict[str, Any]:
+    step = run_command(
+        "codex_recommendation_materializer",
+        ["python3", "ops/agent-control/codex_recommendation_materializer.py"],
+        timeout=60,
+    )
+    return {
+        "ok": bool(step["ok"]),
+        "steps": [step],
+        "artifacts": [
+            str(STATE_ROOT / "latest-codex-recommendation-materializer.json"),
+            str(STATE_ROOT / "latest-codex-recommendation-materializer.md"),
+        ],
+        "guardrail": (
+            "Materializes one deduplicated repository-scoped Codex recommendation into the capped epic queue. "
+            "No external sends, approvals, provider actions, spending, financial actions, public posts, or commitments."
+        ),
+    }
+
+
 def jvt_ops_db_sync(_task: dict[str, Any]) -> dict[str, Any]:
     step = run_command("jvt_ops_db_sync", ["python3", "ops/agent-control/jvt_ops_db.py", "sync"], timeout=120)
     return {
@@ -1690,6 +1710,26 @@ def quality_hold_repair_queue(_task: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def resolve_review_quality_holds(_task: dict[str, Any]) -> dict[str, Any]:
+    step = run_command(
+        "resolve_review_quality_holds",
+        ["python3", "outreach/tools/resolve_review_quality_holds.py", "--write"],
+        timeout=90,
+    )
+    return {
+        "ok": bool(step["ok"]),
+        "steps": [step],
+        "artifacts": [
+            str(STATE_ROOT / "latest-review-quality-hold-resolution.json"),
+            str(STATE_ROOT / "latest-review-quality-hold-resolution.md"),
+        ],
+        "guardrail": (
+            "Review metadata repair only. The resolver preserves hold history and clears only stale holds that "
+            "pass the canonical classifier. It does not approve, move, or send packets."
+        ),
+    }
+
+
 def system_resource_report(_task: dict[str, Any]) -> dict[str, Any]:
     step = report_script("system_resource_report", "system_resource_report.py")
     return {
@@ -1781,6 +1821,7 @@ HANDLERS = {
     "model_router_status": model_router_status,
     "codex_escalation_status": codex_escalation_status,
     "codex_escalation_request": codex_escalation_request,
+    "codex_recommendation_materializer": codex_recommendation_materializer,
     "jvt_ops_db_sync": jvt_ops_db_sync,
     "opportunity_hit_sync": opportunity_hit_sync,
     "opportunity_manager_refresh": opportunity_manager_refresh,
@@ -1793,6 +1834,7 @@ HANDLERS = {
     "paper_trader_health": paper_trader_health,
     "lead_quality_audit": lead_quality_audit,
     "quality_hold_repair_queue": quality_hold_repair_queue,
+    "resolve_review_quality_holds": resolve_review_quality_holds,
     "source_hygiene_report": source_hygiene_report,
     "system_resource_report": system_resource_report,
     "business_readiness_sweep": business_readiness_sweep,

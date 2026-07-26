@@ -90,6 +90,12 @@
       "model_tier": "codex-cli-capped-via-guarded-runner",
       "self_review": "strict"
     },
+    "codex_recommendation_materializer": {
+      "level": "task",
+      "feature": "codex-governance",
+      "model_tier": "deterministic-to-capped-epic",
+      "self_review": "strict"
+    },
     "jvt_ops_db_sync": {
       "level": "task",
       "feature": "company-memory",
@@ -97,6 +103,12 @@
       "self_review": "strict"
     },
     "lead_quality_audit": {
+      "level": "task",
+      "feature": "outreach-quality",
+      "model_tier": "deterministic",
+      "self_review": "strict"
+    },
+    "resolve_review_quality_holds": {
       "level": "task",
       "feature": "outreach-quality",
       "model_tier": "deterministic",

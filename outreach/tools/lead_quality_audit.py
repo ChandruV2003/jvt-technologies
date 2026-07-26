@@ -12,22 +12,38 @@ from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from recipient_quality import evidence_gate, lead_payload
+from packet_quality import classify_packet
 
 
 DEFAULT_ROOT = Path("/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies")
 
 
-def audit_payload(name: str, payload: dict[str, Any]) -> dict[str, Any]:
-    reasons, evidence = evidence_gate(lead_payload(payload))
+def audit_payload(name: str, payload: dict[str, Any], *, source_queue: str | None = None) -> dict[str, Any]:
+    if source_queue:
+        quality = classify_packet(payload, source_queue=source_queue, strict_historical_hold=False)
+        reasons = quality["human_reasons"]
+        evidence = quality["recipient_evidence"]
+        decision = "pass" if quality["decision"] == "approval_candidate" else "hold"
+        score = quality["score"]
+        reason_codes = quality["reason_codes"]
+        classification = quality["decision"]
+    else:
+        reasons, evidence = evidence_gate(lead_payload(payload))
+        decision = "hold" if reasons else "pass"
+        score = evidence.get("score")
+        reason_codes = []
+        classification = "lead_evidence_pass" if not reasons else "lead_evidence_hold"
     return {
         "name": name,
         "company_name": payload.get("company_name"),
         "recipient_email": payload.get("recipient_email") or payload.get("public_email"),
         "industry": payload.get("industry"),
-        "decision": "hold" if reasons else "pass",
+        "decision": decision,
+        "classification": classification,
         "reasons": reasons,
+        "reason_codes": reason_codes,
         "recipient_kind": evidence.get("recipient_kind"),
-        "score": evidence.get("score"),
+        "score": score,
     }
 
 
@@ -61,7 +77,7 @@ def audit_db_leads(db_path: Path) -> list[dict[str, Any]]:
     return [audit_payload(f"lead:{row['id']}", {key: row[key] for key in row.keys()}) for row in rows]
 
 
-def audit_queue(queue_dir: Path) -> list[dict[str, Any]]:
+def audit_queue(queue_dir: Path, *, source_queue: str) -> list[dict[str, Any]]:
     items: list[dict[str, Any]] = []
     if not queue_dir.exists():
         return items
@@ -76,13 +92,15 @@ def audit_queue(queue_dir: Path) -> list[dict[str, Any]]:
                     "recipient_email": "",
                     "industry": "",
                     "decision": "hold",
+                    "classification": "hard_hold",
                     "reasons": ["invalid queue metadata json"],
+                    "reason_codes": ["invalid_queue_metadata"],
                     "recipient_kind": "",
                     "score": 0,
                 }
             )
             continue
-        items.append(audit_payload(path.name, payload))
+        items.append(audit_payload(path.name, payload, source_queue=source_queue))
     return items
 
 
@@ -96,9 +114,9 @@ def main() -> None:
     output_path = args.json_out or root / "ops/agent-control/state/latest-lead-quality-audit.json"
     sections = {
         "new_leads": audit_db_leads(root / "lead-pipeline/data/jvt_leads.sqlite3"),
-        "draft": audit_queue(root / "outreach/queue/draft"),
-        "review": audit_queue(root / "outreach/queue/review"),
-        "approved": audit_queue(root / "outreach/queue/approved"),
+        "draft": audit_queue(root / "outreach/queue/draft", source_queue="draft"),
+        "review": audit_queue(root / "outreach/queue/review", source_queue="review"),
+        "approved": audit_queue(root / "outreach/queue/approved", source_queue="approved"),
     }
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),

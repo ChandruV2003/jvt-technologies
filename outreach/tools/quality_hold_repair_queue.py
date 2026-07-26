@@ -8,9 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from auto_approve_review_followups import rejection_reasons as followup_rejection_reasons
-from auto_approve_review_initials import is_followup, rejection_reasons as initial_rejection_reasons
-from recipient_quality import evidence_gate, lead_payload
+from packet_quality import classify_packet
 
 
 ROOT = Path("/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies")
@@ -69,37 +67,27 @@ def repair_next_step(reasons: list[str]) -> str:
 
 def analyze_packet(path: Path) -> dict[str, Any]:
     payload = load_json(path)
-    followup = is_followup(payload)
-    auto_reasons = followup_rejection_reasons(payload) if followup else initial_rejection_reasons(payload)
-    shared_reasons, evidence = evidence_gate(lead_payload(payload))
-    artifacts = {
-        key: bool(payload.get(key) and Path(str(payload.get(key))).exists())
-        for key in ("review_path", "text_path", "html_path")
-    }
-    if not auto_reasons and not shared_reasons:
-        bucket = "approval_candidate"
-    elif not shared_reasons and auto_reasons:
-        bucket = "repair_candidate"
-    elif shared_reasons:
-        bucket = "hard_hold"
-    else:
-        bucket = "review"
+    quality = classify_packet(payload, source_queue="review", strict_historical_hold=False)
+    auto_reasons = list(quality["human_reasons"])
     return {
         "stem": path.stem,
         "packet_path": str(path),
-        "kind": "followup" if followup else "initial",
-        "bucket": bucket,
+        "kind": quality["kind"],
+        "bucket": quality["decision"],
         "company_name": payload.get("company_name"),
         "recipient_email": payload.get("recipient_email") or payload.get("public_email"),
         "industry": payload.get("industry"),
         "subject": payload.get("subject"),
         "contact_page": payload.get("contact_page") or payload.get("website"),
         "auto_approval_reasons": auto_reasons,
-        "shared_gate_reasons": shared_reasons,
-        "recipient_evidence": evidence,
-        "artifacts": artifacts,
+        "reason_codes": quality["reason_codes"],
+        "shared_gate_reasons": quality["recipient_evidence"].get("hold_reasons") or [],
+        "recipient_evidence": quality["recipient_evidence"],
+        "artifacts": quality["artifacts"],
         "quality_hold_reason": payload.get("quality_hold_reason"),
-        "repair_next_step": repair_next_step(auto_reasons or shared_reasons),
+        "historical_hold_only": quality["historical_hold_only"],
+        "safe_to_clear_quality_hold": quality["safe_to_clear_quality_hold"],
+        "repair_next_step": repair_next_step(auto_reasons),
     }
 
 
@@ -109,7 +97,7 @@ def build_report(limit: int) -> dict[str, Any]:
     reason_counts = Counter(
         reason
         for item in packets
-        for reason in [*item.get("auto_approval_reasons", []), *item.get("shared_gate_reasons", [])]
+        for reason in item.get("auto_approval_reasons", [])
     )
     approval_candidates = [item for item in packets if item["bucket"] == "approval_candidate"]
     repair_candidates = [item for item in packets if item["bucket"] == "repair_candidate"]
