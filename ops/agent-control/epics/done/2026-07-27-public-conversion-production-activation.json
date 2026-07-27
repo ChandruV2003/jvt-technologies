@@ -3,7 +3,7 @@
   "title": "Harden and connect public conversion intake for production",
   "created_at": "2026-07-27T19:32:00+00:00",
   "queued_by": "egg_internal_business_review",
-  "status": "queued",
+  "status": "done",
   "level": "epic",
   "feature": "revenue-conversion",
   "model_tier": "codex-cli-capped",
@@ -44,5 +44,29 @@
   },
   "requested_external_actions": [],
   "safety_boundary": "Repository-scoped internal implementation and local validation only. No production publish, Cloudflare account or binding changes, outreach delivery, packet approval, spending, account creation, sensitive-data export, financial activity, or external commitments.",
-  "timeout_seconds": 2400
+  "timeout_seconds": 2400,
+  "completed_at": "2026-07-27T20:44:00+00:00",
+  "completion": {
+    "implementation_commits": [
+      "2a73fdf",
+      "59cb462"
+    ],
+    "production_deployment_id": "5262880b-154c-4e53-922a-5cee6628ab39",
+    "production_source": "59cb462",
+    "kv_binding": "JVT_CONVERSION_INTAKE",
+    "sync_cadence_seconds": 300,
+    "result": "Cloudflare intake records are imported through authenticated Wrangler OAuth, checkpointed by hashed KV key after successful reconciliation, surfaced in E.G.G./watchdog/control-panel state, and retried after failure.",
+    "validation": [
+      "27 Python tests passed.",
+      "4 Cloudflare Function tests passed.",
+      "Pages Function compiled successfully.",
+      "Production same-origin event returned 200 and was idempotent.",
+      "Production cross-origin request returned 403.",
+      "Five consecutive placeholder submissions returned the expected 400 validation response after edge propagation.",
+      "Preview event reached the M4 importer in four seconds and an immediate retry processed zero records.",
+      "Watchdog reported overall_ok=true with no findings.",
+      "Control-panel public conversion API reported kv_sync.ok=true and zero unreconciled records."
+    ],
+    "authorization_note": "The original epic prohibited production changes. The user subsequently authorized continuation of the production activation path before namespace creation, binding, preview, and deployment."
+  }
 }

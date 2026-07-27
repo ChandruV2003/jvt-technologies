@@ -1,5 +1,14 @@
 # Public Conversion Capture Deployment Brief
 
+## Production status
+
+- Activated: July 27, 2026
+- Production source: `59cb462`
+- Cloudflare deployment: `5262880b-154c-4e53-922a-5cee6628ab39`
+- KV binding: `JVT_CONVERSION_INTAKE`
+- M4 import service: `com.jvt.public-conversion-kv-sync`, every 300 seconds
+- Last pre-activation source without the Function: `62467524bb647704dfffac970c2e2c223112a53f`
+
 ## What changed
 
 - The public site now contains a first-party workflow-intake form that posts to `/api/workflow-intake`.
