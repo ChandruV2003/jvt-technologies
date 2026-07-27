@@ -152,7 +152,14 @@ def usage_events() -> list[dict[str, Any]]:
                 "finished_at": finished_at,
                 "source": str(path),
             })
-    return events
+    unique: dict[tuple[str, str], dict[str, Any]] = {}
+    for event in events:
+        key = (
+            str(event.get("epic_id") or ""),
+            str(event.get("finished_at") or ""),
+        )
+        unique.setdefault(key, event)
+    return list(unique.values())
 
 
 def codex_budget_status(policy: dict[str, Any]) -> dict[str, Any]:

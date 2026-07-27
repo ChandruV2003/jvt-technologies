@@ -12,6 +12,45 @@ import epic_agent_runner as runner
 
 
 class EpicAgentRunnerTests(unittest.TestCase):
+    def test_usage_events_deduplicates_log_and_done_record(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            done = root / "done"
+            done.mkdir(parents=True)
+            usage_log = root / "usage.jsonl"
+            finished_at = "2026-07-27T15:56:44+00:00"
+            usage_log.write_text(
+                json.dumps(
+                    {
+                        "epic_id": "epic-1",
+                        "mode": "codex_workspace_write",
+                        "finished_at": finished_at,
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (done / "epic-1.json").write_text(
+                json.dumps(
+                    {
+                        "id": "epic-1",
+                        "execution_mode": "codex_workspace_write",
+                        "epic_agent_updated_at": finished_at,
+                        "epic_agent_result": {"mode": "codex_workspace_write"},
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            with (
+                mock.patch.object(runner, "EPIC_ROOT", root),
+                mock.patch.object(runner, "USAGE_LOG_PATH", usage_log),
+            ):
+                events = runner.usage_events()
+
+        self.assertEqual(len(events), 1)
+        self.assertEqual(events[0]["epic_id"], "epic-1")
+
     def test_recovers_codex_path_hold_when_cli_is_available(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
