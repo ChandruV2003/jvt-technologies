@@ -12,6 +12,7 @@ from model_packet_reviewer import review_packet
 from packet_quality import (
     classify_packet,
     clear_safe_historical_hold,
+    is_auto_approval_candidate,
     stamp_packet_quality,
 )
 
@@ -115,7 +116,6 @@ def main() -> None:
             model_reviewed += 1
             model_review = review_packet(payload, reasons, "follow-up")
             if model_review.get("approved"):
-                reasons = []
                 approval_reason = f"model-assisted follow-up packet quality pass: {model_review.get('reason')}"
         item = {
             "stem": path.stem,
@@ -128,7 +128,7 @@ def main() -> None:
             "historical_hold_only": quality["historical_hold_only"],
             "model_review": model_review,
         }
-        if reasons or quality["decision"] == "hard_hold":
+        if not is_auto_approval_candidate(quality):
             held.append(item)
             continue
         if len(approved) >= args.limit:

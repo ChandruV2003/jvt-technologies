@@ -67,6 +67,7 @@ SAFE_TASK_TYPES = {
     "local_audio_bridge_next_step",
     "paper_trader_health",
     "lead_quality_audit",
+    "approved_quality_reconcile",
     "quality_hold_repair_queue",
     "resolve_review_quality_holds",
     "fresh_lead_packet_prep",
@@ -601,7 +602,15 @@ def deterministic_candidates(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
     elif (custom_pilot.get("age_seconds") or 999999) > 3600:
         items.append(candidate("custom_pilot_pipeline", "Refresh custom pilot pipeline even when no active response is pending.", cadence="hourly", priority=3, feature="custom-pilots", reason="custom pilot pipeline stale"))
     if int(approved_quality.get("hold") or 0) > 0:
-        items.append(candidate("lead_quality_audit", "Refresh lead quality audit because approved packets are failing recipient evidence.", cadence="hourly", priority=1, feature="outreach-quality", reason="approved recipient evidence failure"))
+        items.append(candidate(
+            "approved_quality_reconcile",
+            "Demote approved packets that fail the canonical quality gate so clean inventory can continue safely.",
+            cadence="hourly",
+            priority=1,
+            feature="outreach-quality",
+            reason="approved packet failed canonical quality gate",
+            dedupe_key="approved-quality-reconcile",
+        ))
     elif (lead_quality.get("age_seconds") or 999999) > 3600:
         items.append(candidate("lead_quality_audit", "Refresh read-only lead and recipient quality audit.", cadence="hourly", priority=2, feature="outreach-quality", reason="lead quality audit stale"))
     if (materializer.get("unmatched_count") or 0) > 0:

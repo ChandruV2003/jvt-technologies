@@ -130,7 +130,7 @@ def build_epic(
         "source_codex_recommendation": metadata,
         "story": recommendation[:14000],
         "scope_paths": scope_paths,
-        "deliverables": missing_paths,
+        "deliverables": missing_paths or scope_paths,
         "acceptance_criteria": [
             "Implement the smallest safe repository-scoped version of the recommendation.",
             "Reuse existing JVT patterns and remove contradictory duplicate logic where the recommendation requires it.",
@@ -171,16 +171,6 @@ def materialize(*, dry_run: bool) -> dict[str, Any]:
     if not paths:
         report.update({"status": "no_repository_python_paths", "materialized": False})
         return report
-    if not missing:
-        report.update(
-            {
-                "status": "implemented_or_present",
-                "materialized": False,
-                "next_action": "Do not repeat this Codex ask; all named Python implementation files are present.",
-            }
-        )
-        return report
-
     fingerprint = recommendation_fingerprint(metadata, recommendation, paths)
     epic_id = f"codex-recommendation-{fingerprint}"
     report["fingerprint"] = fingerprint

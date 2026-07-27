@@ -8,6 +8,7 @@ from pathlib import Path
 from packet_quality import (
     classify_packet,
     clear_safe_historical_hold,
+    is_auto_approval_candidate,
 )
 
 
@@ -95,6 +96,17 @@ class PacketQualityTests(unittest.TestCase):
         payload = {**self.payload, "follow_up_stage": 1}
         result = classify_packet(payload, source_queue="review")
         self.assertEqual(result["kind"], "followup")
+
+    def test_repair_candidate_cannot_be_auto_approved(self) -> None:
+        payload = {**self.payload, "company_name": "Lpappas Cpa"}
+        result = classify_packet(payload, source_queue="review")
+        self.assertEqual(result["decision"], "repair_candidate")
+        self.assertIn("unnormalized_company_name", result["reason_codes"])
+        self.assertFalse(is_auto_approval_candidate(result))
+
+    def test_clean_candidate_can_be_auto_approved(self) -> None:
+        result = classify_packet(self.payload, source_queue="review")
+        self.assertTrue(is_auto_approval_candidate(result))
 
 
 if __name__ == "__main__":

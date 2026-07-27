@@ -479,6 +479,12 @@ def classify_packet(
     return result
 
 
+def is_auto_approval_candidate(result: dict[str, Any]) -> bool:
+    """Return true only when the canonical classifier found no active blocker."""
+
+    return result.get("decision") == "approval_candidate" and not result.get("human_reasons")
+
+
 def stamp_packet_quality(payload: dict[str, Any], result: dict[str, Any]) -> dict[str, Any]:
     stamp_evidence(payload, result.get("recipient_evidence") or {})
     payload["packet_quality"] = {

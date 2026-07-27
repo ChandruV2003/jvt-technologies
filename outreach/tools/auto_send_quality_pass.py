@@ -292,6 +292,17 @@ def run_quality_gate() -> dict[str, Any]:
     return payload
 
 
+def effective_critical_findings(
+    findings: list[dict[str, Any]],
+    quality_gate: dict[str, Any],
+) -> list[dict[str, Any]]:
+    """Clear only the stale outreach-QC watchdog fault after reconciliation succeeds."""
+
+    if int(quality_gate.get("returncode") or 0) != 0:
+        return findings
+    return [finding for finding in findings if str(finding.get("area") or "") != "outreach-qc"]
+
+
 def select_stems(
     policy: dict[str, Any],
     max_per_run: int,
@@ -386,10 +397,12 @@ def main() -> None:
     auto_send = policy_auto_send(policy)
     max_per_run = args.max_per_run or int(auto_send.get("max_per_run") or os.environ.get("JVT_AUTO_SEND_MAX_PER_RUN") or 5)
     timeout_seconds = args.timeout_seconds or int(auto_send.get("timeout_seconds") or os.environ.get("JVT_AUTO_SEND_TIMEOUT_SECONDS") or 180)
+    quality_gate = run_quality_gate()
     sent_before = sent_breakdown_today(policy)
     inbox_new = inbox_new_count()
     active_hits = active_hit_contacts()
-    critical = watchdog_critical_findings()
+    critical_before_reconcile = watchdog_critical_findings()
+    critical = effective_critical_findings(critical_before_reconcile, quality_gate)
     approved_counts = approved_kind_counts()
     caps = resolve_send_caps(
         policy,
@@ -420,7 +433,7 @@ def main() -> None:
         "active_hits": active_hits,
         "selected_stems": [],
         "held_by_runner": [],
-        "quality_gate": {},
+        "quality_gate": quality_gate,
         "send_result": {},
     }
 
@@ -435,32 +448,30 @@ def main() -> None:
             "inbox_new": inbox_new,
             "active_hit_count": active_hits.get("count", 0),
             "allow_unrelated_sends_with_active_hits": allow_unrelated_sends,
+            "critical_watchdog_findings_before_reconcile": critical_before_reconcile,
             "critical_watchdog_findings": critical,
             "tcp_severity": caps.get("health", {}).get("tcp_severity"),
         }
         if auto_send.get("requires_inbox_new_zero", True) and inbox_new and not allow_unrelated_sends:
             report["status"] = "blocked"
             report["block_reason"] = "new inbox items must be triaged first"
+        elif int(quality_gate.get("returncode") or 0) != 0:
+            report["status"] = "blocked"
+            report["block_reason"] = "quality gate failed"
         elif auto_send.get("requires_no_critical_watchdog_findings", True) and critical:
             report["status"] = "blocked"
             report["block_reason"] = "critical watchdog finding active"
         else:
-            quality_gate = run_quality_gate()
-            report["quality_gate"] = quality_gate
-            if int(quality_gate.get("returncode") or 0) != 0:
-                report["status"] = "blocked"
-                report["block_reason"] = "quality gate failed"
+            stems, held = select_stems(policy, max_per_run, caps=caps, sent=sent_before, active_hits=active_hits)
+            report["selected_stems"] = stems
+            report["held_by_runner"] = held
+            if not stems:
+                report["status"] = "idle"
+                report["block_reason"] = "no approved packets fit caps and quality rules"
             else:
-                stems, held = select_stems(policy, max_per_run, caps=caps, sent=sent_before, active_hits=active_hits)
-                report["selected_stems"] = stems
-                report["held_by_runner"] = held
-                if not stems:
-                    report["status"] = "idle"
-                    report["block_reason"] = "no approved packets fit caps and quality rules"
-                else:
-                    send_result = run_send(stems, total_cap, timeout_seconds, args.send)
-                    report["send_result"] = send_result
-                    report["status"] = "sent" if args.send and send_result.get("returncode") == 0 else "dry-run" if not args.send else "send-failed"
+                send_result = run_send(stems, total_cap, timeout_seconds, args.send)
+                report["send_result"] = send_result
+                report["status"] = "sent" if args.send and send_result.get("returncode") == 0 else "dry-run" if not args.send else "send-failed"
 
     report["sent_after"] = sent_breakdown_today(policy)
     stamp = datetime.now().strftime("%Y%m%dT%H%M%S")

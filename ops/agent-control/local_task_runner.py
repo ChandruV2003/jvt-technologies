@@ -1778,6 +1778,26 @@ def lead_quality_audit(_task: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def approved_quality_reconcile(_task: dict[str, Any]) -> dict[str, Any]:
+    step = run_command(
+        "approved_quality_reconcile",
+        ["python3", "outreach/tools/quality_gate_approved.py", "--move-held"],
+        timeout=90,
+    )
+    return {
+        "ok": bool(step["ok"]),
+        "steps": [step],
+        "artifacts": [
+            str(REPO_ROOT / "outreach" / "quality-reports"),
+            str(REPO_ROOT / "outreach" / "queue" / "review"),
+        ],
+        "guardrail": (
+            "Internal queue reconciliation only. Packets that fail canonical quality are demoted from approved "
+            "to review. No packets are approved or sent."
+        ),
+    }
+
+
 def quality_hold_repair_queue(_task: dict[str, Any]) -> dict[str, Any]:
     step = run_command("quality_hold_repair_queue", ["python3", "outreach/tools/quality_hold_repair_queue.py"], timeout=90)
     return {
@@ -1916,6 +1936,7 @@ HANDLERS = {
     "local_audio_bridge_next_step": local_audio_bridge_next_step,
     "paper_trader_health": paper_trader_health,
     "lead_quality_audit": lead_quality_audit,
+    "approved_quality_reconcile": approved_quality_reconcile,
     "quality_hold_repair_queue": quality_hold_repair_queue,
     "resolve_review_quality_holds": resolve_review_quality_holds,
     "source_hygiene_report": source_hygiene_report,
