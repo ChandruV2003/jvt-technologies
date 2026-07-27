@@ -31,6 +31,15 @@ class JvtOpsDbTests(unittest.TestCase):
 
         self.assertEqual(OPS.infer_service_slug_from_inbox(payload), "ai-voice-intake")
 
+    def test_explicit_public_intake_service_slug_wins(self) -> None:
+        payload = {
+            "service_slug": "meeting-to-action",
+            "subject": "Public workflow intake: documents",
+            "snippet": "We need cleaner document and meeting handoffs.",
+        }
+
+        self.assertEqual(OPS.infer_service_slug_from_inbox(payload), "meeting-to-action")
+
     def test_schema_contains_commercial_ledger(self) -> None:
         conn = sqlite3.connect(":memory:")
         OPS.create_schema(conn)

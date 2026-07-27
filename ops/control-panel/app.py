@@ -49,6 +49,7 @@ ORCHESTRATOR_STATE_PATH = REPO_ROOT / "ops" / "agent-control" / "state" / "lates
 GROWTH_CHECKIN_STATE_PATH = REPO_ROOT / "ops" / "agent-control" / "state" / "latest-growth-ops-checkin.json"
 OPPORTUNITY_MANAGER_STATE_PATH = REPO_ROOT / "ops" / "agent-control" / "state" / "latest-opportunity-manager.json"
 CONVERSION_PIPELINE_STATE_PATH = REPO_ROOT / "ops" / "agent-control" / "state" / "latest-conversion-pipeline.json"
+PUBLIC_CONVERSION_STATE_PATH = REPO_ROOT / "ops" / "agent-control" / "state" / "latest-public-conversion-intake.json"
 VOICE_READINESS_STATE_PATH = REPO_ROOT / "ops" / "agent-control" / "state" / "latest-voice-readiness.json"
 PAPER_TRADER_HEALTH_STATE_PATH = REPO_ROOT / "ops" / "agent-control" / "state" / "latest-paper-trader-health.json"
 SOURCE_HYGIENE_STATE_PATH = REPO_ROOT / "ops" / "agent-control" / "state" / "latest-source-hygiene.json"
@@ -1188,6 +1189,7 @@ def state_file_summary(path: Path, *, ok_when_missing: bool = False) -> dict[str
 def business_readiness_summary() -> dict[str, object]:
     opportunity = state_file_summary(OPPORTUNITY_MANAGER_STATE_PATH)
     conversion = state_file_summary(CONVERSION_PIPELINE_STATE_PATH)
+    public_conversion = public_conversion_summary()
     voice_readiness = state_file_summary(VOICE_READINESS_STATE_PATH)
     paper_trader = state_file_summary(PAPER_TRADER_HEALTH_STATE_PATH)
     source_hygiene = state_file_summary(SOURCE_HYGIENE_STATE_PATH)
@@ -1197,6 +1199,8 @@ def business_readiness_summary() -> dict[str, object]:
         findings.append(f"{opportunity.get('response_needed_count')} active opportunity response(s) need review.")
     if int(conversion.get("stale_next_action_count") or 0):
         findings.append(f"{conversion.get('stale_next_action_count')} commercial next action(s) are overdue.")
+    if int(public_conversion.get("qualified_submission_count") or 0) > int(public_conversion.get("opportunity_handoff_count") or 0):
+        findings.append("A qualified public workflow-intake submission has not reached the opportunity ledger.")
     if not bool(voice_readiness.get("demo_ready")):
         findings.append("Voice readiness is not demo-ready.")
     if paper_trader.get("findings"):
@@ -1211,12 +1215,33 @@ def business_readiness_summary() -> dict[str, object]:
         "findings": findings,
         "opportunity_manager": opportunity,
         "conversion_pipeline": conversion,
+        "public_conversion": public_conversion,
         "voice_readiness": voice_readiness,
         "paper_trader": paper_trader,
         "source_hygiene": source_hygiene,
         "system_resources": system_resources,
         "guardrail": "Readiness visibility only. This panel does not send, spend, trade, mine, stake, post, or commit.",
     }
+
+
+def public_conversion_summary() -> dict[str, object]:
+    payload = state_file_summary(PUBLIC_CONVERSION_STATE_PATH, ok_when_missing=True)
+    if payload.get("status") == "missing":
+        payload.update({
+            "form_view_count": 0,
+            "form_start_count": 0,
+            "completed_submission_count": 0,
+            "qualified_submission_count": 0,
+            "duplicate_submission_count": 0,
+            "stored_submission_count": 0,
+            "opportunity_handoff_count": 0,
+            "inbox_handoff_count": 0,
+            "service_interest_counts": {},
+            "source_counts": {},
+            "latest_submissions": [],
+            "guardrail": "First-party intake visibility only. No sends, spend, public posting, account changes, or external commitments.",
+        })
+    return payload
 
 
 def orchestrator_summary() -> dict[str, object]:
@@ -1691,6 +1716,7 @@ def current_status() -> dict[str, object]:
     agent_interop = agent_interop_summary()
     orchestrator = orchestrator_summary()
     business_readiness = business_readiness_summary()
+    public_conversion = business_readiness.get("public_conversion") or public_conversion_summary()
     followups = follow_up_summary()
     owned_ops = owned_ops_status()
     next_actions = [
@@ -1790,6 +1816,16 @@ def current_status() -> dict[str, object]:
             "detail": "; ".join(str(item) for item in (business_readiness.get("findings") or [])[:3]) or "The readiness sweep has findings.",
             "kind": "business-readiness",
         })
+    if int(public_conversion.get("qualified_submission_count") or 0):
+        next_actions.insert(1, {
+            "title": "Review first-party workflow intake",
+            "detail": (
+                f"{public_conversion.get('qualified_submission_count')} qualified public form submission(s), "
+                f"{public_conversion.get('opportunity_handoff_count')} opportunity handoff(s), "
+                f"and {public_conversion.get('duplicate_submission_count')} duplicate(s) are tracked."
+            ),
+            "kind": "public-conversion-intake",
+        })
     for item in reversed((orchestrator.get("work_items") or [])[:3]):
         if not isinstance(item, dict):
             continue
@@ -1846,6 +1882,7 @@ def current_status() -> dict[str, object]:
         "agent_interop": agent_interop,
         "orchestrator": orchestrator,
         "business_readiness": business_readiness,
+        "public_conversion": public_conversion,
         "follow_up_pipeline": followups,
         "lead_counts": lead_status_counts,
         "agent_summary": agent_summary(agents),
@@ -2092,6 +2129,11 @@ def api_business_readiness() -> dict[str, object]:
 @app.get("/api/conversion-funnel")
 def api_conversion_funnel() -> dict[str, object]:
     return state_file_summary(CONVERSION_PIPELINE_STATE_PATH)
+
+
+@app.get("/api/public-conversion-intake")
+def api_public_conversion_intake() -> dict[str, object]:
+    return public_conversion_summary()
 
 
 @app.get("/api/ops/owned-status")

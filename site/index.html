@@ -630,14 +630,69 @@
               <p class="eyebrow">Contact</p>
               <h2>Have one annoying workflow your team keeps doing by hand?</h2>
               <p>
-                Send the document types, repeated questions, current bottleneck, and any privacy constraints. I’ll review it
-                and send back a concrete next step, not a generic AI pitch.
+                Describe the workflow, the current bottleneck, and what a useful next step would look like. Do not include
+                documents, credentials, payment details, health details, or private client information.
+              </p>
+              <p class="contact-fallback">
+                Email fallback:
+                <a href="mailto:hello@jvt-technologies.com">hello@jvt-technologies.com</a>
               </p>
             </div>
-            <div class="contact-action">
-              <a class="button" href="mailto:hello@jvt-technologies.com">hello@jvt-technologies.com</a>
-              <p>Best starting point: one painful workflow, a few sample document types, and clear privacy constraints.</p>
-            </div>
+            <form id="workflow-intake-form" class="workflow-intake-form" action="/api/workflow-intake" method="post" novalidate>
+              <input type="hidden" name="submission_id" id="workflow-submission-id" />
+              <div class="form-row form-row-two">
+                <label>
+                  Name
+                  <input name="name" autocomplete="name" required minlength="2" />
+                </label>
+                <label>
+                  Business email
+                  <input name="public_business_email" type="email" autocomplete="email" required />
+                </label>
+              </div>
+              <label>
+                Company
+                <input name="company" autocomplete="organization" required minlength="2" />
+              </label>
+              <label>
+                Workflow type
+                <select name="service_interest" required>
+                  <option value="">Choose one</option>
+                  <option value="ai-voice-intake">AI receptionist / intake</option>
+                  <option value="meeting-to-action">Meeting-to-action packets</option>
+                  <option value="inbox-document-triage">Inbox / document triage</option>
+                  <option value="workflow-automation">Workflow cleanup / automation</option>
+                  <option value="private-doc-intel">Private document assistant</option>
+                  <option value="document-generation">Document generation</option>
+                  <option value="managed-ai-ops">Not sure yet</option>
+                </select>
+              </label>
+              <label>
+                Short problem description
+                <textarea
+                  name="problem_description"
+                  rows="5"
+                  required
+                  minlength="35"
+                  maxlength="1200"
+                  placeholder="Example: We keep retyping intake notes from calls into three tools, then miss follow-up details when the office gets busy."
+                ></textarea>
+              </label>
+              <label>
+                Preferred next step
+                <select name="preferred_next_step">
+                  <option value="">No preference</option>
+                  <option value="email">Email me a short next step</option>
+                  <option value="demo">Point me to a matching demo</option>
+                  <option value="scope">Suggest a narrow pilot scope</option>
+                  <option value="call">Ask before proposing a call</option>
+                </select>
+              </label>
+              <div class="form-submit-row">
+                <button class="button" type="submit">Send Workflow Note</button>
+                <p id="workflow-intake-status" class="form-status" role="status" aria-live="polite"></p>
+              </div>
+            </form>
           </div>
         </section>
       </main>

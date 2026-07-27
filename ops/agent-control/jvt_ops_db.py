@@ -497,6 +497,12 @@ def inferred_account_name(payload: dict[str, Any], sender_name: str, sender_emai
 
 
 def infer_service_slug_from_inbox(payload: dict[str, Any]) -> str:
+    explicit = str(payload.get("service_slug") or payload.get("workflow_type") or "").strip().lower()
+    explicit = explicit.replace("_", "-")
+    service_slugs = {slug for slug, *_rest in SERVICE_CATALOG}
+    if explicit in service_slugs:
+        return explicit
+
     text = inbox_text(payload)
     subject = str(payload.get("subject") or "").lower()
     if any(term in subject for term in ("document workflow", "document search", "knowledge assistant", "internal knowledge")):

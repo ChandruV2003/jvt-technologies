@@ -75,6 +75,7 @@ ops/agent-control/data/
 ops/agent-control/state/
 ops/agent-control/tasks/
 ops/agent-control/logs/
+ops/agent-control/epics/logs/
 
 ops/control-panel/*.log
 ops/watchdog/state/

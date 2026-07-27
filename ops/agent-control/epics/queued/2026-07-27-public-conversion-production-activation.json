@@ -1,0 +1,48 @@
+{
+  "id": "2026-07-27-public-conversion-production-activation",
+  "title": "Harden and connect public conversion intake for production",
+  "created_at": "2026-07-27T19:32:00+00:00",
+  "queued_by": "egg_internal_business_review",
+  "status": "queued",
+  "level": "epic",
+  "feature": "revenue-conversion",
+  "model_tier": "codex-cli-capped",
+  "model": "gpt-5.5",
+  "execution_mode": "codex_workspace_write",
+  "codex_enabled": true,
+  "requires_approval": false,
+  "story": "The public workflow-intake form, Cloudflare Pages Function, local M4 adapter, and conversion dashboard are implemented and locally validated. Complete the internal production-readiness plumbing without deploying: add abuse protection and bounded rate limiting, build an authenticated idempotent Cloudflare KV-to-M4 reconciliation job, wire it into E.G.G. and watchdog health, and produce a deployment/checklist command path that cannot lose or duplicate qualified submissions.",
+  "scope_paths": [
+    "site/functions",
+    "site/public-conversion-capture-deployment-brief.md",
+    "ops/agent-control",
+    "ops/control-panel",
+    "ops/watchdog"
+  ],
+  "deliverables": [
+    "Bounded abuse protection and rate limiting for form events and submissions.",
+    "An authenticated, checkpointed, idempotent KV-to-M4 import path that does not expose credentials or submission contents in logs.",
+    "E.G.G. task routing and watchdog findings for stale imports, failed imports, and qualified records not handed to the opportunity ledger.",
+    "Focused tests for duplicate races, retries, pagination, malformed KV records, internal/test records, secret redaction, and no-send behavior.",
+    "A precise activation checklist for the existing Cloudflare Pages project, KV binding, environment values, local launch agent, validation, rollback, and monitoring."
+  ],
+  "acceptance_criteria": [
+    "Do not deploy, create the KV namespace, change Cloudflare bindings, publish the site, spend money, or contact anyone.",
+    "Use existing Cloudflare credentials only through environment variables or existing secret files; never print or commit tokens.",
+    "A repeated import of the same KV record creates exactly one local submission, inbox handoff, account/contact/opportunity, and commercial record.",
+    "A failed import remains retryable and does not advance its checkpoint.",
+    "A production-like local fixture reaches the canonical opportunity ledger and control-panel metrics once.",
+    "The watchdog distinguishes form endpoint health, KV import freshness, and conversion handoff lag.",
+    "Run syntax checks, focused tests, HTTP validation, and dashboard endpoint validation before returning through architect-inbox."
+  ],
+  "roi_case": {
+    "revenue_goal_link": "Prevents first-party website leads from being invisible or lost on the path to the March 2027 $10k cash-flow goal.",
+    "expected_business_value": "Makes inbound conversion operationally reliable instead of merely present in the website source.",
+    "why_codex_is_worth_it": "This crosses Cloudflare edge behavior, secure synchronization, local CRM idempotency, scheduled agents, monitoring, and rollback.",
+    "success_metric": "One production-like fixture is captured, imported, qualified, visible in the opportunity ledger and dashboard exactly once, with stale or failed imports surfaced automatically.",
+    "fallback_if_not_run": "Keep the public form undeployed and retain email as the only live website contact path."
+  },
+  "requested_external_actions": [],
+  "safety_boundary": "Repository-scoped internal implementation and local validation only. No production publish, Cloudflare account or binding changes, outreach delivery, packet approval, spending, account creation, sensitive-data export, financial activity, or external commitments.",
+  "timeout_seconds": 2400
+}

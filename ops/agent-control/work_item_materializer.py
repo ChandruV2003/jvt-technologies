@@ -6,7 +6,7 @@ import argparse
 import hashlib
 import json
 import re
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -44,6 +44,7 @@ DEFAULT_POLICY = {
             "feature": "voice-intake",
             "model_tier": "deterministic-plus-m4-local-review",
             "self_review": "strict",
+            "failure_backoff_hours": 6,
         },
         {
             "name": "follow-up review queue brief",
@@ -220,8 +221,8 @@ def ensure_dirs() -> None:
     STATE_ROOT.mkdir(parents=True, exist_ok=True)
 
 
-def cadence_bucket(cadence: str) -> str:
-    now = datetime.now(timezone.utc)
+def cadence_bucket(cadence: str, now: datetime | None = None) -> str:
+    now = now or datetime.now(timezone.utc)
     if cadence == "hourly":
         return now.strftime("%Y-%m-%d-h%H")
     if cadence == "six-hour":
@@ -293,6 +294,64 @@ def existing_artifact(root: Path, directories: tuple[str, ...], artifact_id: str
     return None
 
 
+def parse_timestamp(value: Any) -> datetime | None:
+    if not isinstance(value, str) or not value.strip():
+        return None
+    normalized = value.strip()
+    if normalized.endswith("Z"):
+        normalized = f"{normalized[:-1]}+00:00"
+    try:
+        parsed = datetime.fromisoformat(normalized)
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+def failed_task_timestamp(task: dict[str, Any], path: Path) -> datetime:
+    for key in ("runner_updated_at", "failed_at", "updated_at", "completed_at", "created_at"):
+        parsed = parse_timestamp(task.get(key))
+        if parsed is not None:
+            return parsed
+    return datetime.fromtimestamp(path.stat().st_mtime, tz=timezone.utc)
+
+
+def active_failure_backoff(rule: dict[str, Any], now: datetime) -> dict[str, Any] | None:
+    try:
+        backoff_hours = float(rule.get("failure_backoff_hours") or 0)
+    except (TypeError, ValueError):
+        return None
+    if backoff_hours <= 0:
+        return None
+
+    task_type = str(rule.get("task_type") or "")
+    rule_name = str(rule.get("name") or "")
+    recent: list[tuple[datetime, Path, dict[str, Any]]] = []
+    for path in (TASK_ROOT / "failed").glob("*.json"):
+        task = load_json(path, {})
+        if not isinstance(task, dict) or str(task.get("type") or "") != task_type:
+            continue
+        if rule_name and str(task.get("source_rule") or "") != rule_name:
+            continue
+        failed_at = failed_task_timestamp(task, path)
+        retry_after = failed_at + timedelta(hours=backoff_hours)
+        if retry_after > now:
+            recent.append((failed_at, path, task))
+
+    if not recent:
+        return None
+    failed_at, path, task = max(recent, key=lambda candidate: candidate[0])
+    retry_after = failed_at + timedelta(hours=backoff_hours)
+    return {
+        "failed_task_id": task.get("id") or path.stem,
+        "failed_task_path": str(path),
+        "failed_at": failed_at.isoformat(timespec="seconds"),
+        "retry_after": retry_after.isoformat(timespec="seconds"),
+        "failure_backoff_hours": backoff_hours,
+    }
+
+
 def make_materialized_id(prefix: str, bucket: str, rule: dict[str, Any], item: dict[str, Any]) -> str:
     action = str(rule.get("task_type") or rule.get("name") or "work-item")
     dedupe = str(rule.get("dedupe") or "work_item")
@@ -362,6 +421,7 @@ def build_epic_spec(rule: dict[str, Any], item: dict[str, Any], epic_id: str) ->
 
 def materialize(*, dry_run: bool) -> dict[str, Any]:
     ensure_dirs()
+    run_at = datetime.now(timezone.utc)
     policy = merge_policy(load_json(POLICY_PATH, DEFAULT_POLICY))
     orchestrator = load_json(ORCHESTRATOR_PATH, {})
     work_items = orchestrator.get("work_items") if isinstance(orchestrator.get("work_items"), list) else []
@@ -395,7 +455,18 @@ def materialize(*, dry_run: bool) -> dict[str, Any]:
                 continue
             matched = True
             cadence = str(rule.get("cadence") or ((policy.get("materializer") or {}).get("default_cadence")) or "daily")
-            artifact_id = make_materialized_id("materialized", cadence_bucket(cadence), rule, item)
+            backoff = active_failure_backoff(rule, run_at)
+            if backoff:
+                skipped.append({
+                    "kind": "task",
+                    "reason": "failure_backoff_active",
+                    "source_work_item_id": item.get("id"),
+                    "rule": rule.get("name"),
+                    "task_type": rule.get("task_type"),
+                    **backoff,
+                })
+                continue
+            artifact_id = make_materialized_id("materialized", cadence_bucket(cadence, run_at), rule, item)
             if artifact_id in planned_task_ids:
                 skipped.append({
                     "kind": "task",
@@ -446,7 +517,7 @@ def materialize(*, dry_run: bool) -> dict[str, Any]:
                 })
                 continue
             cadence = str(rule.get("cadence") or "daily")
-            artifact_id = make_materialized_id("epic", cadence_bucket(cadence), rule, item)
+            artifact_id = make_materialized_id("epic", cadence_bucket(cadence, run_at), rule, item)
             if artifact_id in planned_epic_ids:
                 skipped.append({
                     "kind": "epic",

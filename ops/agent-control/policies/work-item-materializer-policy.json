@@ -19,7 +19,8 @@
       "level": "story",
       "feature": "voice-intake",
       "model_tier": "deterministic-plus-m4-local-review",
-      "self_review": "strict"
+      "self_review": "strict",
+      "failure_backoff_hours": 6
     },
     {
       "name": "follow-up review queue brief",

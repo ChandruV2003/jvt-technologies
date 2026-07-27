@@ -45,5 +45,23 @@
   },
   "requested_external_actions": [],
   "safety_boundary": "Repository-scoped internal implementation and local validation only. No production publish, outreach delivery, packet approval, spending, account changes, sensitive-data collection, market orders, crypto activity, provider enablement, destructive broad file actions, or external commitments.",
-  "timeout_seconds": 2400
+  "timeout_seconds": 2400,
+  "epic_agent_result": {
+    "epic_file": "/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/ops/agent-control/epics/queued/2026-07-27-public-conversion-capture.json",
+    "epic_id": "2026-07-27-public-conversion-capture",
+    "execution_mode": "codex_workspace_write",
+    "ok": true,
+    "status": "done",
+    "returncode": 0,
+    "duration_ms": 1181060,
+    "mode": "codex_workspace_write",
+    "sandbox": "workspace-write",
+    "log_dir": "/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/ops/agent-control/epics/logs/20260727T165701Z-2026-07-27-public-conversion-capture",
+    "prompt_path": "/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/ops/agent-control/epics/logs/20260727T165701Z-2026-07-27-public-conversion-capture/prompt.md",
+    "stdout_path": "/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/ops/agent-control/epics/logs/20260727T165701Z-2026-07-27-public-conversion-capture/codex-events.jsonl",
+    "stderr_path": "/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/ops/agent-control/epics/logs/20260727T165701Z-2026-07-27-public-conversion-capture/codex-stderr.log",
+    "last_message_path": "/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/ops/agent-control/epics/logs/20260727T165701Z-2026-07-27-public-conversion-capture/last-message.md",
+    "architect_inbox_path": "/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/ops/agent-control/epics/architect-inbox/2026-07-27-public-conversion-capture-done.md"
+  },
+  "epic_agent_updated_at": "2026-07-27T17:16:42+00:00"
 }

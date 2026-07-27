@@ -81,6 +81,7 @@ function renderStatus(status) {
   const approvedBacklog = status.approved_backlog || {};
   const sentBreakdown = status.sent_packet_breakdown || {};
   const voice = status.voice_agent || {};
+  const publicConversion = status.public_conversion || ((status.business_readiness || {}).public_conversion || {});
   const agentInterop = status.agent_interop || {};
   const orchestrator = status.orchestrator || {};
   const ownedOps = status.owned_ops || {};
@@ -110,6 +111,10 @@ function renderStatus(status) {
     tile("Pending decisions", decisionCounts.pending || 0),
     tile("Inbox needs review", inboxNeedsReview),
     tile("Inbox imported", inboxImported),
+    tile("Form views", publicConversion.form_view_count || 0),
+    tile("Form starts", publicConversion.form_start_count || 0),
+    tile("Form submits", publicConversion.completed_submission_count || 0),
+    tile("Form qualified", publicConversion.qualified_submission_count || 0),
     tile("Ready packets", approvedBacklog.count || queueCounts.approved || 0),
     tile("Replied threads", queueCounts.replied || 0),
     tile("Prospect sends", sentBreakdown.prospect || 0),
@@ -408,6 +413,7 @@ function renderBusinessReadiness(readiness) {
 
   const opportunities = readiness.opportunity_manager || {};
   const conversion = readiness.conversion_pipeline || {};
+  const publicConversion = readiness.public_conversion || {};
   const goal = conversion.goal || {};
   const voice = readiness.voice_readiness || {};
   const trader = readiness.paper_trader || {};
@@ -423,6 +429,11 @@ function renderBusinessReadiness(readiness) {
     tile("Cash collected", `$${Number(goal.cash_collected || 0).toLocaleString()}`),
     tile("Weighted pipeline", `$${Number(goal.weighted_pipeline || 0).toLocaleString()}`),
     tile("Goal remaining", `$${Number(goal.remaining || 10000).toLocaleString()}`),
+    tile("Form views", publicConversion.form_view_count || 0),
+    tile("Form starts", publicConversion.form_start_count || 0),
+    tile("Form submits", publicConversion.completed_submission_count || 0),
+    tile("Qualified forms", publicConversion.qualified_submission_count || 0),
+    tile("Duplicate forms", publicConversion.duplicate_submission_count || 0),
     tile("Overdue actions", conversion.stale_next_action_count || 0),
     tile("Voice demo", voice.demo_ready ? "ready" : "not ready"),
     tile("Voice live", voice.live_ready ? "ready" : "gated"),
@@ -435,6 +446,8 @@ function renderBusinessReadiness(readiness) {
 
   const topActions = opportunities.top_next_actions || [];
   const conversionItems = conversion.items || [];
+  const serviceCounts = publicConversion.service_interest_counts || {};
+  const latestPublicSubmissions = publicConversion.latest_submissions || [];
   const findings = readiness.findings || [];
   readinessDetail.innerHTML = `
     <article class="list-item ${readiness.ok ? "healthy-item" : "attention-item"}">
@@ -448,6 +461,24 @@ function renderBusinessReadiness(readiness) {
       <div class="chips">
         ${(findings.length ? findings : ["No current findings."]).slice(0, 6).map((item) => `<span class="chip ${readiness.ok ? "chip-good" : "chip-warn"}">${escapeHtml(item)}</span>`).join("")}
       </div>
+    </article>
+    <article class="list-item">
+      <h3>First-party conversion intake</h3>
+      <p class="meta">${escapeHtml(publicConversion.guardrail || "No external action is performed from this panel.")}</p>
+      <div class="chips">
+        ${
+          Object.entries(serviceCounts).length
+            ? Object.entries(serviceCounts).map(([slug, count]) => `<span class="chip">${escapeHtml(slug)}: ${Number(count || 0)}</span>`).join("")
+            : `<span class="chip">No service interest yet</span>`
+        }
+      </div>
+      ${
+        latestPublicSubmissions.length
+          ? latestPublicSubmissions.slice(0, 4).map((item) => `
+              <p><strong>${escapeHtml(item.company || "Unknown")}</strong>: ${escapeHtml(item.service_slug || "service")} · ${escapeHtml(item.status || "status")} · ${escapeHtml(item.submission_id || "")}</p>
+            `).join("")
+          : `<p class="meta">No first-party workflow-intake submissions are currently tracked.</p>`
+      }
     </article>
     <article class="list-item">
       <h3>Opportunity next actions</h3>

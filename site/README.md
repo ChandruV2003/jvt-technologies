@@ -22,6 +22,13 @@ Then open:
 
 - `http://127.0.0.1:8080`
 
+The workflow-intake form posts to `/api/workflow-intake`. For local endpoint testing, run
+the M4 adapter from the repository root:
+
+```bash
+python3 ops/agent-control/public_conversion_intake.py serve --host 127.0.0.1 --port 8094
+```
+
 ## Deployment
 
 The live Cloudflare Pages project is:
@@ -43,6 +50,7 @@ cd /Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/site
 Current operational note:
 
 - The normal deploy host is the M4 Mac mini at `/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/site`.
+- The workflow-intake Pages Function requires a Cloudflare KV binding named `JVT_CONVERSION_INTAKE`; see `site/public-conversion-capture-deployment-brief.md`.
 - Wrangler is expected on the M4 at `/opt/homebrew/bin/wrangler`.
 - If the local edit mirror does not have `wrangler`, that only blocks local deploy from that shell; it does not mean the M4 lacks Wrangler.
 - Raw SSH calls to Wrangler need `/opt/homebrew/bin` in PATH so Node can be found. `site/deploy.sh` already sets this.
