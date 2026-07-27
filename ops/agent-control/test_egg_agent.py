@@ -2,8 +2,13 @@
 from __future__ import annotations
 
 import importlib.util
+import json
+import os
+import tempfile
+import time
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 EGG_PATH = Path(__file__).with_name("egg_agent.py")
@@ -18,6 +23,7 @@ def baseline_snapshot() -> dict:
         "queues": {"draft": 0, "review": 0, "approved": 8, "sent": 0, "replied": 0},
         "inbox": {"new": 0, "reviewed": 0, "closed": 0},
         "tasks": {"pending": 1, "running": 0, "completed": 0, "failed": 0, "held": 0},
+        "task_health": {"recent_failed_type_count": 0, "recent_failed_types": []},
         "orchestrator": {"work_item_count": 0, "age_seconds": 0, "quotas": {}},
         "watchdog": {"overall_ok": True, "finding_count": 0},
         "model_router": {"ok": True},
@@ -67,6 +73,40 @@ class EggAgentQualityReconcileTests(unittest.TestCase):
         )
 
         self.assertEqual(task["self_review"], "strict")
+
+    def test_lifetime_failure_archive_does_not_trigger_codex(self) -> None:
+        snapshot = baseline_snapshot()
+        snapshot["tasks"]["failed"] = 54
+        snapshot["codex_escalation"]["usage"]["remaining"]["total_execute"] = 8
+
+        candidates = EGG.deterministic_candidates(snapshot)
+
+        self.assertNotIn("codex_escalation_request", {item["type"] for item in candidates})
+
+    def test_latest_success_resolves_prior_failure_for_task_health(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            task_root = Path(temp)
+            failed = task_root / "failed"
+            completed = task_root / "completed"
+            held = task_root / "held"
+            for path in (failed, completed, held):
+                path.mkdir(parents=True)
+            failed_path = failed / "old-failure.json"
+            failed_path.write_text(json.dumps({"type": "voice_readiness_check"}), encoding="utf-8")
+            completed_path = completed / "new-success.json"
+            completed_path.write_text(json.dumps({"type": "voice_readiness_check"}), encoding="utf-8")
+            unresolved_path = failed / "current-failure.json"
+            unresolved_path.write_text(json.dumps({"type": "vertical_lead_research_refresh"}), encoding="utf-8")
+            now = time.time()
+            os.utime(failed_path, (now - 120, now - 120))
+            os.utime(completed_path, (now - 60, now - 60))
+            os.utime(unresolved_path, (now - 30, now - 30))
+
+            with mock.patch.object(EGG, "TASK_ROOT", task_root):
+                health = EGG.terminal_task_health()
+
+        self.assertEqual(health["recent_failed_type_count"], 1)
+        self.assertEqual(health["recent_failed_types"], ["vertical_lead_research_refresh"])
 
 
 if __name__ == "__main__":

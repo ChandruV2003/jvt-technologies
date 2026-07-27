@@ -230,6 +230,48 @@ def task_counts() -> dict[str, int]:
     return {name: count_json(TASK_ROOT / name) for name in TASK_DIRS}
 
 
+def terminal_task_health(window_seconds: int = 86400) -> dict[str, Any]:
+    """Summarize only the latest terminal outcome for each task type."""
+
+    now = datetime.now(timezone.utc).timestamp()
+    latest_by_type: dict[str, dict[str, Any]] = {}
+    for outcome in ("completed", "failed", "held"):
+        for path in (TASK_ROOT / outcome).glob("*.json"):
+            payload = load_json(path, {})
+            task_type = str(payload.get("type") or "").strip()
+            if not task_type:
+                continue
+            updated_at = path.stat().st_mtime
+            current = latest_by_type.get(task_type)
+            if current and float(current["updated_at"]) >= updated_at:
+                continue
+            latest_by_type[task_type] = {
+                "type": task_type,
+                "outcome": outcome,
+                "updated_at": updated_at,
+                "age_seconds": max(0, int(now - updated_at)),
+                "path": str(path),
+            }
+    recent_failed = sorted(
+        task_type
+        for task_type, item in latest_by_type.items()
+        if item["outcome"] == "failed" and int(item["age_seconds"]) <= window_seconds
+    )
+    recent_held = sorted(
+        task_type
+        for task_type, item in latest_by_type.items()
+        if item["outcome"] == "held" and int(item["age_seconds"]) <= window_seconds
+    )
+    return {
+        "window_seconds": window_seconds,
+        "latest_type_count": len(latest_by_type),
+        "recent_failed_type_count": len(recent_failed),
+        "recent_failed_types": recent_failed,
+        "recent_held_type_count": len(recent_held),
+        "recent_held_types": recent_held,
+    }
+
+
 def queue_counts() -> dict[str, int]:
     return {name: count_json(QUEUE_ROOT / name) for name in QUEUE_LABELS}
 
@@ -334,6 +376,7 @@ def build_snapshot() -> dict[str, Any]:
     queues = queue_counts()
     inbox = inbox_counts()
     tasks = task_counts()
+    task_health = terminal_task_health()
     voice_bridge_age = parse_iso_age_seconds(voice_bridge_regression.get("generated_at"))
     voice_bridge_ready = bool(
         voice_bridge_regression.get("ok")
@@ -345,6 +388,7 @@ def build_snapshot() -> dict[str, Any]:
         "queues": queues,
         "inbox": inbox,
         "tasks": tasks,
+        "task_health": task_health,
         "followup_review_count": count_review_followups(),
         "orchestrator": {
             "generated_at": orchestrator.get("generated_at"),
@@ -694,7 +738,7 @@ def deterministic_candidates(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
     has_codex_budget = snapshot["codex_escalation"].get("ok") is True and int(remaining.get("total_execute") or 0) > 0
     high_value_codex_need = (
         queues.get("review", 0) >= 60
-        or tasks.get("failed", 0) >= 5
+        or int((snapshot.get("task_health") or {}).get("recent_failed_type_count") or 0) >= 2
         or int(snapshot["watchdog"].get("finding_count") or 0) > 0
         or bool(snapshot["opportunity_manager"].get("response_needed_count"))
         or bool(snapshot["opportunity_manager"].get("warm_count"))
