@@ -1,18 +1,25 @@
 # Unsent Follow-Up Draft: Farr Law Firm
 
-Generated: `2026-07-27T16:44:09+00:00`
+Generated: `2026-07-27T20:47:00+00:00`
 
 Status: review only. Do not send automatically.
 
 Subject: Re: A practical document workflow idea for Farr Law Firm
 
-Hi Farr,
+Hi Evan,
 
-Following up with the short example I mentioned. I put together a synthetic version of a private document-review workflow: staff can see what came in, what is missing, and the source behind every drafted point before anything moves forward.
+I said I would send a short example, so here is the actual shape I had in mind:
 
-The first pilot would stay narrow and review-only. No professional decisions, no client-facing output without approval, and no real business data until the handling rules are agreed.
+A staff member asks, “What intake items are still missing before we can prepare the first planning packet?” The assistant checks only approved intake forms, checklists, and internal guidance, then returns:
 
-If that is close to a workflow your team deals with, I can tailor the example around one intake or document-prep process you repeat often.
+- the missing items
+- a cited source for each answer
+- a draft internal checklist
+- anything it could not verify and needs a person to review
+
+Nothing client-facing goes out automatically, and the first version can use synthetic documents.
+
+Is there one intake, checklist, or document-lookup process where your team spends too much time hunting through material? If so, just send me the name of the process and I will map a synthetic version around it.
 
 Best,
 Chandru
