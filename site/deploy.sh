@@ -32,9 +32,9 @@ else
   exit 1
 fi
 
-cd "$SCRIPT_DIR/.."
+cd "$SCRIPT_DIR"
 set +e
-DEPLOY_OUTPUT="$("${WRANGLER_BIN}" pages deploy site --project-name "$PROJECT_NAME" 2>&1)"
+DEPLOY_OUTPUT="$("${WRANGLER_BIN}" pages deploy . --project-name "$PROJECT_NAME" 2>&1)"
 DEPLOY_STATUS=$?
 set -e
 

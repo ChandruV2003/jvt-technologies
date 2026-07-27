@@ -1808,6 +1808,27 @@ def conversion_pipeline_refresh(_task: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def public_conversion_kv_sync(_task: dict[str, Any]) -> dict[str, Any]:
+    step = run_command(
+        "public_conversion_kv_sync",
+        ["python3", "ops/agent-control/public_conversion_kv_sync.py", "--max-records", "100"],
+        timeout=180,
+    )
+    return {
+        "ok": bool(step["ok"]),
+        "steps": [step],
+        "artifacts": [
+            str(STATE_ROOT / "latest-public-conversion-kv-sync.json"),
+            str(STATE_ROOT / "latest-public-conversion-kv-sync.md"),
+            str(STATE_ROOT / "latest-public-conversion-intake.json"),
+        ],
+        "guardrail": (
+            "Reads first-party JVT form records from Cloudflare KV and reconciles internal company memory only. "
+            "No email, spend, trade, public post, account change, or external commitment."
+        ),
+    }
+
+
 def source_hygiene_report(_task: dict[str, Any]) -> dict[str, Any]:
     step = report_script("source_hygiene_report", "source_hygiene_report.py")
     return {
@@ -1990,6 +2011,7 @@ HANDLERS = {
     "custom_pilot_pipeline": custom_pilot_pipeline,
     "reply_reconciliation": reply_reconciliation,
     "conversion_pipeline_refresh": conversion_pipeline_refresh,
+    "public_conversion_kv_sync": public_conversion_kv_sync,
     "vertical_lead_research_refresh": vertical_lead_research_refresh,
     "fresh_lead_packet_prep": fresh_lead_packet_prep,
     "service_pilot_package_refresh": service_pilot_package_refresh,

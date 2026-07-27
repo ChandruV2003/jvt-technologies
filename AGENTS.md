@@ -73,8 +73,18 @@ ssh m4-mac-mini 'cd /Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/
 ```
 
 - Wrangler binary on the M4 is expected at `/opt/homebrew/bin/wrangler`.
-- Current known deployment blocker: Cloudflare Pages API returns auth error `10000` for project `jvt-technologies-site`.
-- If deployment fails with auth error `10000`, the problem is Cloudflare auth/token/account access, not missing website files and not missing Wrangler on the M4.
+- Cloudflare Wrangler OAuth was verified healthy on July 27, 2026 for account
+  `42ef726325168e016d5133cdd8638f00`, including Pages and Workers KV access.
+- The public conversion namespace is bound as `JVT_CONVERSION_INTAKE`; its
+  non-secret namespace ID and Pages project settings live in
+  `site/wrangler.toml`.
+- The authenticated KV-to-M4 importer is
+  `ops/agent-control/public_conversion_kv_sync.py`. Its five-minute service,
+  E.G.G. task, watchdog check, and control-panel state must remain healthy
+  whenever the public workflow form is deployed.
+- If a future deployment fails with auth error `10000`, treat that as a new
+  Cloudflare auth/token/account-access regression, not as the current baseline
+  and not as missing website files or Wrangler.
 - The local Mac currently may not have `wrangler` in PATH. That only means local deployment from this shell is unavailable.
 - Raw non-interactive SSH calls to `/opt/homebrew/bin/wrangler` may fail with `env: node: No such file or directory` unless `/opt/homebrew/bin` is in PATH. The `site/deploy.sh` script already exports that PATH.
 

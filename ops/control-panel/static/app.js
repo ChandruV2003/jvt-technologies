@@ -82,6 +82,7 @@ function renderStatus(status) {
   const sentBreakdown = status.sent_packet_breakdown || {};
   const voice = status.voice_agent || {};
   const publicConversion = status.public_conversion || ((status.business_readiness || {}).public_conversion || {});
+  const publicConversionSync = publicConversion.kv_sync || {};
   const agentInterop = status.agent_interop || {};
   const orchestrator = status.orchestrator || {};
   const ownedOps = status.owned_ops || {};
@@ -115,6 +116,8 @@ function renderStatus(status) {
     tile("Form starts", publicConversion.form_start_count || 0),
     tile("Form submits", publicConversion.completed_submission_count || 0),
     tile("Form qualified", publicConversion.qualified_submission_count || 0),
+    tile("Form sync", publicConversionSync.ok ? "ready" : "attention"),
+    tile("Form sync pending", publicConversionSync.unreconciled_count || 0),
     tile("Ready packets", approvedBacklog.count || queueCounts.approved || 0),
     tile("Replied threads", queueCounts.replied || 0),
     tile("Prospect sends", sentBreakdown.prospect || 0),
@@ -414,6 +417,7 @@ function renderBusinessReadiness(readiness) {
   const opportunities = readiness.opportunity_manager || {};
   const conversion = readiness.conversion_pipeline || {};
   const publicConversion = readiness.public_conversion || {};
+  const publicConversionSync = publicConversion.kv_sync || {};
   const goal = conversion.goal || {};
   const voice = readiness.voice_readiness || {};
   const trader = readiness.paper_trader || {};
@@ -434,6 +438,8 @@ function renderBusinessReadiness(readiness) {
     tile("Form submits", publicConversion.completed_submission_count || 0),
     tile("Qualified forms", publicConversion.qualified_submission_count || 0),
     tile("Duplicate forms", publicConversion.duplicate_submission_count || 0),
+    tile("Form sync", publicConversionSync.ok ? "ready" : "attention"),
+    tile("Sync pending", publicConversionSync.unreconciled_count || 0),
     tile("Overdue actions", conversion.stale_next_action_count || 0),
     tile("Voice demo", voice.demo_ready ? "ready" : "not ready"),
     tile("Voice live", voice.live_ready ? "ready" : "gated"),

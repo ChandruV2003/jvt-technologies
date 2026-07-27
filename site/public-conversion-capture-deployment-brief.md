@@ -36,12 +36,38 @@ capability. It is not production-complete until all of these are in place:
 Do not deploy the public form before this gate is complete. A KV record that
 never reaches the M4 pipeline would create an invisible lead.
 
+The production importer is `ops/agent-control/public_conversion_kv_sync.py`.
+It uses Wrangler's authenticated OAuth session, reads only the form event and
+submission prefixes, checkpoints hashed KV keys after successful local
+reconciliation, and leaves failed records uncheckpointed for retry. E.G.G.,
+the watchdog, and the control panel treat stale, failed, or unreconciled sync
+state as operational work.
+
+Cloudflare KV is eventually consistent, so the edge rate counter and initial
+dedupe marker are best-effort under a tightly concurrent burst. The canonical
+M4 intake adapter remains authoritative: it uses process/file locking and a
+content dedupe index so concurrent or repeated KV records create one qualified
+opportunity. A future abuse-hardening phase may add Turnstile or a transactional
+edge store if form traffic justifies it.
+
 ## M4 reconciliation path
 
 For local testing or KV-export reconciliation, submit the same JSON payload shape to:
 
 ```bash
 python3 ops/agent-control/public_conversion_intake.py submit --payload-json /path/to/payload.json --refresh-reports
+```
+
+To run the authenticated production synchronization:
+
+```bash
+python3 ops/agent-control/public_conversion_kv_sync.py --max-records 100
+```
+
+The five-minute M4 service is installed with:
+
+```bash
+ops/agent-control/install_public_conversion_kv_sync_launch_agent.sh
 ```
 
 For a local HTTP adapter:

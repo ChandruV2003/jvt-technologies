@@ -110,6 +110,20 @@ class LocalTaskRunnerSafetyTests(unittest.TestCase):
         self.assertTrue(result["ok"])
         self.assertIn("No packets are approved or sent.", result["guardrail"])
 
+    def test_public_conversion_kv_sync_uses_guarded_importer(self) -> None:
+        self.assertIn("public_conversion_kv_sync", RUNNER.HANDLERS)
+
+        with mock.patch.object(RUNNER, "run_command", return_value={"ok": True}) as run_command:
+            result = RUNNER.public_conversion_kv_sync({})
+
+        run_command.assert_called_once_with(
+            "public_conversion_kv_sync",
+            ["python3", "ops/agent-control/public_conversion_kv_sync.py", "--max-records", "100"],
+            timeout=180,
+        )
+        self.assertTrue(result["ok"])
+        self.assertIn("No email", result["guardrail"])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -21,6 +21,7 @@ MAILBOX_LOG = ROOT / "outreach" / "mailbox-agent" / "state" / "mailbox-listener.
 SERVICE_BOARD = ROOT / "strategy" / "service-line-execution-board.json"
 ORCHESTRATOR_STATE = ROOT / "ops" / "agent-control" / "state" / "latest-orchestrator.json"
 GROWTH_CHECKIN_STATE = ROOT / "ops" / "agent-control" / "state" / "latest-growth-ops-checkin.json"
+PUBLIC_CONVERSION_KV_SYNC_STATE = ROOT / "ops" / "agent-control" / "state" / "latest-public-conversion-kv-sync.json"
 TRADER_ROOT = Path("/Users/c.s.d.v.r.s./Developer/JVT-AutoTrader")
 DEBIAN_TRADER_HOST = "macmini-i7-debian"
 DEBIAN_TRADER_ROOT = "/home/sysadmin/JVT-AutoTrader"
@@ -40,6 +41,7 @@ LAUNCH_LABELS = [
     "com.jvt.lead-research",
     "com.jvt.daily-wave-prep",
     "com.jvt.private-doc-intel-demo",
+    "com.jvt.public-conversion-kv-sync",
 ]
 
 
@@ -139,6 +141,38 @@ def service_board_status() -> dict[str, object]:
         "wedge_count": len(wedges),
         "blocked": blocked,
         "next_count": next_count,
+    }
+
+
+def public_conversion_kv_sync_status() -> dict[str, object]:
+    age = file_age_seconds(PUBLIC_CONVERSION_KV_SYNC_STATE)
+    if not PUBLIC_CONVERSION_KV_SYNC_STATE.exists():
+        return {
+            "ok": False,
+            "missing": True,
+            "age_seconds": None,
+            "failed_count": 0,
+            "unreconciled_count": 0,
+        }
+    try:
+        payload = json.loads(PUBLIC_CONVERSION_KV_SYNC_STATE.read_text(encoding="utf-8"))
+    except Exception as exc:
+        return {
+            "ok": False,
+            "age_seconds": age,
+            "error": str(exc),
+            "failed_count": 1,
+            "unreconciled_count": 0,
+        }
+    return {
+        "ok": bool(payload.get("ok")) and age is not None and age <= 900,
+        "age_seconds": age,
+        "generated_at": payload.get("generated_at"),
+        "remote_key_count": int(payload.get("remote_key_count") or 0),
+        "checkpointed_key_count": int(payload.get("checkpointed_key_count") or 0),
+        "failed_count": int(payload.get("failed_count") or 0),
+        "unreconciled_count": int(payload.get("unreconciled_count") or 0),
+        "max_handoff_lag_seconds": payload.get("max_handoff_lag_seconds"),
     }
 
 
@@ -265,6 +299,19 @@ def build_report() -> dict[str, object]:
     service_board = service_board_status()
     if not service_board.get("ok"):
         findings.append({"severity": "warning", "area": "service-lines", "message": "Service-line execution board is missing or blocked"})
+    public_conversion_kv_sync = public_conversion_kv_sync_status()
+    if not public_conversion_kv_sync.get("ok"):
+        findings.append({
+            "severity": "critical",
+            "area": "public-conversion-kv-sync",
+            "message": "Public workflow-intake synchronization is stale, failed, or missing",
+        })
+    elif int(public_conversion_kv_sync.get("unreconciled_count") or 0):
+        findings.append({
+            "severity": "critical",
+            "area": "public-conversion-kv-sync",
+            "message": f"{public_conversion_kv_sync.get('unreconciled_count')} public intake record(s) are unreconciled",
+        })
 
     return {
         "generated_at": utcish_now(),
@@ -280,6 +327,7 @@ def build_report() -> dict[str, object]:
         "orchestrator_state_age_seconds": orchestrator_age,
         "growth_checkin_state_age_seconds": growth_checkin_age,
         "service_board": service_board,
+        "public_conversion_kv_sync": public_conversion_kv_sync,
         "trader": trader_status(),
         "findings": findings,
     }
@@ -310,6 +358,9 @@ def render_markdown(report: dict[str, object]) -> str:
             "",
             "## Service Lines",
             f"- board: {report['service_board']}",
+            "",
+            "## Public Conversion Sync",
+            f"- KV sync: {report['public_conversion_kv_sync']}",
             "",
             "## Trader Research",
             f"- paper trader: {report['trader']}",

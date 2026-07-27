@@ -120,6 +120,12 @@
       "model_tier": "deterministic-plus-m4-local-review",
       "self_review": "strict"
     },
+    "public_conversion_kv_sync": {
+      "level": "story",
+      "feature": "revenue-conversion",
+      "model_tier": "deterministic-plus-m4-local-review",
+      "self_review": "strict"
+    },
     "lead_quality_audit": {
       "level": "task",
       "feature": "outreach-quality",

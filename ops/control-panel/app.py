@@ -50,6 +50,7 @@ GROWTH_CHECKIN_STATE_PATH = REPO_ROOT / "ops" / "agent-control" / "state" / "lat
 OPPORTUNITY_MANAGER_STATE_PATH = REPO_ROOT / "ops" / "agent-control" / "state" / "latest-opportunity-manager.json"
 CONVERSION_PIPELINE_STATE_PATH = REPO_ROOT / "ops" / "agent-control" / "state" / "latest-conversion-pipeline.json"
 PUBLIC_CONVERSION_STATE_PATH = REPO_ROOT / "ops" / "agent-control" / "state" / "latest-public-conversion-intake.json"
+PUBLIC_CONVERSION_KV_SYNC_STATE_PATH = REPO_ROOT / "ops" / "agent-control" / "state" / "latest-public-conversion-kv-sync.json"
 VOICE_READINESS_STATE_PATH = REPO_ROOT / "ops" / "agent-control" / "state" / "latest-voice-readiness.json"
 PAPER_TRADER_HEALTH_STATE_PATH = REPO_ROOT / "ops" / "agent-control" / "state" / "latest-paper-trader-health.json"
 SOURCE_HYGIENE_STATE_PATH = REPO_ROOT / "ops" / "agent-control" / "state" / "latest-source-hygiene.json"
@@ -1226,6 +1227,7 @@ def business_readiness_summary() -> dict[str, object]:
 
 def public_conversion_summary() -> dict[str, object]:
     payload = state_file_summary(PUBLIC_CONVERSION_STATE_PATH, ok_when_missing=True)
+    payload["kv_sync"] = state_file_summary(PUBLIC_CONVERSION_KV_SYNC_STATE_PATH)
     if payload.get("status") == "missing":
         payload.update({
             "form_view_count": 0,

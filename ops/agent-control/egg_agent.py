@@ -30,6 +30,7 @@ FRESH_LEAD_PACKET_STATE = STATE_ROOT / "latest-fresh-lead-packet-prep.json"
 CUSTOM_PILOT_PIPELINE_STATE = STATE_ROOT / "latest-custom-pilot-pipeline.json"
 WARM_FOLLOWUP_SAMPLE_STATE = STATE_ROOT / "latest-warm-followup-samples.json"
 CONVERSION_PIPELINE_STATE = STATE_ROOT / "latest-conversion-pipeline.json"
+PUBLIC_CONVERSION_KV_SYNC_STATE = STATE_ROOT / "latest-public-conversion-kv-sync.json"
 REPLY_RECONCILIATION_STATE = STATE_ROOT / "latest-reply-reconciliation.json"
 VOICE_QUALITY_ROOT = REPO_ROOT / "products" / "Private-AI-Lab" / "apps" / "jvt-inbound-voice-agent" / "voice-quality"
 VOICE_BRIDGE_REGRESSION_STATE = (
@@ -64,6 +65,7 @@ SAFE_TASK_TYPES = {
     "custom_pilot_pipeline",
     "reply_reconciliation",
     "conversion_pipeline_refresh",
+    "public_conversion_kv_sync",
     "vertical_lead_research_refresh",
     "service_pilot_package_refresh",
     "voice_quality_sample_inventory",
@@ -371,6 +373,7 @@ def build_snapshot() -> dict[str, Any]:
     custom_pilot = load_json(CUSTOM_PILOT_PIPELINE_STATE, {})
     warm_followups = load_json(WARM_FOLLOWUP_SAMPLE_STATE, {})
     conversion = load_json(CONVERSION_PIPELINE_STATE, {})
+    public_conversion_kv_sync = load_json(PUBLIC_CONVERSION_KV_SYNC_STATE, {})
     reply_reconciliation = load_json(REPLY_RECONCILIATION_STATE, {})
     voice = load_json(STATE_ROOT / "latest-voice-readiness.json", {})
     voice_bridge_regression = load_json(VOICE_BRIDGE_REGRESSION_STATE, {})
@@ -517,6 +520,15 @@ def build_snapshot() -> dict[str, Any]:
             "goal": conversion.get("goal"),
             "stage_counts": conversion.get("stage_counts"),
         },
+        "public_conversion_kv_sync": {
+            "generated_at": public_conversion_kv_sync.get("generated_at"),
+            "age_seconds": parse_iso_age_seconds(public_conversion_kv_sync.get("generated_at")),
+            "ok": public_conversion_kv_sync.get("ok"),
+            "remote_key_count": public_conversion_kv_sync.get("remote_key_count"),
+            "failed_count": public_conversion_kv_sync.get("failed_count"),
+            "unreconciled_count": public_conversion_kv_sync.get("unreconciled_count"),
+            "max_handoff_lag_seconds": public_conversion_kv_sync.get("max_handoff_lag_seconds"),
+        },
         "reply_reconciliation": {
             "generated_at": reply_reconciliation.get("generated_at"),
             "age_seconds": parse_iso_age_seconds(reply_reconciliation.get("generated_at")),
@@ -607,6 +619,7 @@ def deterministic_candidates(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
     voice = snapshot["voice"]
     custom_pilot = snapshot["custom_pilot_pipeline"]
     conversion = snapshot.get("conversion_pipeline") or {}
+    public_conversion_kv_sync = snapshot.get("public_conversion_kv_sync") or {}
     reply_reconciliation = snapshot.get("reply_reconciliation") or {}
     warm_followups = snapshot["warm_followup_samples"]
     materializer = snapshot["materializer"]
@@ -693,6 +706,21 @@ def deterministic_candidates(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
             feature="revenue-conversion",
             reason="conversion pipeline is stale or has overdue commercial next actions",
             dedupe_key="conversion-pipeline-refresh",
+        ))
+    if (
+        public_conversion_kv_sync.get("age_seconds") is None
+        or int(public_conversion_kv_sync.get("age_seconds") or 999999) > 900
+        or public_conversion_kv_sync.get("ok") is not True
+        or int(public_conversion_kv_sync.get("unreconciled_count") or 0) > 0
+    ):
+        items.append(candidate(
+            "public_conversion_kv_sync",
+            "Reconcile first-party Cloudflare workflow-intake records into canonical JVT company memory.",
+            cadence="hourly",
+            priority=1,
+            feature="revenue-conversion",
+            reason="public intake synchronization is stale, failed, or has unreconciled records",
+            dedupe_key="public-conversion-kv-sync",
         ))
     if int(approved_quality.get("hold") or 0) > 0:
         items.append(candidate(
@@ -934,9 +962,9 @@ def build_task(candidate_item: dict[str, Any], task_id: str) -> dict[str, Any]:
         "requires_approval": False,
         "seeded_by": "egg_agent",
         "feature": candidate_item.get("feature") or "company-autonomy",
-        "level": "story" if candidate_item["type"] in {"vertical_lead_research_refresh", "fresh_lead_packet_prep", "service_pilot_package_refresh", "custom_pilot_pipeline", "warm_followup_sample_prep", "local_audio_bridge_next_step", "conversion_pipeline_refresh"} else "task",
+        "level": "story" if candidate_item["type"] in {"vertical_lead_research_refresh", "fresh_lead_packet_prep", "service_pilot_package_refresh", "custom_pilot_pipeline", "warm_followup_sample_prep", "local_audio_bridge_next_step", "conversion_pipeline_refresh", "public_conversion_kv_sync"} else "task",
         "model_tier": "m4-local-with-macbook-large-available" if "model-suggested" in str(candidate_item.get("reason") or "") else "deterministic",
-        "self_review": "strict" if candidate_item["type"] in {"vertical_lead_research_refresh", "fresh_lead_packet_prep", "custom_pilot_pipeline", "warm_followup_sample_prep", "local_audio_bridge_next_step", "priority_packet_review_queue", "lead_quality_audit", "approved_quality_reconcile", "quality_hold_repair_queue", "inbox_triage_finalize", "reply_reconciliation", "conversion_pipeline_refresh"} else "standard",
+        "self_review": "strict" if candidate_item["type"] in {"vertical_lead_research_refresh", "fresh_lead_packet_prep", "custom_pilot_pipeline", "warm_followup_sample_prep", "local_audio_bridge_next_step", "priority_packet_review_queue", "lead_quality_audit", "approved_quality_reconcile", "quality_hold_repair_queue", "inbox_triage_finalize", "reply_reconciliation", "conversion_pipeline_refresh", "public_conversion_kv_sync"} else "standard",
         "source_reason": candidate_item.get("reason") or "",
         "source_agent": "egg",
         "safety_boundary": SAFETY_BOUNDARY,

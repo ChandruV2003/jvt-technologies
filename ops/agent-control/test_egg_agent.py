@@ -35,6 +35,7 @@ def baseline_snapshot() -> dict:
         "voice": {"demo_ready": False, "local_bridge_ready": False, "sample_state": {"samples": 0, "renders": 0}},
         "custom_pilot_pipeline": {"age_seconds": 0},
         "conversion_pipeline": {"age_seconds": 0, "stale_next_action_count": 0},
+        "public_conversion_kv_sync": {"age_seconds": 0, "ok": True, "unreconciled_count": 0},
         "reply_reconciliation": {"age_seconds": 0, "matched_count": 0},
         "warm_followup_samples": {"age_seconds": 0},
         "materializer": {"unmatched_count": 0},
@@ -128,6 +129,23 @@ class EggAgentQualityReconcileTests(unittest.TestCase):
 
         self.assertEqual(len(refresh), 1)
         self.assertEqual(refresh[0]["priority_rank"], 1)
+
+    def test_stale_public_conversion_sync_schedules_reconciliation(self) -> None:
+        snapshot = baseline_snapshot()
+        snapshot["public_conversion_kv_sync"] = {
+            "age_seconds": None,
+            "ok": False,
+            "failed_count": 1,
+            "unreconciled_count": 1,
+        }
+
+        candidates = EGG.deterministic_candidates(snapshot)
+        sync = [item for item in candidates if item["type"] == "public_conversion_kv_sync"]
+
+        self.assertEqual(len(sync), 1)
+        task = EGG.build_task(sync[0], "public-conversion-kv-sync-test")
+        self.assertEqual(task["level"], "story")
+        self.assertEqual(task["self_review"], "strict")
 
 
 if __name__ == "__main__":

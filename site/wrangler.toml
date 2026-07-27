@@ -1,0 +1,10 @@
+# Generated from the existing Cloudflare Pages project and kept in source control.
+name = "jvt-technologies-site"
+compatibility_date = "2026-04-10"
+pages_build_output_dir = "."
+
+[[kv_namespaces]]
+binding = "JVT_CONVERSION_INTAKE"
+id = "a74ce2e236bf4c3bbc8a00e429b71b36"
+
+[env.production]
