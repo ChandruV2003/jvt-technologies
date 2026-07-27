@@ -4,6 +4,14 @@
 
 This area keeps outward-facing business assets separate from product code while still giving everything one clean home under the company name.
 
+## Operating Intelligence
+
+`JVT E.G.G.` is the canonical name for the company-wide agentic operating layer:
+**Execution, Governance & Growth**. E.G.G. reviews operational evidence,
+creates safe internal work, routes it to the appropriate local or Codex-backed
+worker, and verifies results. It does not bypass approval boundaries for
+external communication, spending, financial activity, or commitments.
+
 ## Structure
 
 - `brand`: positioning, ICPs, offer notes, and messaging
@@ -15,6 +23,7 @@ This area keeps outward-facing business assets separate from product code while 
 - `client-work`: future client delivery templates and notes
 - `products`: incubated product and R&D areas, including `Private-AI-Lab`
 - `products/Private-AI-Lab/apps/jvt-inbound-voice-agent`: inbound-only AI receptionist scaffold for call intake
+- `ops/agent-control`: JVT E.G.G., task routing, model-backed review, and audit state
 
 ## Working Split
 

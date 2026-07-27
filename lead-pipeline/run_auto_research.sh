@@ -75,3 +75,9 @@ export JVT_RESEARCH_MODEL_SCREEN_TIMEOUT="${JVT_RESEARCH_MODEL_SCREEN_TIMEOUT:-9
   --max-new-leads "${JVT_RESEARCH_MAX_NEW_LEADS:-15}" \
   --draft-limit "${JVT_RESEARCH_DRAFT_LIMIT:-0}" \
   "$@"
+
+if [ "${JVT_RESEARCH_PACKET_PREP:-true}" = "true" ]; then
+  "$PYTHON_BIN" "$ROOT_DIR/outreach/tools/prepare_fresh_research_packets.py" \
+    --root "$ROOT_DIR" \
+    --max-packets "${JVT_RESEARCH_PACKET_PREP_LIMIT:-5}"
+fi

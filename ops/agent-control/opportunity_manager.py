@@ -7,6 +7,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from opportunity_qualification import qualify_items
+
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CONTROL_ROOT = REPO_ROOT / "ops" / "agent-control"
@@ -14,18 +16,6 @@ STATE_ROOT = CONTROL_ROOT / "state"
 OPS_DB = CONTROL_ROOT / "data" / "jvt_ops.sqlite3"
 REPORT_JSON = STATE_ROOT / "latest-opportunity-manager.json"
 REPORT_MD = STATE_ROOT / "latest-opportunity-manager.md"
-
-ACTIVE_STAGES = {
-    "inbound-hit-needs-review",
-    "reply-needs-response",
-    "proposal-needed",
-    "pilot-discovery-needed",
-    "active",
-}
-
-WARM_STAGES = ACTIVE_STAGES | {
-    "reply-sent-awaiting-next",
-}
 
 STAGE_ORDER = {
     "reply-needs-response": 0,
@@ -46,24 +36,6 @@ def write_json(path: Path, payload: Any) -> None:
     path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
 
-def load_json(path: Path, default: Any | None = None) -> Any:
-    if not path.exists():
-        return {} if default is None else default
-    try:
-        return json.loads(path.read_text(encoding="utf-8"))
-    except Exception:
-        return {} if default is None else default
-
-
-def source_payload(source: str) -> dict[str, Any]:
-    if not source:
-        return {}
-    path = Path(source)
-    if not path.exists() or path.suffix.lower() != ".json":
-        return {}
-    return load_json(path, {})
-
-
 def contact_domain(email: str) -> str:
     if "@" not in email:
         return ""
@@ -71,6 +43,18 @@ def contact_domain(email: str) -> str:
 
 
 def next_action(item: dict[str, Any]) -> str:
+    if item.get("duplicate"):
+        return "No action. This record duplicates the same source message."
+    qualification = str(item.get("qualification_status") or "")
+    if qualification == "internal":
+        return "Keep as internal test/context. Exclude from prospect metrics and outreach."
+    if qualification == "disqualified":
+        return "Keep closed. Do not draft, protect, or follow up."
+    if qualification == "concept":
+        return "Attach a real business and contact before treating this as a sales opportunity."
+    if qualification in {"unqualified", "inactive"}:
+        return "Resolve the missing contact or stage evidence before creating sales work."
+
     stage = str(item.get("stage") or "")
     service = str(item.get("service_slug") or "")
     if stage == "inbound-hit-needs-review":
@@ -93,6 +77,8 @@ def next_action(item: dict[str, Any]) -> str:
 
 
 def priority(item: dict[str, Any]) -> int:
+    if not item.get("qualified"):
+        return 9
     base = STAGE_ORDER.get(str(item.get("stage") or ""), 9)
     service = str(item.get("service_slug") or "")
     if service in {"ai-voice-intake", "workflow-automation"}:
@@ -155,24 +141,30 @@ def fetch_items() -> list[dict[str, Any]]:
     items: list[dict[str, Any]] = []
     for row in rows:
         item = dict(row)
-        payload = source_payload(str(item.get("source") or ""))
-        item["source_subject"] = payload.get("subject") or payload.get("summary") or ""
-        item["source_snippet"] = payload.get("snippet") or payload.get("body_preview") or ""
-        item["source_from"] = payload.get("from") or payload.get("sender") or ""
-        item["active"] = item.get("stage") in ACTIVE_STAGES
-        item["warm"] = item.get("stage") in WARM_STAGES
+        item["kind"] = "opportunity"
         item["contact_domain"] = contact_domain(str(item.get("contact_email") or ""))
+        items.append(item)
+    items = qualify_items(items, REPO_ROOT)
+    for item in items:
         item["next_action"] = next_action(item)
         item["priority"] = priority(item)
-        items.append(item)
     items.sort(key=lambda value: (int(value.get("priority") or 9), str(value.get("updated_at") or "")), reverse=False)
     return items
 
 
 def build_report() -> dict[str, Any]:
     items = fetch_items()
-    active = [item for item in items if item.get("active")]
-    warm = [item for item in items if item.get("warm")]
+    qualified = [item for item in items if item.get("qualified")]
+    active = [item for item in qualified if item.get("active")]
+    warm = [item for item in qualified if item.get("warm")]
+    unique_items = [item for item in items if not item.get("duplicate")]
+    concepts = [item for item in unique_items if item.get("qualification_status") == "concept"]
+    excluded = [
+        item
+        for item in unique_items
+        if item.get("qualification_status") in {"internal", "disqualified", "unqualified", "inactive"}
+    ]
+    duplicates = [item for item in items if item.get("duplicate")]
     response_needed = [
         item
         for item in active
@@ -184,8 +176,12 @@ def build_report() -> dict[str, Any]:
         "ok": True,
         "db_path": str(OPS_DB),
         "opportunity_count": len(items),
+        "qualified_count": len(qualified),
         "active_count": len(active),
         "warm_count": len(warm),
+        "concept_count": len(concepts),
+        "excluded_count": len(excluded),
+        "duplicate_count": len(duplicates),
         "response_needed_count": len(response_needed),
         "protected_contact_domains": protected_domains,
         "items": items[:25],
@@ -209,8 +205,12 @@ def write_markdown(report: dict[str, Any]) -> None:
         "",
         f"- Generated: `{report['generated_at']}`",
         f"- Opportunities: `{report['opportunity_count']}`",
+        f"- Qualified external: `{report.get('qualified_count', 0)}`",
         f"- Active: `{report['active_count']}`",
         f"- Warm/protected: `{report.get('warm_count', 0)}`",
+        f"- Concepts awaiting a real contact: `{report.get('concept_count', 0)}`",
+        f"- Excluded: `{report.get('excluded_count', 0)}`",
+        f"- Duplicate records: `{report.get('duplicate_count', 0)}`",
         f"- Need response/review: `{report['response_needed_count']}`",
         f"- Guardrail: {report['guardrail']}",
         "",
@@ -234,6 +234,7 @@ def write_markdown(report: dict[str, Any]) -> None:
             f"### {item.get('account_name') or 'Unknown account'}",
             "",
             f"- Stage: `{item.get('stage')}`",
+            f"- Conversion stage: `{item.get('conversion_stage')}`",
             f"- Service: `{item.get('service_name') or item.get('service_slug')}`",
             f"- Contact: `{item.get('contact_email') or 'unknown'}`",
             f"- Source: `{item.get('source') or 'unknown'}`",
@@ -250,12 +251,26 @@ def write_markdown(report: dict[str, Any]) -> None:
             f"### {item.get('account_name') or 'Unknown account'}",
             "",
             f"- Stage: `{item.get('stage')}`",
+            f"- Conversion stage: `{item.get('conversion_stage')}`",
             f"- Service: `{item.get('service_name') or item.get('service_slug')}`",
             f"- Contact: `{item.get('contact_email') or 'unknown'}`",
             f"- Source: `{item.get('source') or 'unknown'}`",
             f"- Next: {item.get('next_action')}",
             "",
         ])
+    lines.extend(["", "## Excluded Or Duplicate Records", ""])
+    excluded_items = [
+        item
+        for item in report.get("items", [])
+        if item.get("duplicate") or not item.get("qualified")
+    ]
+    if not excluded_items:
+        lines.append("- None.")
+    for item in excluded_items:
+        lines.append(
+            f"- `{item.get('conversion_stage')}` {item.get('account_name') or 'Unknown'}: "
+            f"{item.get('next_action')}"
+        )
     REPORT_MD.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 

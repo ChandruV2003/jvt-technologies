@@ -1,7 +1,7 @@
 {
   "slug": "egg",
-  "name": "Egg Executive Generator",
-  "role": "Goal-aware executive work generator that converts JVT company state into allowlisted internal tasks.",
+  "name": "JVT E.G.G.",
+  "role": "Execution, Governance & Growth operating intelligence that converts company state into allowlisted internal work.",
   "mode": "autonomous",
   "status": "active",
   "approval_boundary": "Creates internal tasks and repair packets only. External operations, account/provider changes, financial activity, public release, and third-party commitments stay outside this agent.",
@@ -24,7 +24,7 @@
     "strategy",
     "client-work"
   ],
-  "codex_cli_boundary": "Egg may create high-context codex_escalation_request tasks only. It does not call Codex directly; the guarded codex_escalation_runner enforces 20/day caps, context packing, sandbox, auth, and safety rules.",
+  "codex_cli_boundary": "E.G.G. may create high-context codex_escalation_request tasks only. It does not call Codex directly; the guarded codex_escalation_runner enforces 20/day caps, context packing, sandbox, auth, and safety rules.",
   "launch_label": "com.jvt.egg-agent",
   "runner": "ops/agent-control/egg_agent.py"
 }

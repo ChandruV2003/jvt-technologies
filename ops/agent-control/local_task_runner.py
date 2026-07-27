@@ -1434,9 +1434,19 @@ def local_audio_bridge_next_step(_task: dict[str, Any]) -> dict[str, Any]:
     )
     readiness_step = report_script("voice_readiness_check", "voice_readiness_check.py")
     tool_steps = [
-        run_command("ffmpeg_path", ["bash", "-lc", "command -v ffmpeg || true"], timeout=15),
-        run_command("sox_path", ["bash", "-lc", "command -v sox || true"], timeout=15),
-        run_command("mac_say_path", ["bash", "-lc", "command -v say || true"], timeout=15),
+        run_command(
+            "optional_audio_tool_probe",
+            [
+                "python3",
+                "-c",
+                (
+                    "import json, shutil\n"
+                    "print(json.dumps({name: shutil.which(name) for name in ['ffmpeg', 'sox']}, sort_keys=True))\n"
+                ),
+            ],
+            timeout=15,
+        ),
+        run_command("mac_say_path", ["bash", "-lc", "command -v say"], timeout=15),
         run_command(
             "python_audio_module_probe",
             [
@@ -1454,7 +1464,7 @@ def local_audio_bridge_next_step(_task: dict[str, Any]) -> dict[str, Any]:
     regression_step = run_command(
         "local_audio_bridge_media_stream_regression",
         ["python3", "products/Private-AI-Lab/apps/jvt-inbound-voice-agent/tools/test_local_audio_bridge_media_stream.py"],
-        timeout=45,
+        timeout=120,
     )
     post_regression_health_step = run_command(
         "local_audio_bridge_health_after_regression",
@@ -1491,31 +1501,41 @@ def local_audio_bridge_next_step(_task: dict[str, Any]) -> dict[str, Any]:
 
     readiness = load_json(STATE_ROOT / "latest-voice-readiness.json", {})
     gates = readiness.get("gates") if isinstance(readiness, dict) and isinstance(readiness.get("gates"), dict) else {}
-    next_steps = [
-        {
-            "step": "replace contract-only bridge with real audio turn pipeline",
-            "detail": "Decode Twilio PCMU frames, buffer speech turns with VAD, transcribe locally, route text through the model router, synthesize reply audio, and encode outbound PCMU frames.",
-            "owner": "voice-bridge-agent",
-        },
-        {
-            "step": "select local STT backend",
-            "detail": "Prefer the lowest-latency local backend that can run on the M4 without cloud keys. Validate with recorded dental/JVT prompt samples before live routing.",
-            "owner": "voice-bridge-agent",
-        },
-        {
-            "step": "select low-latency TTS path",
-            "detail": "Use the current voice samples for style direction, but do not deploy cloned voice audio until latency, consent, and disclosure wording are approved.",
-            "owner": "voice-quality-agent",
-        },
-        {
-            "step": "add synthetic media-stream regression",
-            "detail": "Feed sample inbound frames through the websocket bridge and require health to report ready only after STT, model, TTS, and return-audio checks pass.",
-            "owner": "qa-agent",
-        },
-    ]
+    bridge_ready = bool(post_regression_bridge_health.get("ready"))
+    if bridge_ready:
+        next_steps = [
+            {
+                "step": "expand recorded-speech coverage",
+                "detail": "Add dental, legal-intake, interruption, background-noise, and failure-injection recordings while preserving the current latency gate.",
+                "owner": "qa-agent",
+            },
+            {
+                "step": "evaluate production voice quality",
+                "detail": "Compare the safe macOS TTS baseline with the consented internal voice render before selecting a live voice backend.",
+                "owner": "voice-quality-agent",
+            },
+            {
+                "step": "hold provider activation for approval",
+                "detail": "Keep dry-run and provider routing gates disabled until disclosure, phone-provider, cost, and monitoring decisions are explicitly approved.",
+                "owner": "voice-bridge-agent",
+            },
+        ]
+    else:
+        next_steps = [
+            {
+                "step": "repair the recorded-speech bridge regression",
+                "detail": "Resolve the failing STT, router, TTS, multi-turn, non-silent-audio, or latency evidence before changing provider gates.",
+                "owner": "voice-bridge-agent",
+            },
+            {
+                "step": "preserve dry-run routing",
+                "detail": "Do not enable provider routing while local bridge health reports ready=false.",
+                "owner": "qa-agent",
+            },
+        ]
     report = {
         "generated_at": utc_now(),
-        "ok": bool(readiness_step.get("ok")) and bool(regression_step.get("ok")),
+        "ok": bool(readiness_step.get("ok")) and bool(regression_step.get("ok")) and bridge_ready,
         "bridge_health": bridge_health,
         "post_regression_bridge_health": post_regression_bridge_health,
         "voice_readiness": {
@@ -1528,10 +1548,10 @@ def local_audio_bridge_next_step(_task: dict[str, Any]) -> dict[str, Any]:
         },
         "next_steps": next_steps,
         "health_gate": {
-            "current": bool(gates.get("local_audio_bridge_ready")),
+            "current": bridge_ready,
             "required_before_live": [
                 "bridge health reports ready=true",
-                "synthetic media-stream regression passes",
+                "recorded-speech media-stream regression passes",
                 "provider routing stays dry-run until explicitly approved",
             ],
             "synthetic_regression_ok": bool(regression_step.get("ok")),
@@ -1552,7 +1572,7 @@ def local_audio_bridge_next_step(_task: dict[str, Any]) -> dict[str, Any]:
         f"- Voice live-ready: `{report['voice_readiness'].get('live_ready')}`",
         f"- Local bridge gate: `{gates.get('local_audio_bridge_ready')}`",
         "",
-        "## Required Build Steps",
+        "## Next Controlled Steps",
         "",
     ]
     for item in next_steps:
@@ -1565,7 +1585,7 @@ def local_audio_bridge_next_step(_task: dict[str, Any]) -> dict[str, Any]:
         "",
         report["guardrail"],
         "",
-        "Do not mark the bridge ready until health reports `ready=true` and the synthetic media-stream regression proves local STT, model response, TTS, and return audio.",
+        "Do not enable provider routing until health reports `ready=true`, recorded-speech regression proves local STT/model/TTS/return audio, and the operator explicitly approves the provider path.",
         "",
     ])
     write_json(state_json, report)
@@ -1576,7 +1596,7 @@ def local_audio_bridge_next_step(_task: dict[str, Any]) -> dict[str, Any]:
         "ok": report["ok"],
         "steps": [health_step, readiness_step, *tool_steps, regression_step, post_regression_health_step],
         "artifacts": [str(state_json), str(state_md), str(strategy_md)],
-        "bridge_ready": bool(gates.get("local_audio_bridge_ready")),
+        "bridge_ready": bridge_ready,
         "guardrail": report["guardrail"],
     }
 
@@ -1630,6 +1650,30 @@ def vertical_lead_research_refresh(task: dict[str, Any]) -> dict[str, Any]:
             str(REPO_ROOT / "outreach" / "queue" / "review"),
         ],
         "guardrail": "Research and packet staging only. Recipient quality gates still control approval and delivery.",
+    }
+
+
+def fresh_lead_packet_prep(task: dict[str, Any]) -> dict[str, Any]:
+    max_packets = max(1, min(10, int(task.get("max_packets") or 5)))
+    step = run_command(
+        "fresh_lead_packet_prep",
+        [
+            "python3",
+            "outreach/tools/prepare_fresh_research_packets.py",
+            "--max-packets",
+            str(max_packets),
+        ],
+        timeout=180,
+    )
+    return {
+        "ok": bool(step["ok"]),
+        "steps": [step],
+        "artifacts": [
+            str(STATE_ROOT / "latest-fresh-lead-packet-prep.json"),
+            str(STATE_ROOT / "latest-fresh-lead-packet-prep.md"),
+            str(REPO_ROOT / "outreach" / "queue" / "review"),
+        ],
+        "guardrail": "Fresh qualified leads are staged in review only. This task cannot approve or deliver packets.",
     }
 
 
@@ -1865,6 +1909,7 @@ HANDLERS = {
     "opportunity_manager_refresh": opportunity_manager_refresh,
     "custom_pilot_pipeline": custom_pilot_pipeline,
     "vertical_lead_research_refresh": vertical_lead_research_refresh,
+    "fresh_lead_packet_prep": fresh_lead_packet_prep,
     "service_pilot_package_refresh": service_pilot_package_refresh,
     "voice_quality_sample_inventory": voice_quality_sample_inventory,
     "voice_readiness_check": voice_readiness_check,

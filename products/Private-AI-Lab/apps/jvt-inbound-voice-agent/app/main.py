@@ -1026,8 +1026,9 @@ def api_test_intake(request: TestIntakeRequest) -> Dict[str, Any]:
 
 @app.post("/twilio/inbound")
 async def twilio_inbound() -> Response:
+    status = status_payload()
     stream_url = media_stream_url()
-    if dry_run_enabled() or not stream_url:
+    if not status.get("live_ready") or not stream_url:
         message = (
             "Thanks for calling JVT Technologies. I am JVT's AI assistant. "
             "Voice intake is in setup mode right now. Please email hello at JVT dash technologies dot com, "
@@ -1070,6 +1071,17 @@ async def twilio_media_stream(websocket: WebSocket) -> None:
         finally:
             record.ended_at = utc_now()
             write_call_record(record)
+        return
+
+    live_status = status_payload()
+    if not live_status.get("live_ready"):
+        record.errors.append(
+            "live_routing_blocked: "
+            + json.dumps(live_status.get("live_ready_gates") or {}, sort_keys=True)
+        )
+        record.ended_at = utc_now()
+        write_call_record(record)
+        await websocket.close(code=1013, reason="Voice pipeline is not live-ready.")
         return
 
     if is_local_bridge_engine():

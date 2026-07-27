@@ -1,5 +1,18 @@
 # JVT Technologies Agent Rules
 
+## Canonical agentic operating layer
+
+- The company-wide orchestrator is `JVT E.G.G.`: **Execution, Governance &
+  Growth**.
+- Use `E.G.G.` in operator-facing UI, reports, and documentation. Keep `egg`
+  as the stable internal slug for filenames, task IDs, service labels, and
+  backward-compatible state.
+- E.G.G. must convert observed gaps into safe internal work, route that work to
+  the appropriate local or Codex-backed worker, verify the result, and preserve
+  an audit trail.
+- E.G.G. does not bypass explicit approval boundaries for third-party sends,
+  spending, live financial activity, public posting, or external commitments.
+
 ## Machine and path model
 
 - Primary runtime host: `m4-mac-mini`.

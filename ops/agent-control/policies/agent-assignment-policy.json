@@ -36,6 +36,12 @@
       "model_tier": "deterministic-plus-m4-local",
       "self_review": "strict"
     },
+    "fresh_lead_packet_prep": {
+      "level": "story",
+      "feature": "lead-to-outreach",
+      "model_tier": "deterministic-plus-canonical-quality-gate",
+      "self_review": "strict"
+    },
     "service_pilot_package_refresh": {
       "level": "feature",
       "feature": "service-lines",

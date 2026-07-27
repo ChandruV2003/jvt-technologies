@@ -14,4 +14,8 @@ if [[ -f ".env.local" ]]; then
 fi
 
 export JVT_LOCAL_AUDIO_BRIDGE_READY="${JVT_LOCAL_AUDIO_BRIDGE_READY:-0}"
+MLX_WHISPER_SITE="${JVT_LOCAL_AUDIO_BRIDGE_MLX_SITE_PACKAGES:-/Users/c.s.d.v.r.s./.stream-watcher-asr/.venv/lib/python3.9/site-packages}"
+if [[ -d "$MLX_WHISPER_SITE" ]]; then
+  export PYTHONPATH="$MLX_WHISPER_SITE${PYTHONPATH:+:$PYTHONPATH}"
+fi
 exec "$PYTHON_BIN" -m uvicorn tools.local_audio_bridge_stub:app --host 127.0.0.1 --port "${JVT_LOCAL_AUDIO_BRIDGE_PORT:-8761}"

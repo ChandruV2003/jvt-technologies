@@ -137,7 +137,7 @@ def launchctl_snapshot() -> dict[str, dict[str, Any]]:
 def endpoint_snapshot(timeout_seconds: float = 3.0) -> dict[str, dict[str, Any]]:
     items: dict[str, dict[str, Any]] = {}
     for name, url in ENDPOINTS.items():
-        timeout = 10.0 if name == "control-agents" else timeout_seconds
+        timeout = 10.0 if name in {"control-agents", "model-router"} else timeout_seconds
         try:
             with urllib.request.urlopen(url, timeout=timeout) as response:
                 status = int(response.status)

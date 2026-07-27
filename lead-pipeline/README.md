@@ -33,6 +33,13 @@ This area is the local-first lead and CRM workflow for `JVT Technologies`.
 5. review before any sending
 6. update status after the interaction
 
+The scheduled research wrapper also runs
+`outreach/tools/prepare_fresh_research_packets.py` after each completed research
+pass. It converts only the newly researched, evidence-gated leads into canonical
+quality-stamped packets under `outreach/queue/review`. It does not approve or
+deliver those packets. JVT E.G.G. provides a deduplicated recovery task if that
+handoff does not complete.
+
 ## Current Seed Sets
 
 - `data/fictional-seed-leads.csv`: safe example data

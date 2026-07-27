@@ -26,9 +26,20 @@ CODEX_RESULT_STATE = STATE_ROOT / "latest-codex-escalation-result.json"
 CODEX_RECOMMENDATION_MATERIALIZER_STATE = STATE_ROOT / "latest-codex-recommendation-materializer.json"
 LEAD_QUALITY_AUDIT_STATE = STATE_ROOT / "latest-lead-quality-audit.json"
 QUALITY_HOLD_REPAIR_STATE = STATE_ROOT / "latest-quality-hold-repair-queue.json"
+FRESH_LEAD_PACKET_STATE = STATE_ROOT / "latest-fresh-lead-packet-prep.json"
 CUSTOM_PILOT_PIPELINE_STATE = STATE_ROOT / "latest-custom-pilot-pipeline.json"
 WARM_FOLLOWUP_SAMPLE_STATE = STATE_ROOT / "latest-warm-followup-samples.json"
 VOICE_QUALITY_ROOT = REPO_ROOT / "products" / "Private-AI-Lab" / "apps" / "jvt-inbound-voice-agent" / "voice-quality"
+VOICE_BRIDGE_REGRESSION_STATE = (
+    REPO_ROOT
+    / "products"
+    / "Private-AI-Lab"
+    / "apps"
+    / "jvt-inbound-voice-agent"
+    / "data"
+    / "local-audio-bridge"
+    / "latest-regression.json"
+)
 
 REPORT_JSON = STATE_ROOT / "latest-egg-agent.json"
 REPORT_MD = STATE_ROOT / "latest-egg-agent.md"
@@ -58,6 +69,7 @@ SAFE_TASK_TYPES = {
     "lead_quality_audit",
     "quality_hold_repair_queue",
     "resolve_review_quality_holds",
+    "fresh_lead_packet_prep",
     "source_hygiene_report",
     "system_resource_report",
     "inbox_triage_finalize",
@@ -306,11 +318,13 @@ def build_snapshot() -> dict[str, Any]:
     codex_recommendation_materializer = load_json(CODEX_RECOMMENDATION_MATERIALIZER_STATE, {})
     lead_quality = load_json(LEAD_QUALITY_AUDIT_STATE, {})
     quality_hold_repair = load_json(QUALITY_HOLD_REPAIR_STATE, {})
+    fresh_lead_packets = load_json(FRESH_LEAD_PACKET_STATE, {})
     ops_db = load_json(STATE_ROOT / "latest-jvt-ops-db.json", {})
     opportunity = load_json(STATE_ROOT / "latest-opportunity-manager.json", {})
     custom_pilot = load_json(CUSTOM_PILOT_PIPELINE_STATE, {})
     warm_followups = load_json(WARM_FOLLOWUP_SAMPLE_STATE, {})
     voice = load_json(STATE_ROOT / "latest-voice-readiness.json", {})
+    voice_bridge_regression = load_json(VOICE_BRIDGE_REGRESSION_STATE, {})
     paper = load_json(STATE_ROOT / "latest-paper-trader-health.json", {})
     source = load_json(STATE_ROOT / "latest-source-hygiene.json", {})
     system = load_json(STATE_ROOT / "latest-system-resources.json", {})
@@ -319,6 +333,12 @@ def build_snapshot() -> dict[str, Any]:
     queues = queue_counts()
     inbox = inbox_counts()
     tasks = task_counts()
+    voice_bridge_age = parse_iso_age_seconds(voice_bridge_regression.get("generated_at"))
+    voice_bridge_ready = bool(
+        voice_bridge_regression.get("ok")
+        and voice_bridge_age is not None
+        and voice_bridge_age <= 86400
+    )
     return {
         "generated_at": utc_now(),
         "queues": queues,
@@ -400,6 +420,13 @@ def build_snapshot() -> dict[str, Any]:
             "repair_candidate_count": quality_hold_repair.get("repair_candidate_count"),
             "hard_hold_count": quality_hold_repair.get("hard_hold_count"),
         },
+        "fresh_lead_packets": {
+            "generated_at": fresh_lead_packets.get("generated_at"),
+            "age_seconds": parse_iso_age_seconds(fresh_lead_packets.get("generated_at")),
+            "source_research_generated_at": fresh_lead_packets.get("source_research_generated_at"),
+            "staged_count": fresh_lead_packets.get("staged_count"),
+            "approval_candidate_count": fresh_lead_packets.get("approval_candidate_count"),
+        },
         "ops_db": {
             "generated_at": ops_db.get("generated_at"),
             "age_seconds": parse_iso_age_seconds(ops_db.get("generated_at")),
@@ -410,16 +437,24 @@ def build_snapshot() -> dict[str, Any]:
         "opportunity_manager": {
             "generated_at": opportunity.get("generated_at"),
             "age_seconds": parse_iso_age_seconds(opportunity.get("generated_at")),
+            "qualified_count": opportunity.get("qualified_count"),
             "active_count": opportunity.get("active_count"),
             "warm_count": opportunity.get("warm_count"),
+            "excluded_count": opportunity.get("excluded_count"),
+            "duplicate_count": opportunity.get("duplicate_count"),
             "response_needed_count": opportunity.get("response_needed_count"),
             "top_next_actions": opportunity.get("top_next_actions"),
         },
         "custom_pilot_pipeline": {
             "generated_at": custom_pilot.get("generated_at"),
             "age_seconds": parse_iso_age_seconds(custom_pilot.get("generated_at")),
+            "qualified_count": custom_pilot.get("qualified_count"),
+            "concept_count": custom_pilot.get("concept_count"),
+            "excluded_count": custom_pilot.get("excluded_count"),
+            "duplicate_count": custom_pilot.get("duplicate_count"),
             "warm_count": custom_pilot.get("warm_count"),
             "packet_count": custom_pilot.get("packet_count"),
+            "conversion_ready_count": custom_pilot.get("conversion_ready_count"),
             "service_counts": custom_pilot.get("service_counts"),
             "next_actions": custom_pilot.get("next_actions"),
         },
@@ -436,6 +471,11 @@ def build_snapshot() -> dict[str, Any]:
             "demo_ready": voice.get("demo_ready"),
             "live_ready": voice.get("live_ready"),
             "blockers": voice.get("blockers"),
+            "local_bridge_ready": voice_bridge_ready,
+            "local_bridge_age_seconds": voice_bridge_age,
+            "local_bridge_regression_generated_at": voice_bridge_regression.get("generated_at"),
+            "local_bridge_functional_ok": voice_bridge_regression.get("functional_ok"),
+            "local_bridge_latency_ok": voice_bridge_regression.get("latency_ok"),
             "sample_state": voice_sample_state(),
         },
         "paper_trader": {
@@ -515,6 +555,11 @@ def deterministic_candidates(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
         if isinstance(snapshot.get("quality_hold_repair"), dict)
         else {}
     )
+    fresh_lead_packets = (
+        snapshot.get("fresh_lead_packets")
+        if isinstance(snapshot.get("fresh_lead_packets"), dict)
+        else {}
+    )
     lead_quality_sections = lead_quality.get("sections") if isinstance(lead_quality.get("sections"), dict) else {}
     approved_quality = lead_quality_sections.get("approved") if isinstance(lead_quality_sections.get("approved"), dict) else {}
     recommendation_generated_at = codex_recommendation.get("generated_at")
@@ -574,6 +619,19 @@ def deterministic_candidates(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
             dedupe_key="inbox-triage-finalize",
         ))
         items.append(candidate("inbox_triage_brief", "Create review brief for new inbound mailbox items.", cadence="hourly", priority=2, feature="inbox", reason="new inbound items"))
+    lead_generation = str(lead.get("generated_at") or "")
+    handled_lead_generation = str(fresh_lead_packets.get("source_research_generated_at") or "")
+    if as_count(lead.get("new_leads_added")) > 0 and lead_generation and lead_generation != handled_lead_generation:
+        items.append(candidate(
+            "fresh_lead_packet_prep",
+            "Convert the latest qualified research leads into canonical quality-stamped review packets.",
+            cadence="hourly",
+            priority=1,
+            feature="lead-to-outreach",
+            reason="new lead-research generation has not been packetized",
+            dedupe_key=f"fresh-leads:{lead_generation}",
+            payload={"max_packets": min(5, max(1, as_count(lead.get("new_leads_added"))))},
+        ))
     if queues.get("review", 0) > 0:
         items.append(candidate("outreach_review_queue_brief", "Create strict QA brief for current review queue packets.", cadence="six-hour", priority=2, feature="outreach-quality", reason="review queue has packets"))
     if queues.get("review", 0) > 0 and queues.get("approved", 0) == 0:
@@ -655,7 +713,7 @@ def deterministic_candidates(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
                 ),
             },
         ))
-    if voice.get("demo_ready") and not voice.get("live_ready"):
+    if voice.get("demo_ready") and not voice.get("local_bridge_ready"):
         items.append(candidate("local_audio_bridge_next_step", "Advance local audio bridge readiness while live routing stays disabled.", cadence="hourly", priority=2, feature="voice-intake", reason="voice demo ready but live bridge not ready"))
     sample_state = voice.get("sample_state") if isinstance(voice.get("sample_state"), dict) else {}
     if int(sample_state.get("samples") or 0) > 0 and int(sample_state.get("renders") or 0) == 0:
@@ -685,7 +743,7 @@ def deterministic_candidates(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
 
 def model_generate(snapshot: dict[str, Any]) -> dict[str, Any]:
     prompt = (
-        "You are Egg, the JVT Technologies executive work generator. "
+        "You are JVT E.G.G. (Execution, Governance & Growth), the company operating-intelligence work generator. "
         "Return JSON only: an array of up to 3 internal tasks. Each item must have task_type, goal, feature, cadence, and reason. "
         f"Allowed task_type values: {sorted(MODEL_ACCEPTED_TASK_TYPES)}. "
         "Do not propose external outreach delivery, approvals, spending, market orders, crypto custody/network activity, public posting, paid provider enablement, destructive file actions, or external commitments. "
@@ -774,9 +832,9 @@ def build_task(candidate_item: dict[str, Any], task_id: str) -> dict[str, Any]:
         "requires_approval": False,
         "seeded_by": "egg_agent",
         "feature": candidate_item.get("feature") or "company-autonomy",
-        "level": "story" if candidate_item["type"] in {"vertical_lead_research_refresh", "service_pilot_package_refresh", "custom_pilot_pipeline", "warm_followup_sample_prep", "local_audio_bridge_next_step"} else "task",
+        "level": "story" if candidate_item["type"] in {"vertical_lead_research_refresh", "fresh_lead_packet_prep", "service_pilot_package_refresh", "custom_pilot_pipeline", "warm_followup_sample_prep", "local_audio_bridge_next_step"} else "task",
         "model_tier": "m4-local-with-macbook-large-available" if "model-suggested" in str(candidate_item.get("reason") or "") else "deterministic",
-        "self_review": "strict" if candidate_item["type"] in {"vertical_lead_research_refresh", "custom_pilot_pipeline", "warm_followup_sample_prep", "local_audio_bridge_next_step", "priority_packet_review_queue", "lead_quality_audit", "quality_hold_repair_queue", "inbox_triage_finalize"} else "standard",
+        "self_review": "strict" if candidate_item["type"] in {"vertical_lead_research_refresh", "fresh_lead_packet_prep", "custom_pilot_pipeline", "warm_followup_sample_prep", "local_audio_bridge_next_step", "priority_packet_review_queue", "lead_quality_audit", "quality_hold_repair_queue", "inbox_triage_finalize"} else "standard",
         "source_reason": candidate_item.get("reason") or "",
         "source_agent": "egg",
         "safety_boundary": SAFETY_BOUNDARY,
@@ -824,10 +882,11 @@ def create_tasks(candidates: list[dict[str, Any]], *, max_new_tasks: int, max_pe
     return created, skipped
 
 
-def write_markdown(report: dict[str, Any]) -> None:
+def write_markdown(report: dict[str, Any], output_path: Path = REPORT_MD) -> None:
     lines = [
-        "# JVT Egg Agent",
+        "# JVT E.G.G.",
         "",
+        "- Name: `Execution, Governance & Growth`",
         f"- Generated: `{report.get('generated_at')}`",
         f"- Mode: `{report.get('mode')}`",
         f"- Created: `{report.get('created_count')}`",
@@ -856,11 +915,11 @@ def write_markdown(report: dict[str, Any]) -> None:
         lines.append(f"- Accepted model suggestions: `{len(model.get('accepted') or [])}`")
     if model.get("rejected"):
         lines.append(f"- Rejected model suggestions: `{len(model.get('rejected') or [])}`")
-    REPORT_MD.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    output_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Egg: JVT goal-aware autonomous internal task generator.")
+    parser = argparse.ArgumentParser(description="JVT E.G.G.: Execution, Governance & Growth operating-intelligence task generator.")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--max-new-tasks", type=int, default=6)
     parser.add_argument("--max-pending", type=int, default=12)
@@ -878,6 +937,8 @@ def main() -> None:
     created, skipped = create_tasks(candidates, max_new_tasks=args.max_new_tasks, max_pending=args.max_pending, dry_run=args.dry_run)
     report = {
         "generated_at": utc_now(),
+        "system_name": "JVT E.G.G.",
+        "system_expansion": "Execution, Governance & Growth",
         "mode": "local-model-assisted" if model.get("available") else "deterministic",
         "dry_run": args.dry_run,
         "snapshot": snapshot,
@@ -891,15 +952,17 @@ def main() -> None:
         "model": model,
         "safety_boundary": SAFETY_BOUNDARY,
     }
-    write_json(REPORT_JSON, report)
-    write_markdown(report)
+    report_json = STATE_ROOT / "latest-egg-agent-dry-run.json" if args.dry_run else REPORT_JSON
+    report_md = STATE_ROOT / "latest-egg-agent-dry-run.md" if args.dry_run else REPORT_MD
+    write_json(report_json, report)
+    write_markdown(report, report_md)
     print(json.dumps({
         "ok": True,
         "mode": report["mode"],
         "created_count": report["created_count"],
         "skipped_count": report["skipped_count"],
-        "json_path": str(REPORT_JSON),
-        "markdown_path": str(REPORT_MD),
+        "json_path": str(report_json),
+        "markdown_path": str(report_md),
     }, indent=2))
 
 

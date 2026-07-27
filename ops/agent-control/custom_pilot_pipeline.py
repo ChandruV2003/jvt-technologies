@@ -8,23 +8,21 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from opportunity_qualification import qualify_items
+
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CONTROL_ROOT = REPO_ROOT / "ops" / "agent-control"
 STATE_ROOT = CONTROL_ROOT / "state"
 OPS_DB = CONTROL_ROOT / "data" / "jvt_ops.sqlite3"
 PACKET_ROOT = REPO_ROOT / "client-work" / "prospect-pilot-packets"
+PROPOSAL_ROOT = REPO_ROOT / "client-work" / "proposals"
+SOW_ROOT = REPO_ROOT / "client-work" / "statements-of-work"
+REPLY_ROOT = REPO_ROOT / "client-work" / "prospect-replies"
+PROSPECT_ROOT = REPO_ROOT / "client-work" / "prospects"
+SYNTHETIC_ROOT = REPO_ROOT / "client-work" / "synthetic-examples"
 REPORT_JSON = STATE_ROOT / "latest-custom-pilot-pipeline.json"
 REPORT_MD = STATE_ROOT / "latest-custom-pilot-pipeline.md"
-
-WARM_STAGES = {
-    "inbound-hit-needs-review",
-    "reply-needs-response",
-    "proposal-needed",
-    "pilot-discovery-needed",
-    "reply-sent-awaiting-next",
-    "active",
-}
 
 SERVICE_PLAYBOOKS = {
     "ai-voice-intake": {
@@ -142,7 +140,6 @@ def pending_pilot_decisions() -> list[dict[str, Any]]:
                 "pain": payload.get("pain") or "",
                 "target_customer": payload.get("target_customer") or "",
                 "major_risks": payload.get("major_risks") or [],
-                "warm": True,
             }
         )
     return items
@@ -174,7 +171,7 @@ def normalize_opportunity(raw: dict[str, Any]) -> dict[str, Any]:
         "pain": raw.get("notes") or "",
         "target_customer": raw.get("account_name") or "",
         "major_risks": [],
-        "warm": stage in WARM_STAGES,
+        "updated_at": raw.get("updated_at") or "",
     }
 
 
@@ -272,7 +269,7 @@ def write_packet(item: dict[str, Any]) -> str:
     service_slug = str(item.get("service_slug") or "workflow-automation")
     playbook = SERVICE_PLAYBOOKS.get(service_slug, SERVICE_PLAYBOOKS["workflow-automation"])
     name = str(item.get("account_name") or item.get("service_name") or "prospect")
-    path = PACKET_ROOT / f"{today_slug()}-{slugify(name)}-{service_slug}-custom-pilot.md"
+    path = PACKET_ROOT / f"{slugify(name)}-{service_slug}-custom-pilot.md"
     lines = [
         f"# Custom Pilot Packet: {name}",
         "",
@@ -336,23 +333,315 @@ def write_packet(item: dict[str, Any]) -> str:
     return str(path)
 
 
+def write_if_missing(path: Path, content: str) -> tuple[str, bool]:
+    if path.exists():
+        return str(path), False
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content.rstrip() + "\n", encoding="utf-8")
+    return str(path), True
+
+
+def synthetic_demo_lines(service_slug: str) -> list[str]:
+    if service_slug == "ai-voice-intake":
+        return [
+            "A fictional caller contacts a dental office after hours to request a routine callback. The caller also mentions symptoms, which must be routed to staff without diagnosis or treatment guidance.",
+            "",
+            "## Review-First Output",
+            "",
+            "- Caller details and callback number.",
+            "- Request category, urgency signals, and preferred callback window.",
+            "- A clear statement that the assistant did not diagnose, confirm insurance, or finalize an appointment.",
+            "- Staff review packet with the recording/transcript reference and escalation reason.",
+        ]
+    if service_slug == "workflow-automation":
+        return [
+            "A fictional housing-complex board meeting produces an agenda, attendee list, ballot checklist, and follow-up requests. Staff need one audit-friendly packet without the agent making election decisions.",
+            "",
+            "## Review-First Output",
+            "",
+            "- Meeting and request summary.",
+            "- Missing-information and deadline checklist.",
+            "- Draft status update for staff review.",
+            "- Audit log of inputs, generated drafts, and approval gates.",
+        ]
+    return [
+        "A prospective estate-planning client submits a synthetic intake form, a fictional asset summary, and a draft document checklist. Staff need a fast review packet that identifies what arrived, what is missing, and where each statement came from.",
+        "",
+        "## Review-First Output",
+        "",
+        "- Intake summary: fictional household and matter details, clearly labeled as unverified.",
+        "- Missing information: three synthetic gaps that staff must resolve.",
+        "- Document routing: each uploaded item mapped to the fictional matter checklist.",
+        "- Citation trail: every extracted statement tied to the synthetic source and page.",
+        "- Human gate: no legal recommendation, deadline, filing, or client-facing answer leaves the system without attorney or staff approval.",
+    ]
+
+
+def followup_draft_lines(item: dict[str, Any], playbook: dict[str, str]) -> list[str]:
+    name = str(item.get("account_name") or "there")
+    first_name = name.split()[0] if name and name != "Unknown account" else "there"
+    source_subject = str(item.get("source_subject") or "").strip()
+    subject = source_subject if source_subject.lower().startswith("re:") else f"Re: {playbook['name']} pilot"
+    service_slug = str(item.get("service_slug") or "")
+    if service_slug == "private-doc-intel":
+        body = [
+            "Following up with the short example I mentioned. I put together a synthetic version of a private document-review workflow: staff can see what came in, what is missing, and the source behind every drafted point before anything moves forward.",
+            "",
+            "The first pilot would stay narrow and review-only. No professional decisions, no client-facing output without approval, and no real business data until the handling rules are agreed.",
+            "",
+            "If that is close to a workflow your team deals with, I can tailor the example around one intake or document-prep process you repeat often.",
+        ]
+    else:
+        body = [
+            f"I put together a synthetic {playbook['name'].lower()} example so the workflow can be reviewed before any live data or systems are involved.",
+            "",
+            "The first pilot would stay narrow, review-first, and limited to one repeated process. Nothing would be sent or decided without the approval gates we agree on.",
+            "",
+            "If the example is close to the problem your team has, I can tailor it around one real workflow during discovery.",
+        ]
+    return [
+        f"Subject: {subject}",
+        "",
+        f"Hi {first_name},",
+        "",
+        *body,
+        "",
+        "Best,",
+        "Chandru",
+    ]
+
+
+def build_conversion_assets(item: dict[str, Any]) -> dict[str, Any]:
+    service_slug = str(item.get("service_slug") or "workflow-automation")
+    playbook = SERVICE_PLAYBOOKS.get(service_slug, SERVICE_PLAYBOOKS["workflow-automation"])
+    name = str(item.get("account_name") or "Qualified prospect")
+    slug = slugify(name)
+    workspace = PROSPECT_ROOT / slug
+    generated = utc_now()
+
+    synthetic_path, synthetic_created = write_if_missing(
+        SYNTHETIC_ROOT / f"{slug}-{service_slug}-demo-packet.md",
+        "\n".join(
+            [
+                f"# Synthetic Demo Packet: {name}",
+                "",
+                f"Generated: `{generated}`",
+                "",
+                "Status: internal synthetic proof. It contains no client documents, legal advice, or client-specific conclusions.",
+                "",
+                "## Scenario",
+                "",
+                *synthetic_demo_lines(service_slug),
+                "",
+                "## Demo Success Check",
+                "",
+                "A reviewer can verify the source of every statement, see the missing-data list, edit the packet, and export only after approval.",
+            ]
+        ),
+    )
+
+    proposal_path, proposal_created = write_if_missing(
+        PROPOSAL_ROOT / f"{slug}-pilot-proposal.md",
+        "\n".join(
+            [
+                f"# Pilot Proposal Draft: {name}",
+                "",
+                f"Generated: `{generated}`",
+                "",
+                "Status: internal draft only. Pricing and terms require operator review before external use.",
+                "",
+                "## Outcome",
+                "",
+                "Prove one private, review-first document workflow that reduces repetitive intake or document-preparation work without replacing professional judgment.",
+                "",
+                "## Proposed Pilot",
+                "",
+                "- Map one repeated document workflow and its approval boundaries.",
+                "- Configure a private workspace using synthetic documents first.",
+                "- Produce a cited review packet, missing-information list, and editable draft output.",
+                "- Run a short staff validation session and record accepted changes.",
+                "",
+                "## Commercial Hypothesis",
+                "",
+                f"- Discovery/source map: {playbook['setup_price']}.",
+                f"- Narrow pilot and managed support: {playbook['pilot_price']}.",
+                "- Final price depends on document volume, integrations, privacy requirements, and support scope.",
+                "",
+                "## Boundaries",
+                "",
+                "- No legal advice or autonomous client communication.",
+                "- No real client data until handling, retention, and access rules are approved.",
+                "- Every output remains human-reviewed.",
+            ]
+        ),
+    )
+
+    sow_path, sow_created = write_if_missing(
+        SOW_ROOT / f"{slug}-draft-sow.md",
+        "\n".join(
+            [
+                f"# Draft Statement Of Work: {name}",
+                "",
+                f"Generated: `{generated}`",
+                "",
+                "Status: internal draft only; not an offer or executed agreement.",
+                "",
+                "## Objective",
+                "",
+                "Implement and validate one private, citation-backed document workflow using synthetic material before any approved client-data phase.",
+                "",
+                "## Included",
+                "",
+                "- one workflow discovery map",
+                "- one synthetic source set",
+                "- one review packet template",
+                "- one human approval checkpoint",
+                "- one validation and handoff session",
+                "",
+                "## Excluded",
+                "",
+                "- legal judgment or advice",
+                "- autonomous client-facing delivery",
+                "- broad firm-wide migration",
+                "- production integrations not explicitly approved",
+                "",
+                "## Acceptance",
+                "",
+                "The pilot is accepted when the agreed synthetic scenario produces a source-cited, editable review packet and all named approval gates work.",
+                "",
+                "## Fees",
+                "",
+                "Use the approved proposal after discovery. No price is final in this draft.",
+            ]
+        ),
+    )
+
+    reply_path, reply_created = write_if_missing(
+        REPLY_ROOT / f"{slug}-followup-draft.md",
+        "\n".join(
+            [
+                f"# Unsent Follow-Up Draft: {name}",
+                "",
+                f"Generated: `{generated}`",
+                "",
+                "Status: review only. Do not send automatically.",
+                "",
+                *followup_draft_lines(item, playbook),
+            ]
+        ),
+    )
+
+    workspace_readme, workspace_created = write_if_missing(
+        workspace / "README.md",
+        "\n".join(
+            [
+                f"# Prospect Workspace: {name}",
+                "",
+                f"Created: `{generated}`",
+                "",
+                "Status: qualified prospect; no active client engagement or external commitment.",
+                "",
+                "## Current Stage",
+                "",
+                f"- CRM stage: `{item.get('stage') or 'unknown'}`",
+                f"- Conversion stage: `{item.get('conversion_stage') or 'qualified'}`",
+                f"- Service: {playbook['name']}",
+                f"- Contact: `{item.get('contact_email') or 'unknown'}`",
+                "",
+                "## Required Before Active Client",
+                "",
+                "- operator-approved follow-up",
+                "- discovery answers",
+                "- approved scope and price",
+                "- signed agreement/SOW",
+                "- approved data-handling plan",
+            ]
+        ),
+    )
+
+    acceptance_path, acceptance_created = write_if_missing(
+        workspace / "acceptance-checklist.md",
+        "\n".join(
+            [
+                f"# Pilot Acceptance Checklist: {name}",
+                "",
+                "- [ ] One repeated workflow is confirmed by the prospect.",
+                "- [ ] Synthetic source set and expected output are approved.",
+                "- [ ] Every output includes source citations.",
+                "- [ ] Missing or conflicting information is surfaced.",
+                "- [ ] Human approval is required before export or delivery.",
+                "- [ ] Data retention and deletion rules are documented.",
+                "- [ ] Pilot success metric and price are approved.",
+            ]
+        ),
+    )
+
+    paths = {
+        "synthetic_demo": synthetic_path,
+        "proposal": proposal_path,
+        "draft_sow": sow_path,
+        "unsent_followup": reply_path,
+        "prospect_workspace": workspace_readme,
+        "acceptance_checklist": acceptance_path,
+    }
+    created = [
+        key
+        for key, was_created in {
+            "synthetic_demo": synthetic_created,
+            "proposal": proposal_created,
+            "draft_sow": sow_created,
+            "unsent_followup": reply_created,
+            "prospect_workspace": workspace_created,
+            "acceptance_checklist": acceptance_created,
+        }.items()
+        if was_created
+    ]
+    return {
+        "account_name": name,
+        "conversion_stage": item.get("conversion_stage"),
+        "paths": paths,
+        "created": created,
+        "ready": all(Path(path).exists() for path in paths.values()),
+    }
+
+
 def build_report() -> dict[str, Any]:
     opportunities = [normalize_opportunity(item) for item in fetch_opportunities()]
     decisions = pending_pilot_decisions()
-    items = [item for item in opportunities + decisions if item.get("warm") or item.get("kind") == "pilot_decision"]
-    items.sort(key=lambda value: (priority(value), str(value.get("account_name") or "")))
-    packet_paths = [write_packet(item) for item in items[:8]]
+    items = qualify_items(opportunities + decisions, REPO_ROOT)
+    qualified = [item for item in items if item.get("qualified")]
+    concepts = [
+        item
+        for item in items
+        if not item.get("duplicate") and item.get("qualification_status") == "concept"
+    ]
+    excluded = [
+        item
+        for item in items
+        if not item.get("duplicate")
+        and item.get("qualification_status") in {"internal", "disqualified", "unqualified", "inactive"}
+    ]
+    duplicates = [item for item in items if item.get("duplicate")]
+    qualified.sort(key=lambda value: (priority(value), str(value.get("account_name") or "")))
+    packet_paths = [write_packet(item) for item in qualified[:8]]
+    conversions = [build_conversion_assets(item) for item in qualified[:3]]
     service_counts: dict[str, int] = {}
-    for item in items:
+    for item in qualified:
         service = str(item.get("service_slug") or "unknown")
         service_counts[service] = service_counts.get(service, 0) + 1
     return {
         "generated_at": utc_now(),
         "ok": True,
-        "warm_count": len(items),
+        "warm_count": len(qualified),
+        "qualified_count": len(qualified),
+        "concept_count": len(concepts),
+        "excluded_count": len(excluded),
+        "duplicate_count": len(duplicates),
         "packet_count": len(packet_paths),
+        "conversion_ready_count": sum(1 for item in conversions if item.get("ready")),
         "service_counts": service_counts,
         "packet_paths": packet_paths,
+        "conversion_assets": conversions,
         "items": items[:25],
         "next_actions": [
             {
@@ -363,7 +652,7 @@ def build_report() -> dict[str, Any]:
                 "next_action": SERVICE_PLAYBOOKS.get(str(item.get("service_slug") or ""), SERVICE_PLAYBOOKS["workflow-automation"])["first_step"],
                 "packet_path": packet_paths[index] if index < len(packet_paths) else "",
             }
-            for index, item in enumerate(items[:8])
+            for index, item in enumerate(qualified[:8])
         ],
         "guardrail": "Internal custom-pilot planning only. No external reply, provider action, credential request, live data processing, or commitment is authorized by this report.",
     }
@@ -374,8 +663,12 @@ def write_markdown(report: dict[str, Any]) -> None:
         "# JVT Custom Pilot Pipeline",
         "",
         f"- Generated: `{report['generated_at']}`",
-        f"- Warm/custom opportunities: `{report['warm_count']}`",
+        f"- Qualified external opportunities: `{report['qualified_count']}`",
+        f"- Concepts awaiting a real contact: `{report['concept_count']}`",
+        f"- Excluded records: `{report['excluded_count']}`",
+        f"- Duplicate records: `{report['duplicate_count']}`",
         f"- Pilot packets refreshed: `{report['packet_count']}`",
+        f"- Conversion workspaces ready: `{report['conversion_ready_count']}`",
         f"- Guardrail: {report['guardrail']}",
         "",
         "## Focus",
@@ -391,6 +684,15 @@ def write_markdown(report: dict[str, Any]) -> None:
         lines.append(
             f"- P{action.get('priority')} `{action.get('stage')}` {action.get('account_name')} / {action.get('service')}: {action.get('next_action')} Packet: `{action.get('packet_path')}`"
         )
+    lines.extend(["", "## Conversion Assets", ""])
+    conversions = report.get("conversion_assets") or []
+    if not conversions:
+        lines.append("- No qualified external opportunity is ready for conversion assets.")
+    for conversion in conversions:
+        lines.append(
+            f"- `{conversion.get('account_name')}` ready=`{str(bool(conversion.get('ready'))).lower()}` "
+            f"created={','.join(conversion.get('created') or []) or 'none'}"
+        )
     lines.extend(["", "## Service Counts", ""])
     for service, count in sorted((report.get("service_counts") or {}).items()):
         lines.append(f"- `{service}`: {count}")
@@ -402,7 +704,17 @@ def main() -> None:
     report = build_report()
     write_json(REPORT_JSON, report)
     write_markdown(report)
-    print(json.dumps({"ok": True, "warm_count": report["warm_count"], "packet_count": report["packet_count"]}))
+    print(
+        json.dumps(
+            {
+                "ok": True,
+                "qualified_count": report["qualified_count"],
+                "concept_count": report["concept_count"],
+                "packet_count": report["packet_count"],
+                "conversion_ready_count": report["conversion_ready_count"],
+            }
+        )
+    )
 
 
 if __name__ == "__main__":
