@@ -14,6 +14,20 @@ from pathlib import Path
 from typing import Any
 
 
+def resolve_codex_cli() -> Path:
+    candidates = [
+        os.environ.get("JVT_CODEX_CLI", ""),
+        str(Path.home() / ".local" / "bin" / "codex"),
+        "/Applications/Codex.app/Contents/Resources/codex",
+        shutil.which("codex") or "",
+    ]
+    for raw in candidates:
+        path = Path(raw) if raw else None
+        if path and path.is_file() and os.access(path, os.X_OK):
+            return path
+    return Path("/Applications/Codex.app/Contents/Resources/codex")
+
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CONTROL_ROOT = REPO_ROOT / "ops" / "agent-control"
 EPIC_ROOT = CONTROL_ROOT / "epics"
@@ -21,7 +35,7 @@ STATE_ROOT = CONTROL_ROOT / "state"
 LOCK_PATH = STATE_ROOT / "epic-agent.lock"
 POLICY_PATH = CONTROL_ROOT / "policies" / "epic-agent-policy.json"
 USAGE_LOG_PATH = STATE_ROOT / "epic-agent-usage.jsonl"
-CODEX_CLI = Path("/Applications/Codex.app/Contents/Resources/codex")
+CODEX_CLI = resolve_codex_cli()
 
 EPIC_DIRS = ("queued", "running", "done", "blocked", "held", "logs", "architect-inbox")
 
@@ -251,6 +265,42 @@ def move_epic(path: Path, target_dir: str, result: dict[str, Any]) -> Path:
     target.parent.mkdir(parents=True, exist_ok=True)
     shutil.move(str(path), str(target))
     return target
+
+
+def recover_retryable_held() -> list[dict[str, Any]]:
+    """Requeue infrastructure-held epics after the required local runtime recovers."""
+
+    if not CODEX_CLI.is_file() or not os.access(CODEX_CLI, os.X_OK):
+        return []
+    recovered: list[dict[str, Any]] = []
+    for path in sorted((EPIC_ROOT / "held").glob("*.json")):
+        payload = load_json(path, {})
+        prior_result = payload.get("epic_agent_result")
+        reason = str(prior_result.get("reason") or "") if isinstance(prior_result, dict) else ""
+        if not reason.startswith("Codex CLI missing at "):
+            continue
+        target = EPIC_ROOT / "queued" / path.name
+        if target.exists():
+            continue
+        history = payload.get("epic_retry_history")
+        if not isinstance(history, list):
+            history = []
+        history.append(
+            {
+                "requeued_at": utc_now(),
+                "prior_reason": reason,
+                "resolved_codex_cli": str(CODEX_CLI),
+            }
+        )
+        payload["status"] = "queued"
+        payload["epic_retry_history"] = history
+        payload.pop("epic_agent_result", None)
+        payload.pop("epic_agent_updated_at", None)
+        write_json(path, payload)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.move(str(path), str(target))
+        recovered.append({"epic_id": payload.get("id") or path.stem, "path": str(target)})
+    return recovered
 
 
 def build_prompt(epic: dict[str, Any], log_dir: Path) -> str:
@@ -484,6 +534,7 @@ def run_queued(max_epics: int) -> dict[str, Any]:
     ensure_dirs()
     policy = load_policy()
     budget = codex_budget_status(policy)
+    recovered = recover_retryable_held()
     queued = sorted((EPIC_ROOT / "queued").glob("*.json"))[:max_epics]
     processed = [process_epic(path) for path in queued]
     return {
@@ -491,6 +542,8 @@ def run_queued(max_epics: int) -> dict[str, Any]:
         "ok": all(item.get("status") in {"done", "deferred"} for item in processed) if processed else True,
         "processed_count": len(processed),
         "processed": processed,
+        "recovered_count": len(recovered),
+        "recovered": recovered,
         "queue_counts": {folder: count_files(folder) for folder in ("queued", "running", "done", "blocked", "held")},
         "codex_cli": str(CODEX_CLI),
         "codex_cli_exists": CODEX_CLI.exists(),

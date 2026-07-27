@@ -115,8 +115,6 @@ def main() -> None:
         ):
             model_reviewed += 1
             model_review = review_packet(payload, reasons, "follow-up")
-            if model_review.get("approved"):
-                approval_reason = f"model-assisted follow-up packet quality pass: {model_review.get('reason')}"
         item = {
             "stem": path.stem,
             "company_name": payload.get("company_name"),

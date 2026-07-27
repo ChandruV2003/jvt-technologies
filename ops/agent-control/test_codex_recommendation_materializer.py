@@ -86,6 +86,8 @@ class CodexRecommendationMaterializerTests(unittest.TestCase):
                 report = materializer.materialize(dry_run=True)
 
         self.assertEqual(report["status"], "would_queue")
+        self.assertTrue(report["implementation_required"])
+        self.assertEqual(report["existing_paths"], ["outreach/tools/packet_quality.py"])
         self.assertEqual(report["missing_paths"], [])
         self.assertTrue(report["epic_id"].startswith("codex-recommendation-"))
 

@@ -843,7 +843,7 @@ def build_task(candidate_item: dict[str, Any], task_id: str) -> dict[str, Any]:
         "feature": candidate_item.get("feature") or "company-autonomy",
         "level": "story" if candidate_item["type"] in {"vertical_lead_research_refresh", "fresh_lead_packet_prep", "service_pilot_package_refresh", "custom_pilot_pipeline", "warm_followup_sample_prep", "local_audio_bridge_next_step"} else "task",
         "model_tier": "m4-local-with-macbook-large-available" if "model-suggested" in str(candidate_item.get("reason") or "") else "deterministic",
-        "self_review": "strict" if candidate_item["type"] in {"vertical_lead_research_refresh", "fresh_lead_packet_prep", "custom_pilot_pipeline", "warm_followup_sample_prep", "local_audio_bridge_next_step", "priority_packet_review_queue", "lead_quality_audit", "quality_hold_repair_queue", "inbox_triage_finalize"} else "standard",
+        "self_review": "strict" if candidate_item["type"] in {"vertical_lead_research_refresh", "fresh_lead_packet_prep", "custom_pilot_pipeline", "warm_followup_sample_prep", "local_audio_bridge_next_step", "priority_packet_review_queue", "lead_quality_audit", "approved_quality_reconcile", "quality_hold_repair_queue", "inbox_triage_finalize"} else "standard",
         "source_reason": candidate_item.get("reason") or "",
         "source_agent": "egg",
         "safety_boundary": SAFETY_BOUNDARY,

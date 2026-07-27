@@ -17,13 +17,27 @@ from pathlib import Path
 from typing import Any
 
 
+def resolve_codex_cli() -> Path:
+    candidates = [
+        os.environ.get("JVT_CODEX_CLI", ""),
+        str(Path.home() / ".local" / "bin" / "codex"),
+        "/Applications/Codex.app/Contents/Resources/codex",
+        shutil.which("codex") or "",
+    ]
+    for raw in candidates:
+        path = Path(raw) if raw else None
+        if path and path.is_file() and os.access(path, os.X_OK):
+            return path
+    return Path("/Applications/Codex.app/Contents/Resources/codex")
+
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CONTROL_ROOT = REPO_ROOT / "ops" / "agent-control"
 TASK_ROOT = CONTROL_ROOT / "tasks"
 STATE_ROOT = CONTROL_ROOT / "state"
 LOCK_PATH = STATE_ROOT / "local-task-runner.lock"
 AUTOTRADER_ROOT = Path("/Users/c.s.d.v.r.s./Developer/JVT-AutoTrader")
-CODEX_CLI = Path("/Applications/Codex.app/Contents/Resources/codex")
+CODEX_CLI = resolve_codex_cli()
 ASSIGNMENT_POLICY_PATH = CONTROL_ROOT / "policies" / "agent-assignment-policy.json"
 
 TASK_DIRS = ("pending", "running", "completed", "failed", "held")

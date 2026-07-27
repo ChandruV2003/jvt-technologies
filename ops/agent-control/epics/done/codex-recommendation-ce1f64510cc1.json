@@ -1,0 +1,82 @@
+{
+  "id": "codex-recommendation-ce1f64510cc1",
+  "title": "Implement Codex recommendation ce1f64510cc1",
+  "created_at": "2026-07-27T15:46:05+00:00",
+  "queued_by": "codex_recommendation_materializer",
+  "status": "queued",
+  "level": "epic",
+  "feature": "company-autonomy",
+  "model_tier": "codex-cli-capped",
+  "model": "gpt-5.5",
+  "execution_mode": "codex_workspace_write",
+  "codex_enabled": true,
+  "requires_approval": false,
+  "source_codex_recommendation": {
+    "generated_at": "2026-07-27T15:03:05+00:00",
+    "task_id": "2026-07-27-h15-egg-codex-escalation-request-16545daa27",
+    "model": "gpt-5.5",
+    "ok": true
+  },
+  "story": "**Recommendation**\n\nImplement `approved_quality_reconcile`: make `packet_quality` a non-bypassable invariant for the approved queue, and automatically demote any approved packet that fails canonical QC back to `review`.\n\nThis is the highest-leverage internal fix because the system has send capacity and approved inventory, but the loop is blocked by one bad approved packet: [latest-orchestrator.md](/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/ops/agent-control/state/latest-orchestrator.md:10) shows `0/20` sends used, `8` approved, and `Send gate: not-ready`; [latest-watchdog.json](/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/ops/watchdog/state/latest-watchdog.json:75) shows one critical `outreach-qc` issue; [latest-lead-quality-audit.json](/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/ops/agent-control/state/latest-lead-quality-audit.json:1760) shows approved is `7 pass / 1 hold`.\n\nThe concrete defect: [2026-07-26-lpappas-cpa-initial-introduction.json](/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/outreach/queue/approved/2026-07-26-lpappas-cpa-initial-introduction.json:48) is `packet_quality.decision = repair_candidate` for `unnormalized_company_name`, but it is still `status: approved` because model review overrode deterministic reasons at [auto_approve_review_initials.py](/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/outreach/tools/auto_approve_review_initials.py:117) and the same pattern exists in [auto_approve_review_followups.py](/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/outreach/tools/auto_approve_review_followups.py:117).\n\n**Implementation**\n\n1. In `auto_approve_review_initials.py` and `auto_approve_review_followups.py`, stop letting `model_review.get(\"approved\")` clear deterministic `reasons`. A packet should move to approved only when:\n\n```python\nquality[\"decision\"] == \"approval_candidate\" and not quality[\"human_reasons\"]\n```\n\n2. Add `approved_quality_reconcile` to `SAFE_TASK_TYPES` in [egg_agent.py](/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/ops/agent-control/egg_agent.py:51), and at [egg_agent.py](/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/ops/agent-control/egg_agent.py:603) schedule it when approved quality has holds instead of scheduling another read-only `lead_quality_audit`.\n\n3. Add a local runner handler near [local_task_runner.py](/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/ops/agent-control/local_task_runner.py:1769), register it in `HANDLERS`, and have it run:\n\n```bash\npython3 outreach/tools/quality_gate_approved.py --move-held\n```\n\nThat uses the existing demotion path in [quality_gate_approved.py](/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/outreach/tools/quality_gate_approved.py:83). It demotes and reports only; it does not approve or send.\n\n4. In [auto_send_quality_pass.py](/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/outreach/tools/auto_send_quality_pass.py:444), run approved reconciliation before treating `outreach-qc` as fatal. Keep unrelated critical watchdog findings blocking.\n\nAlso fix the materializer follow-through bug: [codex_recommendation_materializer.py](/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/ops/agent-control/codex_recommendation_materializer.py:174) marks recommendations `implemented_or_present` just because referenced files exist, which is why this recommendation keeps recurring without implementation.\n\nI did not change files because this session is read-only. Validation after a write-capable implementation should show `Lpappas Cpa` moved back to `review`, the 7 clean approved packets still approved, watchdog `approved_qc_issue_count: 0`, and auto-send dry-run reaching quality-gated selection without sending.",
+  "scope_paths": [
+    "ops/agent-control/codex_recommendation_materializer.py",
+    "ops/agent-control/egg_agent.py",
+    "ops/agent-control/local_task_runner.py",
+    "outreach/tools/auto_approve_review_followups.py",
+    "outreach/tools/auto_approve_review_initials.py",
+    "outreach/tools/auto_send_quality_pass.py",
+    "outreach/tools/quality_gate_approved.py"
+  ],
+  "deliverables": [
+    "ops/agent-control/codex_recommendation_materializer.py",
+    "ops/agent-control/egg_agent.py",
+    "ops/agent-control/local_task_runner.py",
+    "outreach/tools/auto_approve_review_followups.py",
+    "outreach/tools/auto_approve_review_initials.py",
+    "outreach/tools/auto_send_quality_pass.py",
+    "outreach/tools/quality_gate_approved.py"
+  ],
+  "acceptance_criteria": [
+    "Implement the smallest safe repository-scoped version of the recommendation.",
+    "Reuse existing JVT patterns and remove contradictory duplicate logic where the recommendation requires it.",
+    "Add or update focused tests for changed behavior.",
+    "Run syntax checks and targeted dry-run validation.",
+    "Do not send outreach, approve packets, call providers, spend money, trade, publish, or make external commitments.",
+    "Return changed files, validation results, and any exact blocker through architect-inbox."
+  ],
+  "roi_case": {
+    "revenue_goal_link": "Removes a measured JVT pipeline blocker on the path to the March 2027 $10k cash-flow goal.",
+    "expected_business_value": "Turns repeated diagnosis into durable implementation and reduces idle outreach capacity.",
+    "why_codex_is_worth_it": "The recommendation spans multiple repository workflows and needs coherent code changes plus validation.",
+    "success_metric": "Named implementation files exist, focused validation passes, and Egg stops repeating the same recommendation.",
+    "fallback_if_not_run": "Keep the recommendation tracked and continue safe local analysis without consuming another duplicate Codex call."
+  },
+  "requested_external_actions": [],
+  "safety_boundary": "Repository-scoped internal implementation only. No external outreach delivery, packet approval, spending, account changes, market orders, crypto custody/network participation, public posting, provider enablement, destructive broad file actions, or external commitments.",
+  "timeout_seconds": 1800,
+  "epic_retry_history": [
+    {
+      "requeued_at": "2026-07-27T15:48:18+00:00",
+      "prior_reason": "Codex CLI missing at /Applications/Codex.app/Contents/Resources/codex.",
+      "resolved_codex_cli": "/Users/c.s.d.v.r.s./.local/bin/codex"
+    }
+  ],
+  "epic_agent_result": {
+    "epic_file": "/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/ops/agent-control/epics/queued/codex-recommendation-ce1f64510cc1.json",
+    "epic_id": "codex-recommendation-ce1f64510cc1",
+    "execution_mode": "codex_workspace_write",
+    "ok": true,
+    "status": "done",
+    "returncode": 0,
+    "duration_ms": 506031,
+    "mode": "codex_workspace_write",
+    "sandbox": "workspace-write",
+    "log_dir": "/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/ops/agent-control/epics/logs/20260727T154818Z-codex-recommendation-ce1f64510cc1",
+    "prompt_path": "/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/ops/agent-control/epics/logs/20260727T154818Z-codex-recommendation-ce1f64510cc1/prompt.md",
+    "stdout_path": "/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/ops/agent-control/epics/logs/20260727T154818Z-codex-recommendation-ce1f64510cc1/codex-events.jsonl",
+    "stderr_path": "/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/ops/agent-control/epics/logs/20260727T154818Z-codex-recommendation-ce1f64510cc1/codex-stderr.log",
+    "last_message_path": "/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/ops/agent-control/epics/logs/20260727T154818Z-codex-recommendation-ce1f64510cc1/last-message.md",
+    "architect_inbox_path": "/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies/ops/agent-control/epics/architect-inbox/codex-recommendation-ce1f64510cc1-done.md"
+  },
+  "epic_agent_updated_at": "2026-07-27T15:56:44+00:00"
+}

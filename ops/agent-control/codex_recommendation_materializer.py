@@ -156,13 +156,16 @@ def materialize(*, dry_run: bool) -> dict[str, Any]:
     metadata, recommendation = recommendation_payload()
     paths = referenced_paths(recommendation)
     missing = [path for path in paths if not (REPO_ROOT / path).is_file()]
+    existing = [path for path in paths if (REPO_ROOT / path).is_file()]
     report: dict[str, Any] = {
         "generated_at": utc_now(),
         "ok": True,
         "dry_run": dry_run,
         "source": metadata,
         "referenced_paths": paths,
+        "existing_paths": existing,
         "missing_paths": missing,
+        "implementation_required": bool(paths),
         "safety_boundary": SAFETY_BOUNDARY,
     }
     if not recommendation:
@@ -225,6 +228,10 @@ def write_markdown(report: dict[str, Any]) -> None:
     ]
     lines.extend(f"- `{path}`" for path in report.get("referenced_paths", []))
     if not report.get("referenced_paths"):
+        lines.append("- None.")
+    lines.extend(["", "## Existing Paths", ""])
+    lines.extend(f"- `{path}`" for path in report.get("existing_paths", []))
+    if not report.get("existing_paths"):
         lines.append("- None.")
     lines.extend(["", "## Missing Paths", ""])
     lines.extend(f"- `{path}`" for path in report.get("missing_paths", []))

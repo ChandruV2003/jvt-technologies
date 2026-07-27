@@ -5,6 +5,7 @@ from __future__ import annotations
 import importlib.util
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 RUNNER_PATH = Path(__file__).with_name("local_task_runner.py")
@@ -94,6 +95,20 @@ class LocalTaskRunnerSafetyTests(unittest.TestCase):
             RUNNER.hold_reason(task),
             "Task text contains approval-gated/disallowed phrase: mining",
         )
+
+    def test_approved_quality_reconcile_handler_runs_demotion_gate_only(self) -> None:
+        self.assertIn("approved_quality_reconcile", RUNNER.HANDLERS)
+
+        with mock.patch.object(RUNNER, "run_command", return_value={"ok": True}) as run_command:
+            result = RUNNER.approved_quality_reconcile({})
+
+        run_command.assert_called_once_with(
+            "approved_quality_reconcile",
+            ["python3", "outreach/tools/quality_gate_approved.py", "--move-held"],
+            timeout=90,
+        )
+        self.assertTrue(result["ok"])
+        self.assertIn("No packets are approved or sent.", result["guardrail"])
 
 
 if __name__ == "__main__":
