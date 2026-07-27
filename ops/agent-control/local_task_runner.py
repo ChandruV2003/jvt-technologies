@@ -55,6 +55,21 @@ DISALLOWED_WORDS = {
     "rm -rf",
 }
 
+EXTERNAL_ACTION_RESULT_KEYS = {
+    "external_action_performed",
+    "email_sent",
+    "prospect_sent",
+    "live_trade_submitted",
+    "payment_submitted",
+    "application_submitted",
+    "content_published",
+}
+
+TASK_RUNTIME_KEYS = {
+    "runner_result",
+    "runner_updated_at",
+}
+
 DEFAULT_ASSIGNMENT_POLICY = {
     "default_assignment": {
         "level": "task",
@@ -114,13 +129,35 @@ def ensure_dirs() -> None:
 
 
 def task_text(task: dict[str, Any]) -> str:
-    return json.dumps(task, sort_keys=True).lower()
+    request = {
+        key: value
+        for key, value in task.items()
+        if key not in TASK_RUNTIME_KEYS
+    }
+    return json.dumps(request, sort_keys=True).lower()
 
 
 def contains_disallowed_phrase(text: str, phrase: str) -> bool:
     escaped = re.escape(phrase).replace(r"\ ", r"\s+")
     pattern = rf"(?<![a-z0-9]){escaped}(?![a-z0-9])"
     return re.search(pattern, text) is not None
+
+
+def find_external_action_result(value: Any) -> str | None:
+    if isinstance(value, dict):
+        for key, nested in value.items():
+            normalized_key = str(key).strip().lower()
+            if normalized_key in EXTERNAL_ACTION_RESULT_KEYS and nested not in (None, False, 0, "", [], {}):
+                return normalized_key
+            found = find_external_action_result(nested)
+            if found:
+                return found
+    elif isinstance(value, list):
+        for item in value:
+            found = find_external_action_result(item)
+            if found:
+                return found
+    return None
 
 
 def hold_reason(task: dict[str, Any]) -> str | None:
@@ -202,11 +239,12 @@ def self_review_task_result(task: dict[str, Any], result: dict[str, Any], assign
             "code": "missing_guardrail",
             "detail": "Handler did not return an explicit safety guardrail.",
         })
-    if any(contains_disallowed_phrase(json.dumps(result, sort_keys=True).lower(), word) for word in sorted(DISALLOWED_WORDS)):
+    external_action_key = find_external_action_result(result)
+    if external_action_key:
         findings.append({
             "severity": "fail",
-            "code": "result_contains_disallowed_phrase",
-            "detail": "Result text contains an approval-gated phrase.",
+            "code": "result_declares_external_action",
+            "detail": f"Result declares an external action through {external_action_key}.",
         })
     strict = str(assignment.get("self_review") or "") == "strict"
     blocking_findings = [item for item in findings if item.get("severity") == "fail" or (strict and item.get("severity") == "warn" and item.get("code") == "artifact_missing")]
