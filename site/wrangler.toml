@@ -6,5 +6,3 @@ pages_build_output_dir = "."
 [[kv_namespaces]]
 binding = "JVT_CONVERSION_INTAKE"
 id = "a74ce2e236bf4c3bbc8a00e429b71b36"
-
-[env.production]
