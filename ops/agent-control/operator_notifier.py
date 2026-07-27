@@ -9,6 +9,7 @@ import re
 import smtplib
 import ssl
 import subprocess
+import sys
 from datetime import datetime, timezone
 from email.message import EmailMessage
 from email.utils import parseaddr
@@ -28,6 +29,11 @@ SEEN_JSON = STATE_DIR / "seen-alerts.json"
 FORWARDED_JSON = STATE_DIR / "forwarded-alerts.json"
 OUTREACH_ENV = ROOT / "outreach" / ".env.local"
 DEFAULT_FORWARD_TO = "chandruvasu@icloud.com"
+MAILBOX_AGENT_ROOT = ROOT / "outreach" / "mailbox-agent"
+if str(MAILBOX_AGENT_ROOT) not in sys.path:
+    sys.path.insert(0, str(MAILBOX_AGENT_ROOT))
+
+from inbox_policy import is_internal_sender, is_system_sender, qualified_external_inbound
 
 POSITIVE_TERMS = {
     "ok",
@@ -43,24 +49,6 @@ POSITIVE_TERMS = {
     "let's",
     "lets",
 }
-SYSTEM_SENDER_TERMS = {
-    "no-reply",
-    "noreply",
-    "donotreply",
-    "mailer-daemon",
-    "postmaster",
-    "notification",
-    "newsletter",
-    "bankofamerica",
-    "google",
-    "microsoft",
-    "apple",
-    "cloudflare",
-    "github",
-    "stripe",
-    "alpaca",
-}
-
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
@@ -97,18 +85,6 @@ def clean_text(value: object, limit: int = 500) -> str:
     return text[:limit]
 
 
-def sender_domain_from_email(email: str) -> str:
-    if "@" not in email:
-        return ""
-    return email.rsplit("@", 1)[-1].lower().strip()
-
-
-def is_system_sender(email: str) -> bool:
-    value = email.lower()
-    domain = sender_domain_from_email(value)
-    return any(term in value or term in domain for term in SYSTEM_SENDER_TERMS)
-
-
 def classify_alert(payload: dict[str, Any], path: Path) -> dict[str, Any] | None:
     response_status = str(payload.get("response_status") or "").strip().lower()
     if response_status in {"sent", "closed", "resolved"}:
@@ -121,10 +97,10 @@ def classify_alert(payload: dict[str, Any], path: Path) -> dict[str, Any] | None
     snippet = str(payload.get("snippet") or "")
     sender_name, sender_email = parseaddr(str(payload.get("from") or ""))
     sender_email = sender_email or str(payload.get("sender_email") or "")
-    if is_system_sender(sender_email):
+    if is_internal_sender(sender_email) or is_system_sender(sender_email):
         return None
 
-    if bucket != "direct" and priority != "high" and action != "review":
+    if not qualified_external_inbound(payload):
         return None
 
     normalized = re.sub(r"[^a-z0-9']+", " ", f"{subject} {snippet}".lower())

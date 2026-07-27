@@ -3,9 +3,16 @@ from __future__ import annotations
 
 import json
 import re
+import sys
 from pathlib import Path
 from typing import Any
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+MAILBOX_AGENT_ROOT = REPO_ROOT / "outreach" / "mailbox-agent"
+if str(MAILBOX_AGENT_ROOT) not in sys.path:
+    sys.path.insert(0, str(MAILBOX_AGENT_ROOT))
+
+from inbox_policy import is_internal_sender, is_system_sender
 
 WARM_STAGES = {
     "inbound-hit-needs-review",
@@ -120,18 +127,20 @@ def _classify(
     )
     source_text = str(source_path or item.get("source") or "").lower()
     account_text = _normalized_text(item.get("account_name"), item.get("contact_email"))
+    email = str(item.get("contact_email") or payload.get("sender_email") or "").strip().lower()
 
     if any(marker in status for marker in INTERNAL_MARKERS):
         return "internal", ["source_marked_internal"]
-    if "vasudevan chandrabose" in account_text or "jvtvasu@icloud.com" in account_text:
+    if "vasudevan chandrabose" in account_text or is_internal_sender(email):
         return "internal", ["known_internal_test_contact"]
+    if is_system_sender(email):
+        return "disqualified", ["known_system_sender"]
 
     if any(marker in status for marker in DISQUALIFIED_MARKERS):
         return "disqualified", ["source_marked_promotional_or_closed"]
     if "/closed/" in source_text:
         return "disqualified", ["source_moved_to_closed_inbox"]
 
-    email = str(item.get("contact_email") or payload.get("sender_email") or "").strip().lower()
     if not email or "@" not in email:
         return "unqualified", ["missing_confirmed_contact"]
 

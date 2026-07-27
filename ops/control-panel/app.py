@@ -9,6 +9,7 @@ import re
 import shlex
 import sqlite3
 import subprocess
+import sys
 from datetime import datetime, timedelta, timezone
 from email.utils import parseaddr
 from pathlib import Path
@@ -25,6 +26,11 @@ from pydantic import BaseModel, Field
 APP_ROOT = Path(__file__).resolve().parent
 STATIC_ROOT = APP_ROOT / "static"
 REPO_ROOT = Path("/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies")
+MAILBOX_AGENT_ROOT = REPO_ROOT / "outreach" / "mailbox-agent"
+if str(MAILBOX_AGENT_ROOT) not in sys.path:
+    sys.path.insert(0, str(MAILBOX_AGENT_ROOT))
+
+from inbox_policy import is_internal_sender, is_system_sender
 LEAD_DB = REPO_ROOT / "lead-pipeline" / "data" / "jvt_leads.sqlite3"
 OUTREACH_QUEUE = REPO_ROOT / "outreach" / "queue"
 OUTREACH_SCHEDULES = REPO_ROOT / "outreach" / "schedules"
@@ -42,6 +48,7 @@ AGENT_INTEROP_STATE_PATH = REPO_ROOT / "ops" / "agent-control" / "state" / "late
 ORCHESTRATOR_STATE_PATH = REPO_ROOT / "ops" / "agent-control" / "state" / "latest-orchestrator.json"
 GROWTH_CHECKIN_STATE_PATH = REPO_ROOT / "ops" / "agent-control" / "state" / "latest-growth-ops-checkin.json"
 OPPORTUNITY_MANAGER_STATE_PATH = REPO_ROOT / "ops" / "agent-control" / "state" / "latest-opportunity-manager.json"
+CONVERSION_PIPELINE_STATE_PATH = REPO_ROOT / "ops" / "agent-control" / "state" / "latest-conversion-pipeline.json"
 VOICE_READINESS_STATE_PATH = REPO_ROOT / "ops" / "agent-control" / "state" / "latest-voice-readiness.json"
 PAPER_TRADER_HEALTH_STATE_PATH = REPO_ROOT / "ops" / "agent-control" / "state" / "latest-paper-trader-health.json"
 SOURCE_HYGIENE_STATE_PATH = REPO_ROOT / "ops" / "agent-control" / "state" / "latest-source-hygiene.json"
@@ -709,11 +716,11 @@ def effective_inbox_payload(payload: dict[str, object], path: Path) -> dict[str,
     existing_bucket = str(item.get("triage_bucket") or "unknown")
 
     if recipient_addr.endswith("@jvt-technologies.com"):
-        if sender_addr.endswith("@jvt-technologies.com"):
+        if is_internal_sender(sender_addr):
             item["triage_bucket"] = "internal-test"
             item["triage_priority"] = "low"
             item["triage_action"] = "ignore"
-        elif any(token in sender_addr for token in ("noreply", "no-reply", "do-not-reply")):
+        elif is_system_sender(sender_addr):
             item["triage_bucket"] = "system"
             item["triage_priority"] = "low"
             item["triage_action"] = "defer"
@@ -1180,6 +1187,7 @@ def state_file_summary(path: Path, *, ok_when_missing: bool = False) -> dict[str
 
 def business_readiness_summary() -> dict[str, object]:
     opportunity = state_file_summary(OPPORTUNITY_MANAGER_STATE_PATH)
+    conversion = state_file_summary(CONVERSION_PIPELINE_STATE_PATH)
     voice_readiness = state_file_summary(VOICE_READINESS_STATE_PATH)
     paper_trader = state_file_summary(PAPER_TRADER_HEALTH_STATE_PATH)
     source_hygiene = state_file_summary(SOURCE_HYGIENE_STATE_PATH)
@@ -1187,6 +1195,8 @@ def business_readiness_summary() -> dict[str, object]:
     findings: list[str] = []
     if int(opportunity.get("response_needed_count") or 0):
         findings.append(f"{opportunity.get('response_needed_count')} active opportunity response(s) need review.")
+    if int(conversion.get("stale_next_action_count") or 0):
+        findings.append(f"{conversion.get('stale_next_action_count')} commercial next action(s) are overdue.")
     if not bool(voice_readiness.get("demo_ready")):
         findings.append("Voice readiness is not demo-ready.")
     if paper_trader.get("findings"):
@@ -1200,6 +1210,7 @@ def business_readiness_summary() -> dict[str, object]:
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "findings": findings,
         "opportunity_manager": opportunity,
+        "conversion_pipeline": conversion,
         "voice_readiness": voice_readiness,
         "paper_trader": paper_trader,
         "source_hygiene": source_hygiene,
@@ -2076,6 +2087,11 @@ def api_growth_ops_checkin() -> dict[str, object]:
 @app.get("/api/business-readiness")
 def api_business_readiness() -> dict[str, object]:
     return business_readiness_summary()
+
+
+@app.get("/api/conversion-funnel")
+def api_conversion_funnel() -> dict[str, object]:
+    return state_file_summary(CONVERSION_PIPELINE_STATE_PATH)
 
 
 @app.get("/api/ops/owned-status")

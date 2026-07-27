@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import sqlite3
+import sys
 from datetime import datetime, timezone
 from email.utils import parseaddr
 from pathlib import Path
@@ -23,6 +24,11 @@ MODEL_ROUTER_STATE = STATE_ROOT / "latest-model-router.json"
 CODEX_STATE = STATE_ROOT / "latest-codex-escalation.json"
 REPORT_JSON = STATE_ROOT / "latest-jvt-ops-db.json"
 REPORT_MD = STATE_ROOT / "latest-jvt-ops-db.md"
+MAILBOX_AGENT_ROOT = REPO_ROOT / "outreach" / "mailbox-agent"
+if str(MAILBOX_AGENT_ROOT) not in sys.path:
+    sys.path.insert(0, str(MAILBOX_AGENT_ROOT))
+
+from inbox_policy import is_internal_sender, is_system_sender, qualified_external_inbound
 
 
 SERVICE_CATALOG = [
@@ -50,24 +56,6 @@ POSITIVE_INBOUND_TERMS = (
     "available",
     "ok",
     "okay",
-)
-
-SYSTEM_SENDER_TERMS = (
-    "no-reply",
-    "noreply",
-    "donotreply",
-    "mailer-daemon",
-    "postmaster",
-    "notification",
-    "newsletter",
-    "bankofamerica",
-    "google",
-    "microsoft",
-    "apple",
-    "cloudflare",
-    "github",
-    "stripe",
-    "alpaca",
 )
 
 
@@ -178,6 +166,24 @@ def create_schema(conn: sqlite3.Connection) -> None:
             updated_at TEXT NOT NULL,
             FOREIGN KEY(account_id) REFERENCES accounts(id) ON DELETE CASCADE,
             FOREIGN KEY(service_slug) REFERENCES service_catalog(slug) ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS opportunity_commercial (
+            opportunity_id INTEGER PRIMARY KEY,
+            pipeline_stage TEXT NOT NULL,
+            asset_stage TEXT NOT NULL DEFAULT 'none',
+            estimated_value_low REAL NOT NULL DEFAULT 0,
+            estimated_value_high REAL NOT NULL DEFAULT 0,
+            probability REAL NOT NULL DEFAULT 0,
+            weighted_value REAL NOT NULL DEFAULT 0,
+            cash_collected REAL NOT NULL DEFAULT 0,
+            next_action TEXT,
+            next_action_due_at TEXT,
+            stage_source TEXT NOT NULL DEFAULT 'egg-auto',
+            metadata_json TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            FOREIGN KEY(opportunity_id) REFERENCES opportunities(id) ON DELETE CASCADE
         );
 
         CREATE TABLE IF NOT EXISTS interactions (
@@ -476,12 +482,6 @@ def sender_domain_from_email(email: str) -> str:
     return email.rsplit("@", 1)[-1].lower().strip()
 
 
-def is_system_sender(email: str) -> bool:
-    value = email.lower()
-    domain = sender_domain_from_email(value)
-    return any(term in value or term in domain for term in SYSTEM_SENDER_TERMS)
-
-
 def inferred_account_name(payload: dict[str, Any], sender_name: str, sender_email: str) -> str:
     for key in ("company_name", "company", "account_name", "organization"):
         value = str(payload.get(key) or "").strip()
@@ -498,7 +498,20 @@ def inferred_account_name(payload: dict[str, Any], sender_name: str, sender_emai
 
 def infer_service_slug_from_inbox(payload: dict[str, Any]) -> str:
     text = inbox_text(payload)
-    if any(term in text for term in ("dental", "dentist", "patient", "appointment", "front desk", "phone", "voice", "call")):
+    subject = str(payload.get("subject") or "").lower()
+    if any(term in subject for term in ("document workflow", "document search", "knowledge assistant", "internal knowledge")):
+        return "private-doc-intel"
+    if any(term in subject for term in ("document", "packet", "template", "draft", "form")):
+        return "document-generation"
+    if any(term in subject for term in ("voice intake", "ai receptionist", "missed call", "after-hours call", "front desk")):
+        return "ai-voice-intake"
+    if any(term in text for term in ("law firm", "legal", "attorney", "elder law", "estate planning")) and any(
+        term in text for term in ("document", "workflow", "knowledge", "search", "template", "checklist")
+    ):
+        return "private-doc-intel"
+    if any(term in text for term in ("dental", "dentist", "patient", "appointment", "front desk")) and any(
+        term in text for term in ("phone", "voice", "call", "receptionist", "after hours")
+    ):
         return "ai-voice-intake"
     if any(term in text for term in ("ballot", "election", "board", "hoa", "association", "property", "av", "meeting")):
         return "workflow-automation"
@@ -514,14 +527,14 @@ def infer_service_slug_from_inbox(payload: dict[str, Any]) -> str:
 def is_business_hit(payload: dict[str, Any]) -> bool:
     sender_name, sender_email = parseaddr(str(payload.get("from") or payload.get("sender") or ""))
     sender_email = sender_email.lower().strip()
-    if not sender_email or is_system_sender(sender_email):
+    if not sender_email or is_internal_sender(sender_email) or is_system_sender(sender_email):
         return False
     text = inbox_text(payload)
     subject = str(payload.get("subject") or "").lower()
     bucket = str(payload.get("triage_bucket") or "").lower()
     priority = str(payload.get("triage_priority") or "").lower()
     action = str(payload.get("triage_action") or "").lower()
-    if bucket == "direct" or priority == "high" or action == "review":
+    if qualified_external_inbound(payload):
         return True
     if subject.startswith("re:") and any(term in text for term in POSITIVE_INBOUND_TERMS):
         return True
@@ -538,24 +551,42 @@ def upsert_opportunity(
     notes: str,
 ) -> bool:
     now = utc_now()
+    source_name = Path(source).name
     existing = conn.execute(
         """
-        SELECT id FROM opportunities
-        WHERE account_id=? AND service_slug=? AND source=?
+        SELECT id, account_id, service_slug, stage, notes, source
+        FROM opportunities
+        WHERE source=? OR source LIKE ?
+        ORDER BY id
+        LIMIT 1
         """,
-        (account_id, service_slug, source),
+        (source, f"%/{source_name}"),
     ).fetchone()
     if existing:
-        conn.execute(
-            """
-            UPDATE opportunities
-            SET stage=?,
-                notes=COALESCE(NULLIF(?, ''), notes),
-                updated_at=?
-            WHERE id=?
-            """,
-            (stage, notes, now, int(existing["id"])),
+        next_notes = notes or str(existing["notes"] or "")
+        changed = any(
+            (
+                int(existing["account_id"]) != account_id,
+                str(existing["service_slug"]) != service_slug,
+                str(existing["stage"]) != stage,
+                str(existing["notes"] or "") != next_notes,
+                str(existing["source"]) != source,
+            )
         )
+        if changed:
+            conn.execute(
+                """
+                UPDATE opportunities
+                SET account_id=?,
+                    service_slug=?,
+                    stage=?,
+                    source=?,
+                    notes=?,
+                    updated_at=?
+                WHERE id=?
+                """,
+                (account_id, service_slug, stage, source, next_notes, now, int(existing["id"])),
+            )
         return False
     conn.execute(
         """
@@ -597,13 +628,21 @@ def ingest_inbox_files(conn: sqlite3.Connection, limit_per_bucket: int = 1000) -
                 sender_name, sender_email = parseaddr(str(payload.get("from") or payload.get("sender") or ""))
                 sender_email = sender_email.lower().strip()
                 domain = sender_domain_from_email(sender_email)
-                account_id = get_or_create_account_values(
-                    conn,
-                    name=inferred_account_name(payload, sender_name, sender_email),
-                    website=f"https://{domain}" if domain else "",
-                    industry=str(payload.get("industry") or payload.get("triage_bucket") or "inbound").strip(),
-                    city_state=str(payload.get("city_state") or "").strip(),
-                    source="inbox",
+                existing_contact = conn.execute(
+                    "SELECT account_id FROM contacts WHERE lower(email)=? ORDER BY id LIMIT 1",
+                    (sender_email,),
+                ).fetchone()
+                account_id = (
+                    int(existing_contact["account_id"])
+                    if existing_contact
+                    else get_or_create_account_values(
+                        conn,
+                        name=inferred_account_name(payload, sender_name, sender_email),
+                        website=f"https://{domain}" if domain else "",
+                        industry=str(payload.get("industry") or payload.get("triage_bucket") or "inbound").strip(),
+                        city_state=str(payload.get("city_state") or "").strip(),
+                        source="inbox",
+                    )
                 )
                 contact_id = get_or_create_contact(conn, account_id, sender_email, source="inbox")
                 service_slug = infer_service_slug_from_inbox(payload)
@@ -728,6 +767,7 @@ def sync() -> dict[str, Any]:
                 "leads",
                 "lead_service_fit",
                 "opportunities",
+                "opportunity_commercial",
                 "interactions",
                 "model_backend_status",
                 "queue_snapshots",

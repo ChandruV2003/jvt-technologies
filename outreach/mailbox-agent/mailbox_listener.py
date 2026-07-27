@@ -15,6 +15,7 @@ from email.message import Message
 from email.utils import getaddresses, parseaddr
 from pathlib import Path
 
+from inbox_policy import is_internal_sender, is_system_sender
 
 def env(name: str, default: str = "") -> str:
     return os.environ.get(name, default)
@@ -163,7 +164,7 @@ def classify_message(subject: str, sender: str, recipient: str, text_body: str) 
                 "triage_reason": ", ".join(reasons),
             }
 
-        if sender_addr.endswith("@jvt-technologies.com"):
+        if is_internal_sender(sender_addr):
             reasons.append("internal_sender")
             return {
                 "sender_email": sender_addr,
@@ -175,7 +176,7 @@ def classify_message(subject: str, sender: str, recipient: str, text_body: str) 
                 "triage_reason": ", ".join(reasons),
             }
 
-        if any(token in sender_addr for token in ("noreply", "no-reply", "do-not-reply")):
+        if is_system_sender(sender_addr):
             reasons.append("noreply_sender")
             return {
                 "sender_email": sender_addr,

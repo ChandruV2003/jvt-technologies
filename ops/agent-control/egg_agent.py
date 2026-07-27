@@ -29,6 +29,8 @@ QUALITY_HOLD_REPAIR_STATE = STATE_ROOT / "latest-quality-hold-repair-queue.json"
 FRESH_LEAD_PACKET_STATE = STATE_ROOT / "latest-fresh-lead-packet-prep.json"
 CUSTOM_PILOT_PIPELINE_STATE = STATE_ROOT / "latest-custom-pilot-pipeline.json"
 WARM_FOLLOWUP_SAMPLE_STATE = STATE_ROOT / "latest-warm-followup-samples.json"
+CONVERSION_PIPELINE_STATE = STATE_ROOT / "latest-conversion-pipeline.json"
+REPLY_RECONCILIATION_STATE = STATE_ROOT / "latest-reply-reconciliation.json"
 VOICE_QUALITY_ROOT = REPO_ROOT / "products" / "Private-AI-Lab" / "apps" / "jvt-inbound-voice-agent" / "voice-quality"
 VOICE_BRIDGE_REGRESSION_STATE = (
     REPO_ROOT
@@ -60,6 +62,8 @@ SAFE_TASK_TYPES = {
     "opportunity_hit_sync",
     "opportunity_manager_refresh",
     "custom_pilot_pipeline",
+    "reply_reconciliation",
+    "conversion_pipeline_refresh",
     "vertical_lead_research_refresh",
     "service_pilot_package_refresh",
     "voice_quality_sample_inventory",
@@ -366,6 +370,8 @@ def build_snapshot() -> dict[str, Any]:
     opportunity = load_json(STATE_ROOT / "latest-opportunity-manager.json", {})
     custom_pilot = load_json(CUSTOM_PILOT_PIPELINE_STATE, {})
     warm_followups = load_json(WARM_FOLLOWUP_SAMPLE_STATE, {})
+    conversion = load_json(CONVERSION_PIPELINE_STATE, {})
+    reply_reconciliation = load_json(REPLY_RECONCILIATION_STATE, {})
     voice = load_json(STATE_ROOT / "latest-voice-readiness.json", {})
     voice_bridge_regression = load_json(VOICE_BRIDGE_REGRESSION_STATE, {})
     paper = load_json(STATE_ROOT / "latest-paper-trader-health.json", {})
@@ -503,6 +509,20 @@ def build_snapshot() -> dict[str, Any]:
             "service_counts": custom_pilot.get("service_counts"),
             "next_actions": custom_pilot.get("next_actions"),
         },
+        "conversion_pipeline": {
+            "generated_at": conversion.get("generated_at"),
+            "age_seconds": parse_iso_age_seconds(conversion.get("generated_at")),
+            "opportunity_count": conversion.get("opportunity_count"),
+            "stale_next_action_count": conversion.get("stale_next_action_count"),
+            "goal": conversion.get("goal"),
+            "stage_counts": conversion.get("stage_counts"),
+        },
+        "reply_reconciliation": {
+            "generated_at": reply_reconciliation.get("generated_at"),
+            "age_seconds": parse_iso_age_seconds(reply_reconciliation.get("generated_at")),
+            "matched_count": reply_reconciliation.get("matched_count"),
+            "skipped_count": reply_reconciliation.get("skipped_count"),
+        },
         "warm_followup_samples": {
             "generated_at": warm_followups.get("generated_at"),
             "age_seconds": parse_iso_age_seconds(warm_followups.get("generated_at")),
@@ -586,6 +606,8 @@ def deterministic_candidates(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
     lead = snapshot["lead_research"]
     voice = snapshot["voice"]
     custom_pilot = snapshot["custom_pilot_pipeline"]
+    conversion = snapshot.get("conversion_pipeline") or {}
+    reply_reconciliation = snapshot.get("reply_reconciliation") or {}
     warm_followups = snapshot["warm_followup_samples"]
     materializer = snapshot["materializer"]
     codex_recommendation = (
@@ -645,6 +667,33 @@ def deterministic_candidates(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
         items.append(candidate("custom_pilot_pipeline", "Refresh custom pilot packets for warm/direct opportunities.", cadence="hourly", priority=1, feature="custom-pilots", reason="warm opportunity needs custom pilot pipeline"))
     elif (custom_pilot.get("age_seconds") or 999999) > 3600:
         items.append(candidate("custom_pilot_pipeline", "Refresh custom pilot pipeline even when no active response is pending.", cadence="hourly", priority=3, feature="custom-pilots", reason="custom pilot pipeline stale"))
+    if (
+        (snapshot["opportunity_manager"].get("qualified_count") or 0) > queues.get("replied", 0)
+        and (reply_reconciliation.get("age_seconds") is None or int(reply_reconciliation.get("age_seconds") or 999999) > 1800)
+    ):
+        items.append(candidate(
+            "reply_reconciliation",
+            "Reconcile qualified inbound replies with their latest matching sent outreach packet.",
+            cadence="hourly",
+            priority=1,
+            feature="company-memory",
+            reason="qualified inbound reply state is not represented in the replied queue",
+            dedupe_key="reply-reconciliation",
+        ))
+    if (
+        conversion.get("age_seconds") is None
+        or int(conversion.get("age_seconds") or 999999) > 1800
+        or int(conversion.get("stale_next_action_count") or 0) > 0
+    ):
+        items.append(candidate(
+            "conversion_pipeline_refresh",
+            "Refresh the authoritative conversion ledger, weighted pipeline, cash tracking, and next-action state.",
+            cadence="hourly",
+            priority=1 if int(conversion.get("stale_next_action_count") or 0) > 0 else 2,
+            feature="revenue-conversion",
+            reason="conversion pipeline is stale or has overdue commercial next actions",
+            dedupe_key="conversion-pipeline-refresh",
+        ))
     if int(approved_quality.get("hold") or 0) > 0:
         items.append(candidate(
             "approved_quality_reconcile",
@@ -885,9 +934,9 @@ def build_task(candidate_item: dict[str, Any], task_id: str) -> dict[str, Any]:
         "requires_approval": False,
         "seeded_by": "egg_agent",
         "feature": candidate_item.get("feature") or "company-autonomy",
-        "level": "story" if candidate_item["type"] in {"vertical_lead_research_refresh", "fresh_lead_packet_prep", "service_pilot_package_refresh", "custom_pilot_pipeline", "warm_followup_sample_prep", "local_audio_bridge_next_step"} else "task",
+        "level": "story" if candidate_item["type"] in {"vertical_lead_research_refresh", "fresh_lead_packet_prep", "service_pilot_package_refresh", "custom_pilot_pipeline", "warm_followup_sample_prep", "local_audio_bridge_next_step", "conversion_pipeline_refresh"} else "task",
         "model_tier": "m4-local-with-macbook-large-available" if "model-suggested" in str(candidate_item.get("reason") or "") else "deterministic",
-        "self_review": "strict" if candidate_item["type"] in {"vertical_lead_research_refresh", "fresh_lead_packet_prep", "custom_pilot_pipeline", "warm_followup_sample_prep", "local_audio_bridge_next_step", "priority_packet_review_queue", "lead_quality_audit", "approved_quality_reconcile", "quality_hold_repair_queue", "inbox_triage_finalize"} else "standard",
+        "self_review": "strict" if candidate_item["type"] in {"vertical_lead_research_refresh", "fresh_lead_packet_prep", "custom_pilot_pipeline", "warm_followup_sample_prep", "local_audio_bridge_next_step", "priority_packet_review_queue", "lead_quality_audit", "approved_quality_reconcile", "quality_hold_repair_queue", "inbox_triage_finalize", "reply_reconciliation", "conversion_pipeline_refresh"} else "standard",
         "source_reason": candidate_item.get("reason") or "",
         "source_agent": "egg",
         "safety_boundary": SAFETY_BOUNDARY,

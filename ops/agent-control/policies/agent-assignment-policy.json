@@ -108,6 +108,18 @@
       "model_tier": "deterministic",
       "self_review": "strict"
     },
+    "reply_reconciliation": {
+      "level": "task",
+      "feature": "company-memory",
+      "model_tier": "deterministic",
+      "self_review": "strict"
+    },
+    "conversion_pipeline_refresh": {
+      "level": "story",
+      "feature": "revenue-conversion",
+      "model_tier": "deterministic-plus-m4-local-review",
+      "self_review": "strict"
+    },
     "lead_quality_audit": {
       "level": "task",
       "feature": "outreach-quality",

@@ -14,6 +14,11 @@ The agent may do these without waiting:
 - draft reply generation
 - internal documentation updates
 - local run and deploy validation
+- internal funnel reconciliation, commercial-stage tracking, and revenue reporting
+- internally scoped low-risk improvements that preserve existing external-action guardrails
+
+E.G.G. should self-approve and execute these safe internal actions. It should not
+create a routine operator decision packet merely to begin or continue them.
 
 ## Approval Required
 

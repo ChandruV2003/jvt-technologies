@@ -39,6 +39,7 @@ TCP_PRESSURE_STATE = CONTROL_ROOT / "state" / "latest-m4-tcp-pressure.json"
 AGENT_INTEROP_STATE = CONTROL_ROOT / "state" / "latest-agent-interop.json"
 SERVICE_BOARD = REPO_ROOT / "strategy" / "service-line-execution-board.json"
 REVENUE_OPPORTUNITIES = REPO_ROOT / "strategy" / "revenue-opportunities.json"
+CONVERSION_PIPELINE_STATE = STATE_ROOT / "latest-conversion-pipeline.json"
 VOICE_AGENT_DATA_ROOT = REPO_ROOT / "products" / "Private-AI-Lab" / "apps" / "jvt-inbound-voice-agent" / "data"
 VOICE_READINESS_STATE = STATE_ROOT / "latest-voice-readiness.json"
 TRADER_ROOT = Path("/Users/c.s.d.v.r.s./Developer/JVT-AutoTrader")
@@ -353,6 +354,7 @@ def service_board_summary() -> dict[str, Any]:
 
 def revenue_summary() -> dict[str, Any]:
     payload = load_json(REVENUE_OPPORTUNITIES, {})
+    conversion = load_json(CONVERSION_PIPELINE_STATE, {})
     items = payload.get("opportunities") if isinstance(payload, dict) else []
     if not isinstance(items, list):
         items = []
@@ -361,6 +363,14 @@ def revenue_summary() -> dict[str, Any]:
         "recommendation": payload.get("recommendation") if isinstance(payload, dict) else "",
         "count": len(items),
         "items": items[:5],
+        "conversion": {
+            "generated_at": conversion.get("generated_at") if isinstance(conversion, dict) else "",
+            "opportunity_count": conversion.get("opportunity_count") if isinstance(conversion, dict) else 0,
+            "stage_counts": conversion.get("stage_counts") if isinstance(conversion, dict) else {},
+            "stale_next_action_count": conversion.get("stale_next_action_count") if isinstance(conversion, dict) else 0,
+            "goal": conversion.get("goal") if isinstance(conversion, dict) else {},
+            "items": (conversion.get("items") or [])[:5] if isinstance(conversion, dict) else [],
+        },
     }
 
 

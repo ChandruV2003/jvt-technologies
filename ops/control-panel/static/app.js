@@ -407,6 +407,8 @@ function renderBusinessReadiness(readiness) {
   if (!readinessGrid || !readinessDetail) return;
 
   const opportunities = readiness.opportunity_manager || {};
+  const conversion = readiness.conversion_pipeline || {};
+  const goal = conversion.goal || {};
   const voice = readiness.voice_readiness || {};
   const trader = readiness.paper_trader || {};
   const source = readiness.source_hygiene || {};
@@ -418,6 +420,10 @@ function renderBusinessReadiness(readiness) {
     tile("Overall", readiness.ok ? "ok" : "attention"),
     tile("Active opportunities", opportunities.active_count || 0),
     tile("Need response", opportunities.response_needed_count || 0),
+    tile("Cash collected", `$${Number(goal.cash_collected || 0).toLocaleString()}`),
+    tile("Weighted pipeline", `$${Number(goal.weighted_pipeline || 0).toLocaleString()}`),
+    tile("Goal remaining", `$${Number(goal.remaining || 10000).toLocaleString()}`),
+    tile("Overdue actions", conversion.stale_next_action_count || 0),
     tile("Voice demo", voice.demo_ready ? "ready" : "not ready"),
     tile("Voice live", voice.live_ready ? "ready" : "gated"),
     tile("Paper trader", trader.ok ? (trader.mode || "ok") : "check"),
@@ -428,6 +434,7 @@ function renderBusinessReadiness(readiness) {
   ].join("");
 
   const topActions = opportunities.top_next_actions || [];
+  const conversionItems = conversion.items || [];
   const findings = readiness.findings || [];
   readinessDetail.innerHTML = `
     <article class="list-item ${readiness.ok ? "healthy-item" : "attention-item"}">
@@ -451,6 +458,17 @@ function renderBusinessReadiness(readiness) {
               <p class="meta">${escapeHtml(item.stage || "stage")} · ${escapeHtml(item.service_name || "service")} · ${escapeHtml(item.contact_email || "no contact")}</p>
             `).join("")
           : `<p class="meta">No active opportunity response is pending.</p>`
+      }
+    </article>
+    <article class="list-item">
+      <h3>Commercial funnel</h3>
+      ${
+        conversionItems.length
+          ? conversionItems.slice(0, 5).map((item) => `
+              <p><strong>${escapeHtml(item.account_name || "Unknown")}</strong>: ${escapeHtml(item.next_action || "Review commercial stage.")}</p>
+              <p class="meta">${escapeHtml(item.pipeline_stage || "stage")} · ${escapeHtml(item.asset_stage || "no assets")} · weighted $${Number(item.weighted_value || 0).toLocaleString()}${item.next_action_overdue ? " · overdue" : ""}</p>
+            `).join("")
+          : `<p class="meta">No qualified commercial opportunities are currently tracked.</p>`
       }
     </article>
   `;

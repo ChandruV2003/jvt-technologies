@@ -15,6 +15,7 @@ from email.utils import parseaddr
 from pathlib import Path
 from typing import Any
 
+from inbox_policy import internal_emails, is_system_sender
 
 ROOT = Path("/Users/c.s.d.v.r.s./Developer/Control-Host/JVT-Technologies")
 INBOX_ROOT = ROOT / "outreach" / "inbox"
@@ -25,13 +26,6 @@ STATE_ROOT = ROOT / "ops" / "agent-control" / "state"
 LATEST_JSON = STATE_ROOT / "latest-inbox-triage-finalizer.json"
 LATEST_MD = STATE_ROOT / "latest-inbox-triage-finalizer.md"
 MAILBOX_LISTENER = ROOT / "outreach" / "mailbox-agent" / "mailbox_listener.py"
-
-DEFAULT_OPERATOR_EMAILS = {
-    "chandruvasu@icloud.com",
-    "chandruv@jvt-technologies.com",
-    "hello@jvt-technologies.com",
-    "jvtvasu@icloud.com",
-}
 
 NOISE_SUBJECT_MARKERS = {
     "tax-optimization checklist",
@@ -52,24 +46,6 @@ NOISE_BODY_MARKERS = {
     "convertkit",
     "mailchimp",
     "constant contact",
-}
-
-SYSTEM_SENDER_TERMS = {
-    "no-reply",
-    "noreply",
-    "donotreply",
-    "mailer-daemon",
-    "postmaster",
-    "notification",
-    "newsletter",
-    "bankofamerica",
-    "google",
-    "microsoft",
-    "apple",
-    "cloudflare",
-    "github",
-    "stripe",
-    "alpaca",
 }
 
 
@@ -101,21 +77,7 @@ def load_mailbox_listener() -> Any:
 
 
 def operator_emails() -> set[str]:
-    raw = os.environ.get("JVT_OPERATOR_EMAILS", "")
-    configured = {value.strip().lower() for value in raw.split(",") if value.strip()}
-    return configured or DEFAULT_OPERATOR_EMAILS
-
-
-def sender_domain(email_address: str) -> str:
-    if "@" not in email_address:
-        return ""
-    return email_address.rsplit("@", 1)[-1].lower().strip()
-
-
-def is_system_sender(email_address: str) -> bool:
-    value = email_address.lower()
-    domain = sender_domain(value)
-    return any(term in value or term in domain for term in SYSTEM_SENDER_TERMS)
+    return internal_emails()
 
 
 def text_from_eml(path: Path, listener: Any) -> str:

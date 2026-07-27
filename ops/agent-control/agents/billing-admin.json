@@ -7,6 +7,9 @@
   "approval_boundary": "autonomous for internal billing/admin prep only; required before sending invoices, payment follow-up, banking changes, payment setup, contract commitments, or external contact",
   "owns": [
     "invoice draft prep",
+    "conversion funnel and weighted pipeline tracking",
+    "cash-collected and goal-progress reporting",
+    "commercial-stage next-action reminders",
     "admin checklist tracking",
     "payment follow-up reminders",
     "record organization",

@@ -147,12 +147,6 @@ def pending_pilot_decisions() -> list[dict[str, Any]]:
 
 def normalize_opportunity(raw: dict[str, Any]) -> dict[str, Any]:
     service_slug = str(raw.get("service_slug") or "workflow-automation")
-    text = " ".join(
-        str(raw.get(key) or "").lower()
-        for key in ("account_name", "industry", "service_slug", "service_name", "notes", "source")
-    )
-    if any(term in text for term in ("document workflow", "law firm", "legal", "attorney", "elder law", "estate", "probate")):
-        service_slug = "private-doc-intel"
     if service_slug not in SERVICE_PLAYBOOKS:
         service_slug = "workflow-automation"
     stage = str(raw.get("stage") or "")

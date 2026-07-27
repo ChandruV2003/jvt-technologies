@@ -1,0 +1,49 @@
+{
+  "id": "2026-07-27-public-conversion-capture",
+  "title": "Build first-party website conversion capture and attribution",
+  "created_at": "2026-07-27T16:52:00+00:00",
+  "queued_by": "egg_internal_business_review",
+  "status": "queued",
+  "level": "epic",
+  "feature": "revenue-conversion",
+  "model_tier": "codex-cli-capped",
+  "model": "gpt-5.5",
+  "execution_mode": "codex_workspace_write",
+  "codex_enabled": true,
+  "requires_approval": false,
+  "story": "JVT has a working public site, automated outbound pipeline, and a canonical commercial opportunity ledger, but the public site currently converts only through a mailto link and does not provide first-party attribution. Build the smallest safe first-party workflow-intake path that lets a prospect describe a workflow problem without uploading sensitive files. Persist a durable internal submission event, attribute the source and service interest, expose conversion counts in the control panel, and hand qualified submissions into the existing inbox/opportunity/commercial pipeline. Reuse existing visual language and canonical inbox/opportunity policies. Do not invent a parallel CRM, bypass qualification, or weaken external-action guardrails.",
+  "scope_paths": [
+    "site",
+    "ops/control-panel",
+    "ops/agent-control",
+    "outreach/mailbox-agent"
+  ],
+  "deliverables": [
+    "A responsive website workflow-intake form with concise, human wording and no sensitive-file upload.",
+    "A locally testable first-party submission endpoint or adapter appropriate for the existing Cloudflare Pages architecture.",
+    "Durable submission and attribution records that can be reconciled into the canonical JVT opportunity and commercial pipeline.",
+    "Control-panel conversion metrics for form views or starts when observable, completed submissions, qualified submissions, and service interest.",
+    "Focused validation covering malformed input, duplicate submissions, internal/test submissions, qualification handoff, and no-send behavior.",
+    "A deployment brief that states the exact existing Cloudflare binding or configuration needed; do not publish or create paid infrastructure."
+  ],
+  "acceptance_criteria": [
+    "Use the existing public-site design system and keep the form useful on desktop and mobile.",
+    "Collect only the minimum useful fields: name, public business email, company, workflow type or service interest, short problem description, and optional preferred next step.",
+    "Reject placeholders, obviously malformed addresses, JVT internal addresses, and duplicate submissions from conversion metrics.",
+    "Do not accept documents, credentials, payment data, protected health information, or other sensitive attachments.",
+    "Use one canonical submission identifier and make retries idempotent.",
+    "Integrate with the existing account, contact, opportunity, qualification, commercial, and control-panel paths rather than creating a second source of truth.",
+    "Do not send email, approve outreach, contact a submitter, publish the site, purchase services, create accounts, or make external commitments.",
+    "Run syntax checks, focused tests, local endpoint validation, and responsive visual validation before returning the result through architect-inbox."
+  ],
+  "roi_case": {
+    "revenue_goal_link": "Adds measurable inbound conversion to the March 2027 $10k cash-flow goal instead of relying only on outbound replies.",
+    "expected_business_value": "Turns site visitors into structured, attributable opportunities and gives E.G.G. a direct signal for preparing custom pilots.",
+    "why_codex_is_worth_it": "This crosses the public site, Cloudflare-compatible request handling, canonical CRM reconciliation, testing, and control-panel reporting.",
+    "success_metric": "A local end-to-end test submission appears once in the canonical opportunity pipeline and conversion dashboard without triggering an external message.",
+    "fallback_if_not_run": "Keep the epic queued and continue outbound operations; do not deploy a partial or untracked form."
+  },
+  "requested_external_actions": [],
+  "safety_boundary": "Repository-scoped internal implementation and local validation only. No production publish, outreach delivery, packet approval, spending, account changes, sensitive-data collection, market orders, crypto activity, provider enablement, destructive broad file actions, or external commitments.",
+  "timeout_seconds": 2400
+}

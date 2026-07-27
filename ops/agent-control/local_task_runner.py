@@ -1694,8 +1694,10 @@ def fresh_lead_packet_prep(task: dict[str, Any]) -> dict[str, Any]:
 def opportunity_hit_sync(_task: dict[str, Any]) -> dict[str, Any]:
     steps = [
         run_command("operator_notifier_state", ["python3", "ops/agent-control/operator_notifier.py"], timeout=90),
+        run_command("reply_reconciliation", ["python3", "outreach/tools/reconcile_replies.py"], timeout=90),
         run_command("jvt_ops_db_sync", ["python3", "ops/agent-control/jvt_ops_db.py", "sync"], timeout=120),
         report_script("opportunity_manager", "opportunity_manager.py"),
+        report_script("conversion_pipeline", "conversion_pipeline.py"),
         report_script("custom_pilot_pipeline", "custom_pilot_pipeline.py"),
         run_command("agent_interop_check", ["python3", "ops/agent-control/agent_interop_check.py"], timeout=90),
     ]
@@ -1708,6 +1710,9 @@ def opportunity_hit_sync(_task: dict[str, Any]) -> dict[str, Any]:
             str(STATE_ROOT / "latest-jvt-ops-db.json"),
             str(STATE_ROOT / "latest-opportunity-manager.json"),
             str(STATE_ROOT / "latest-opportunity-manager.md"),
+            str(STATE_ROOT / "latest-reply-reconciliation.json"),
+            str(STATE_ROOT / "latest-conversion-pipeline.json"),
+            str(STATE_ROOT / "latest-conversion-pipeline.md"),
             str(STATE_ROOT / "latest-custom-pilot-pipeline.json"),
             str(STATE_ROOT / "latest-custom-pilot-pipeline.md"),
             str(STATE_ROOT / "latest-agent-interop.md"),
@@ -1764,6 +1769,42 @@ def custom_pilot_pipeline(_task: dict[str, Any]) -> dict[str, Any]:
             str(REPO_ROOT / "client-work" / "prospect-pilot-packets"),
         ],
         "guardrail": "Internal custom-pilot planning and draft response packets only. No external replies, provider changes, credential requests, live data processing, or commitments.",
+    }
+
+
+def reply_reconciliation(_task: dict[str, Any]) -> dict[str, Any]:
+    step = run_command("reply_reconciliation", ["python3", "outreach/tools/reconcile_replies.py"], timeout=90)
+    return {
+        "ok": bool(step["ok"]),
+        "steps": [step],
+        "artifacts": [
+            str(STATE_ROOT / "latest-reply-reconciliation.json"),
+            str(STATE_ROOT / "latest-reply-reconciliation.md"),
+            str(REPO_ROOT / "outreach" / "queue" / "replied"),
+        ],
+        "guardrail": "Internal reply-state reconciliation only. No message is sent, approved, drafted, or deleted.",
+    }
+
+
+def conversion_pipeline_refresh(_task: dict[str, Any]) -> dict[str, Any]:
+    steps = [
+        run_command("jvt_ops_db_sync", ["python3", "ops/agent-control/jvt_ops_db.py", "sync"], timeout=120),
+        report_script("opportunity_manager", "opportunity_manager.py"),
+        report_script("conversion_pipeline", "conversion_pipeline.py"),
+    ]
+    return {
+        "ok": all(step["ok"] for step in steps),
+        "steps": steps,
+        "artifacts": [
+            str(STATE_ROOT / "latest-jvt-ops-db.json"),
+            str(STATE_ROOT / "latest-opportunity-manager.json"),
+            str(STATE_ROOT / "latest-conversion-pipeline.json"),
+            str(STATE_ROOT / "latest-conversion-pipeline.md"),
+        ],
+        "guardrail": (
+            "Internal commercial memory and planning only. No prospect message, invoice, payment request, "
+            "contract, price commitment, or external action is performed."
+        ),
     }
 
 
@@ -1861,7 +1902,10 @@ def system_resource_report(_task: dict[str, Any]) -> dict[str, Any]:
 
 def business_readiness_sweep(_task: dict[str, Any]) -> dict[str, Any]:
     steps = [
+        run_command("reply_reconciliation", ["python3", "outreach/tools/reconcile_replies.py"], timeout=90),
+        run_command("jvt_ops_db_sync", ["python3", "ops/agent-control/jvt_ops_db.py", "sync"], timeout=120),
         report_script("opportunity_manager", "opportunity_manager.py"),
+        report_script("conversion_pipeline", "conversion_pipeline.py"),
         report_script("custom_pilot_pipeline", "custom_pilot_pipeline.py"),
         report_script("voice_readiness_check", "voice_readiness_check.py"),
         report_script("paper_trader_health", "paper_trader_health.py"),
@@ -1875,6 +1919,8 @@ def business_readiness_sweep(_task: dict[str, Any]) -> dict[str, Any]:
         "steps": steps,
         "artifacts": [
             str(STATE_ROOT / "latest-opportunity-manager.json"),
+            str(STATE_ROOT / "latest-reply-reconciliation.json"),
+            str(STATE_ROOT / "latest-conversion-pipeline.json"),
             str(STATE_ROOT / "latest-custom-pilot-pipeline.json"),
             str(STATE_ROOT / "latest-voice-readiness.json"),
             str(STATE_ROOT / "latest-paper-trader-health.json"),
@@ -1942,6 +1988,8 @@ HANDLERS = {
     "opportunity_hit_sync": opportunity_hit_sync,
     "opportunity_manager_refresh": opportunity_manager_refresh,
     "custom_pilot_pipeline": custom_pilot_pipeline,
+    "reply_reconciliation": reply_reconciliation,
+    "conversion_pipeline_refresh": conversion_pipeline_refresh,
     "vertical_lead_research_refresh": vertical_lead_research_refresh,
     "fresh_lead_packet_prep": fresh_lead_packet_prep,
     "service_pilot_package_refresh": service_pilot_package_refresh,

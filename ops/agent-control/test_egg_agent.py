@@ -34,6 +34,8 @@ def baseline_snapshot() -> dict:
         "lead_research": {"generated_at": "2026-07-27T00:00:00+00:00", "new_leads_added": 2, "drafts_created": 2},
         "voice": {"demo_ready": False, "local_bridge_ready": False, "sample_state": {"samples": 0, "renders": 0}},
         "custom_pilot_pipeline": {"age_seconds": 0},
+        "conversion_pipeline": {"age_seconds": 0, "stale_next_action_count": 0},
+        "reply_reconciliation": {"age_seconds": 0, "matched_count": 0},
         "warm_followup_samples": {"age_seconds": 0},
         "materializer": {"unmatched_count": 0},
         "artifact_ages": {"content_backlog": 0, "meeting_packet_today": 0, "insurance_proof_today": 0},
@@ -107,6 +109,25 @@ class EggAgentQualityReconcileTests(unittest.TestCase):
 
         self.assertEqual(health["recent_failed_type_count"], 1)
         self.assertEqual(health["recent_failed_types"], ["vertical_lead_research_refresh"])
+
+    def test_missing_reply_state_schedules_reconciliation(self) -> None:
+        snapshot = baseline_snapshot()
+        snapshot["opportunity_manager"]["qualified_count"] = 1
+        snapshot["reply_reconciliation"]["age_seconds"] = None
+
+        candidates = EGG.deterministic_candidates(snapshot)
+
+        self.assertIn("reply_reconciliation", {item["type"] for item in candidates})
+
+    def test_overdue_conversion_action_schedules_refresh(self) -> None:
+        snapshot = baseline_snapshot()
+        snapshot["conversion_pipeline"]["stale_next_action_count"] = 1
+
+        candidates = EGG.deterministic_candidates(snapshot)
+        refresh = [item for item in candidates if item["type"] == "conversion_pipeline_refresh"]
+
+        self.assertEqual(len(refresh), 1)
+        self.assertEqual(refresh[0]["priority_rank"], 1)
 
 
 if __name__ == "__main__":
