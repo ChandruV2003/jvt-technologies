@@ -1,7 +1,7 @@
 {
   "codex_cli_enabled": true,
-  "max_codex_epics_per_day": 1,
-  "min_seconds_between_codex_epics": 21600,
+  "max_codex_epics_per_day": 2,
+  "min_seconds_between_codex_epics": 3600,
   "require_roi_case_for_codex_epics": true,
   "required_roi_fields": [
     "revenue_goal_link",
